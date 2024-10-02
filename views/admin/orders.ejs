@@ -1,0 +1,92 @@
+<style>
+    .btn-view-details {
+        background: #4CAF50;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .btn-view-details:hover {
+        background: #388E3C;
+    }
+</style>
+
+<div class="container mt-5">
+    <% if (locals.message && locals.message.success || locals.message.error) { %>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const messageType = '<%= locals.message.success ? "success" : "error" %>';
+                const messageText = '<%= locals.message.success ? locals.message.success : locals.message.error %>';
+                const messageTitle = messageType === 'success' ? 'Success!' : 'Oops...';
+                const confirmButtonColor = messageType === 'success' ? '#28a745' : '#d33';
+
+                swal.fire({
+                    icon: messageType,
+                    title: messageTitle,
+                    text: messageText,
+                    confirmButtonColor: confirmButtonColor,
+                    confirmButtonText: 'Ok'
+                });
+            });
+        </script>
+    <% } %>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/admin/dashboard" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Orders</li>
+        </ol>
+    </nav>   
+
+    <section class="order-list mt-5">
+        <h2 class="text-center" style="font-weight: bolder;">Orders List</h2>
+        <div class="login-line"></div>
+        <div class="table-responsive mt-5">
+            <table id="advancedTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Order ID</th>
+                        <th scope="col">User Name</th>
+                        <th scope="col">Order Date</th>
+                        <th scope="col">Payment Method</th>
+                        <th scope="col">Total Price</th>
+                        <th scope="col">Order Status</th>
+                        <th scope="col">Actions</th>
+                        <th scope="col">View</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% orders.forEach((order, number) => { %>
+                        <tr>
+                            <td><%= order.generatedOrderId %></td>
+                            <td><%= order.userId.firstName %> <%= order.userId.lastName %></td>
+                            <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
+                            <td><%= order.paymentMethod %></td>
+                            <td>₹ <%= order.totalPrice %></td>
+                            <td><%= order.orderStatus %></td>
+                            <td>
+                                <form id="order-status-form-<%= order._id %>" action="/admin/orders/update-order-status/<%= order._id %>" method="post">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <select name="orderStatus" id="order-status-<%= order._id %>" class="form-select" data-order-id="<%= order._id %>" data-current="<%= order.orderStatus %>">
+                                        <option value="Pending" <%= order.orderStatus === 'Pending' ? 'selected' : '' %>>Pending</option>
+                                        <option value="Processing" <%= order.orderStatus === 'Processing' ? 'selected' : '' %>>Processing</option>
+                                        <option value="Shipped" <%= order.orderStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                                        <option value="Delivered" <%= order.orderStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                                        <option value="Cancelled" <%= order.orderStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                                        <option value="Returned" <%= order.orderStatus === 'Returned' ? 'selected' : '' %>>Returned</option>
+                                    </select>
+                                </form>
+                            </td>
+                            <td><a href="/admin/orders/order-details/<%= order._id %>" class="btn btn-view-details">View</a></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<% script = `<script src="/js/orders.js"></script>` %>

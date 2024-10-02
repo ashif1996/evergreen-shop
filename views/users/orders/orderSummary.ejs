@@ -1,0 +1,21 @@
+<div class="container py-5">
+    <div class="row">
+      <div class="col text-center">
+          <h1>Order Confirmation</h1>
+          <div class="order-summary mt-4">
+            <h2>Thank you for your order!</h2>
+            <p class="mt-5">Order ID: <%= order.generatedOrderId %></p>
+            <p>Order Date: <%= new Date(order.createdAt).toDateString() %></p>
+            <h3 class="mt-4">Order Summary</h3>
+            <p class="mt-4">Total Price: ₹<%= order.totalPrice.toFixed(2) %></p>
+            <p>Payment Method: <%= order.paymentMethod %></p>
+            <p>Order Status: <%= order.orderStatus %></p>
+            <p>Applied Coupon: <%= order.couponId ? order.couponId.code : 'None' %></p>
+            <% if (order.couponId) { %>
+                <p>Coupon Discount: <%= order.couponDiscount %></p>
+            <% } %>
+            <a class="btn btn-primary mt-5" href="/">Continue Shopping</a>
+          </div>
+      </div>
+    </div> 
+</div>

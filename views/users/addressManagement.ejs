@@ -1,0 +1,354 @@
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .section {
+        padding: 60px 0;
+    }
+
+    .user-profile .sidebar {
+        background: linear-gradient(45deg, #4CAF50, #85FF00);
+        padding: 30px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+
+    .user-profile .widget.user {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .user-profile .widget.user .image {
+        margin-bottom: 20px;
+    }
+
+    .user-profile .widget.user img {
+        border-radius: 50%;
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border: 4px solid #fff;
+    }
+
+    .user-profile .widget.user h5 {
+        color: #fff;
+        font-size: 20px;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li {
+        width: 100%; /* Ensure the list item takes the full width of the sidebar */
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li a {
+        display: block; /* Ensure the link takes up the full width */
+        padding: 15px;
+        color: #fff;
+        text-decoration: none;
+        font-weight: bolder;
+        font-size: 16px;
+        transition: color 0.3s ease;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li a i {
+        margin-right: 10px; /* Adjust the gap between icon and text */
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li a:hover,
+    .user-profile .widget.user-dashboard-menu ul li.active > a {
+        color: #4e5e94;
+        text-decoration: none;
+    }
+
+    .user-profile .widget.welcome-message {
+        background: #fff;
+        padding: 30px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+
+    .user-profile .widget h2, 
+    .user-profile .widget h3 {
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .user-profile .widget p {
+        font-size: 16px;
+        line-height: 1.6;
+    }
+
+    .user-profile .widget.personal-info,
+    .user-profile .widget.change-password,
+    .user-profile .widget.change-email,
+    .user-profile .widget.address-management {
+        background: #fff;
+        padding: 30px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+
+    .user-profile .widget-header {
+        margin-bottom: 20px;
+    }
+
+    .user-profile .form-group {
+        margin-bottom: 20px;
+    }
+
+    .user-profile .form-group label {
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .user-profile .form-group input {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        transition: border-color 0.3s ease;
+    }
+
+    .user-profile .form-group input:focus {
+        border-color: #007bff;
+        outline: none;
+    }
+
+    .user-profile .choose-file {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .user-profile .choose-file i {
+        font-size: 24px;
+        color: #007bff;
+    }
+
+    .user-profile .choose-file input {
+        margin-left: 10px;
+    }
+
+    .user-profile .form-check {
+        margin-bottom: 20px;
+    }
+
+    .user-profile .form-check input {
+        margin-top: 3px;
+    }
+
+    @media (max-width: 768px) {
+        .user-profile .widget {
+            margin-bottom: 20px;
+        }
+    }
+    .widget.address-management {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .widget.address-management form .form-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .widget.address-management form .form-group label {
+        flex: 0 0 150px;
+        margin-bottom: 0;
+    }
+
+    .widget.address-management form .form-control {
+        flex: 1;
+    }
+
+    .widget.address-management form .btn {
+        margin-left: 150px;
+    }
+
+    .widget.address-management .form-group button {
+        margin-left: 10px;
+    }
+
+    .user-profile .form-group-btn {
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+    }
+
+    .user-profile .form-group-btn button {
+        margin-left: auto;
+        padding: 10px 20px;
+        background: linear-gradient(45deg, #85FF00, #4CAF50);
+        color: white;
+        font-weight: bold;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .user-profile .form-group-btn button:hover {
+        background: transparent;
+        color: #85FF00;
+        border: 2px solid #85FF00;
+    }
+
+    .widget.address-management .address-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
+
+    .widget.address-management .address-item span {
+        font-size: 1rem;
+        flex: 1;
+    }
+
+    .widget.address-management .address-item .actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .widget.address-management .address-item .actions button {
+        padding: 5px 10px;
+        font-size: 0.875rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .widget.address-management .address-item .actions .btn-edit {
+        background-color: #ffc107;
+        color: #fff;
+    }
+
+    .widget.address-management .address-item .actions .btn-delete {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    .widget.address-management .address-item .actions .btn-edit:hover {
+        background-color: #e0a800;
+    }
+
+    .widget.address-management .address-item .actions .btn-delete:hover {
+        background-color: #c82333;
+    }
+</style>
+
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Address Management</li>
+        </ol>
+    </nav>
+    
+    <div class="container">
+        <div class="section">
+            <div class="user-profile">
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="sidebar">
+                            <div class="widget user">
+                                <div class="image d-flex justify-content-center">
+                                    <img src="#" alt="" class="">
+                                </div>
+                                <h5 class="text-center"><%= locals.user.firstName %> <%= locals.user.lastName %></h5>
+                            </div>
+                            <div class="widget user-dashboard-menu">
+                                <ul>
+                                    <li><a href="/users/profile"><i class="fas fa-user"></i>Your Profile</a></li>
+                                    <li><a href="/users/wishlist"><i class="fas fa-heart"></i>Your Wishlist</a></li>
+                                    <li><a href="/orders/my-orders"><i class="fas fa-history"></i>Order History</a></li>
+                                    <li><a href="/users/referrals"><i class="fas fa-users"></i>Your Referrals</a></li>
+                                    <li><a href="/users/wallet"><i class="fas fa-wallet"></i>Wallet</a></li>
+                                    <li><a href="/users/address-management"><i class="fas fa-map-marker-alt"></i>Manage Addresses</a></li>
+                                    <li><a href="/users/editProfile"><i class="fas fa-edit"></i>Edit Profile</a></li>
+                                    <li><a href="/users/change-password"><i class="fas fa-key"></i>Change Password</a></li>
+                                    <li><a href="/users/logout"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="widget address-management">
+                            <div class="widget-header">
+                                <h2 id="addressTitle">Manage Addresses</h2>
+                            </div>
+                            <form id="address-form" method="POST" action="/users/address-management/add">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <input type="hidden" id="addressId" name="addressId">
+                                <div class="form-group">
+                                    <label for="address">Address</label>
+                                    <textarea id="address" name="address" class="form-control" rows="3" required></textarea>
+                                </div>
+                                <span class="error-message" id="addressError"></span>
+                                <div class="form-group">
+                                    <label for="city">City</label>
+                                    <input type="text" id="city" name="city" class="form-control" required>
+                                </div>
+                                <span class="error-message" id="cityError"></span>
+                                <div class="form-group">
+                                    <label for="state">State</label>
+                                    <input type="text" id="state" name="state" class="form-control" required>
+                                </div>
+                                <span class="error-message" id="stateError"></span>
+                                <div class="form-group">
+                                    <label for="zipCode">Zip Code</label>
+                                    <input type="text" id="zipCode" name="zipCode" class="form-control" required>
+                                </div>
+                                <span class="error-message" id="zipCodeError"></span>
+                                <div class="form-group-btn">
+                                    <button type="submit" class="btn user-btn" id="addressButton">Add Address</button>
+                                </div>
+                            </form>
+                            <div class="address-list mt-5">
+                                <% if (locals.addresses.length > 0) { %>
+                                    <% locals.addresses.forEach((address, i) => { %>
+                                        <h5>Address <%= i + 1 %></h5>
+                                        <div class="address-item">
+                                            <span><%= address.address %>, <%= address.city %>, <%= address.state %> , <%= address.zipCode %></span>
+                                            <div class="actions">
+                                                <button class="btn-edit edit-address-btn" data-id="<%= address._id %>" data-address="<%= address.address %>" data-city="<%= address.city %>" data-state="<%= address.state %>" data-zipCode="<%= address.zipCode.toString() %>">Edit</button>
+                                                <button class="btn-delete delete-address-btn" data-id="<%= address._id %>">Delete</button>
+                                            </div>
+                                        </div>
+                                    <% }); %>
+                                <% } else { %>
+                                    <p>No addresses found. Add a new address using the form above.</p>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/addressManagement.js"></script>

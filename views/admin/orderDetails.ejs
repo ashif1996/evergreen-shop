@@ -1,0 +1,439 @@
+<style>
+    body {
+        background-color: #f8f9fa;
+        color: #333;
+    }
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .section {
+        padding: 60px 0;
+    }
+    .card {
+        border: none;
+        margin-bottom: 20px;
+        background-color: #fff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+        background: linear-gradient(45deg, #4CAF50, #85FF00);
+        color: #fff;
+        font-weight: bold;
+    }
+    .card-body {
+        padding: 20px;
+    }
+    .info-section {
+        padding: 15px;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    .info-section h5 {
+        margin-bottom: 15px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    .order-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        align-items: center;
+    }
+    .order-item:last-child {
+        border-bottom: none;
+    }
+    .order-item img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        margin-right: 20px;
+        border-radius: 5px;
+    }
+    .order-item h6 {
+        font-size: 16px;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    .order-item .status {
+        font-size: 14px;
+        color: #666;
+    }
+    .order-summary .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+    .order-summary .summary-item.total {
+        font-weight: bold;
+        font-size: 18px;
+        color: #28a745;
+    }
+    .cancel-order-btn {
+        margin-top: 20px;
+        background-color: #dc3545;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .cancel-order-btn:hover {
+        background-color: #c82333;
+    }
+    .status-select {
+        width: 100%;
+        padding: 5px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    .btn-view-details {
+        background: #4CAF50;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .btn-view-details:hover {
+        background: #388E3C;
+    }
+</style>
+
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item"><a href="/users/orders" style="color: black;">Orders</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Order Details</li>
+        </ol>
+    </nav>
+
+    <h2 class="text-center" style="font-weight: bolder;">Order Details</h2>
+    <div class="login-line"></div>
+    <div class="card mt-5">
+        <!-- Order Items -->
+        <div class="card-header">
+            <h3>Items in Order ID: <%= order.generatedOrderId %></h3>
+        </div>
+        <% order.orderItems.forEach(item => { %>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <img src="/images/products/<%= item.productId.images[0] %>" alt="Product Image" width="100">
+                    <h4>Product: <%= item.productId.name %></h4>
+                    <p><strong>Price:</strong> ₹<%= item.price.toFixed(2) %></p>
+                    <p><strong>Quantity:</strong> <%= item.productId.category.name === 'Juice and Drinks' ? item.quantity + ' L' : item.quantity + ' kg' %></p>
+                    <p><strong>Item Total:</strong> ₹<%= item.itemTotal.toFixed(2) %></p>
+                    <p><strong>Item Status:</strong> <%= item.itemStatus %></p>
+
+                    <!-- Status Update Form -->
+                    <form class="item-status-form" action="/admin/orders/<%= order._id %>/item/<%= item._id %>/status/update" method="POST" data-order-id="<%= order._id %>" data-item-id="<%= item._id %>">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <div class="form-group">
+                            <label for="itemStatus"><strong>Update Item Status</strong></label>
+                            <select id="itemStatus" name="itemStatus" class="form-control status-select">
+                                <option value="Pending" <%= item.itemStatus === 'Pending' ? 'selected' : '' %>>Pending</option>
+                                <option value="Processing" <%= item.itemStatus === 'Processing' ? 'selected' : '' %>>Processing</option>
+                                <option value="Shipped" <%= item.itemStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                                <option value="Out for Delivery" <%= item.itemStatus === 'Out for Delivery' ? 'selected' : '' %>>Out for Delivery</option>
+                                <option value="Delivered" <%= item.itemStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                                <option value="Cancelled" <%= item.itemStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                                <option value="Returned" <%= item.itemStatus === 'Returned' ? 'selected' : '' %>>Returned</option>
+                                <option value="Exchanged" <%= item.itemStatus === 'Exchanged' ? 'selected' : '' %>>Exchanged</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-view-details">Update Status</button>
+                    </form>
+                    
+                    <!-- Return Details -->
+                    <% if (item.returnStatus) { %>
+                        <h5 class="mt-5" style="font-weight: bold;">Return Details</h5>
+                        <p><strong>Return Status:</strong> <%= item.returnStatus %></p>
+                        <% if (item.returnReason) { %>
+                            <p><strong>User's Return Reason:</strong> <%= item.returnReason %></p>
+                        <% } %>
+                        <% if (item.returnStatus === 'Rejected' && item.returnRejectReason) { %>
+                            <p><strong>Rejection Reason:</strong> <%= item.returnRejectReason %></p>
+                        <% } %>
+                        <form action="/admin/orders/item/return-status/update" method="POST">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <input type="hidden" name="orderId" value="<%= order._id %>"> <!-- Hidden field for orderId -->
+                            <input type="hidden" name="orderItemId" value="<%= item._id %>"> <!-- Hidden field for orderItemId -->
+                        
+                            <div class="form-group">
+                                <label for="returnStatus">Update Return Status</label>
+                                <select id="returnStatus" name="returnStatus" class="form-control">
+                                    <option value="Requested" <%= item.returnStatus === 'Requested' ? 'selected' : '' %>>Requested</option>
+                                    <option value="Received" <%= item.returnStatus === 'Received' ? 'selected' : '' %>>Received</option>
+                                    <option value="Approved" <%= item.returnStatus === 'Approved' ? 'selected' : '' %>>Approved</option>
+                                    <option value="Rejected" <%= item.returnStatus === 'Rejected' ? 'selected' : '' %>>Rejected</option>
+                                    <option value="Completed" <%= item.returnStatus === 'Completed' ? 'selected' : '' %>>Completed</option>
+                                </select>
+                            </div>
+                        
+                            <div class="form-group">
+                                <label for="returnRejectReason">Rejection Reason (if any)</label>
+                                <input type="text" id="returnRejectReason" name="returnRejectReason" class="form-control" value="<%= item.returnRejectReason %>">
+                            </div>
+                        
+                            <button type="submit" class="btn btn-view-details">Update Return Status</button>
+                        </form>
+                    <% } %>
+
+                    <!-- Exchange Details -->
+                    <% if (item.exchangeStatus) { %>
+                        <h5 class="mt-5" style="font-weight: bold;">Exchange Details</h5>
+                        <p><strong>Exchange Status:</strong> <%= item.exchangeStatus %></p>
+                        <% if (item.exchangeReason) { %>
+                            <p><strong>User's Exchange Reason:</strong> <%= item.exchangeReason %></p>
+                        <% } %>
+                        <% if (item.exchangeStatus === 'Rejected' && item.exchangeRejectReason) { %>
+                            <p><strong>Rejection Reason:</strong> <%= item.exchangeRejectReason %></p>
+                        <% } %>
+                        <form action="/admin/orders/item/exchange-status/update" method="POST">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <input type="hidden" name="orderId" value="<%= order._id %>"> <!-- Hidden field for orderId -->
+                            <input type="hidden" name="orderItemId" value="<%= item._id %>"> <!-- Hidden field for orderItemId -->
+                        
+                            <div class="form-group">
+                                <label for="exchangeStatus">Update Exchange Status</label>
+                                <select id="exchangeStatus" name="exchangeStatus" class="form-control">
+                                    <option value="Requested" <%= item.exchangeStatus === 'Requested' ? 'selected' : '' %>>Requested</option>
+                                    <option value="Pending" <%= item.exchangeStatus === 'Pending' ? 'selected' : '' %>>Pending</option>
+                                    <option value="Approved" <%= item.exchangeStatus === 'Approved' ? 'selected' : '' %>>Approved</option>
+                                    <option value="Rejected" <%= item.exchangeStatus === 'Rejected' ? 'selected' : '' %>>Rejected</option>
+                                    <option value="Completed" <%= item.exchangeStatus === 'Completed' ? 'selected' : '' %>>Completed</option>
+                                </select>
+                            </div>
+                        
+                            <div class="form-group">
+                                <label for="exchangeRejectReason">Rejection Reason (if any)</label>
+                                <input type="text" id="exchangeRejectReason" name="exchangeRejectReason" class="form-control" value="<%= item.exchangeRejectReason %>">
+                            </div>
+                        
+                            <button type="submit" class="btn btn-view-details">Update Exchange Status</button>
+                        </form>                        
+                    <% } %>
+
+                    <!-- Refund Details -->
+                    <% if (item.itemRefundStatus) { %>
+                        <h5 class="mt-5" style="font-weight: bold;">Refund Details</h5>
+                        <p><strong>Refund Status:</strong> <%= item.itemRefundStatus %></p>
+                        <% if (item.itemRefundRejectReason) { %>
+                            <p><strong>Rejection Reason:</strong> <%= item.itemRefundRejectReason %></p>
+                        <% } %>
+                        <form action="/admin/orders/item/refund-status/update" method="POST">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <input type="hidden" name="orderId" value="<%= order._id %>"> <!-- Hidden field for orderId -->
+                            <input type="hidden" name="orderItemId" value="<%= item._id %>"> <!-- Hidden field for orderItemId -->
+                        
+                            <div class="form-group">
+                                <label for="itemRefundStatus">Update Refund Status</label>
+                                <select id="itemRefundStatus" name="itemRefundStatus" class="form-control">
+                                    <option value="Requested" <%= item.itemRefundStatus === 'Requested' ? 'selected' : '' %>>Requested</option>
+                                    <option value="Pending" <%= item.itemRefundStatus === 'Pending' ? 'selected' : '' %>>Pending</option>
+                                    <option value="Approved" <%= item.itemRefundStatus === 'Approved' ? 'selected' : '' %>>Approved</option>
+                                    <option value="Rejected" <%= item.itemRefundStatus === 'Rejected' ? 'selected' : '' %>>Rejected</option>
+                                    <option value="Completed" <%= item.itemRefundStatus === 'Completed' ? 'selected' : '' %>>Completed</option>
+                                </select>
+                            </div>
+                        
+                            <div class="form-group">
+                                <label for="itemRefundRejectReason">Rejection Reason (if any)</label>
+                                <input type="text" id="itemRefundRejectReason" name="itemRefundRejectReason" class="form-control" value="<%= item.itemRefundRejectReason %>">
+                            </div>
+                        
+                            <button type="submit" class="btn btn-view-details">Update Refund Status</button>
+                        </form>                        
+                    <% } %>
+                </div>
+            </div>
+        <% }) %>
+    </div>   
+
+    <!-- First Row: Order Information and Payment Information -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="info-section">
+                <h5>Order Information</h5>
+                <p><strong>Order Date:</strong> <%= new Date(order.createdAt).toDateString() %></p>
+                <p><strong>Order ID:</strong> <%= order.generatedOrderId %></p>
+                <p><strong>Order Total:</strong> ₹<%= order.totalPrice %></p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-section">
+                <h5>Payment Information</h5>
+                <p><strong>Payment Method:</strong> <%= order.paymentMethod %></p>
+                <p><strong>Payment Status:</strong> <%= order.orderPaymentStatus %></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Second Row: Shipping Address and Order Summary -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="info-section">
+                <h5>Shipping Address</h5>
+                <p><%= order.shippingAddress.address %></p>
+                <p><%= order.shippingAddress.city %></p>
+                <p><%= order.shippingAddress.state %></p>
+                <p><%= order.shippingAddress.zipCode %></p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="info-section">
+                <h5>Order Summary</h5>
+                <div class="summary-item">
+                    <span><strong>Items Total:</strong></span>
+                    <span> ₹<%= order.subTotal %></span>
+                </div>
+                <div class="summary-item">
+                    <span><strong>Shipping Charge:</strong></span>
+                    <span> ₹<%= order.shippingCharge %></span>
+                </div>
+                <div class="summary-item">
+                    <span><strong>Coupons Applied:</strong></span>
+                    <span> <%= order.couponDiscount ? '-₹' + order.couponDiscount : 'None' %></span>
+                </div>
+                <div class="summary-item total">
+                    <span><strong>Order Total:</strong></span>
+                    <span> ₹<%= order.totalPrice %></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.status-select, #returnStatus, #exchangeStatus, #itemRefundStatus').forEach((selectElement) => {
+            selectElement.addEventListener('change', async (event) => {
+                event.preventDefault(); // Prevent the default behavior of the select element
+                const form = event.target.closest('form'); // Get the closest form element
+                
+                form.addEventListener('submit', async (event) => {
+                    event.preventDefault(); // Prevent default form submission
+                    console.log("Intercepted form submission");
+
+                    const csrfToken = document.querySelector('input[name="_csrf"]').value;
+                    const formData = new FormData(form);
+                    const jsonData = JSON.stringify(Object.fromEntries(formData));
+                    console.log('Data being sent:', jsonData); // Log data before sending
+
+                    try {
+                        const response = await fetch(form.action, {
+                            method: form.method,
+                            headers: {
+                                'content-type': 'application/json',
+                                'CSRF-Token': csrfToken
+                            },
+                            body: jsonData
+                        });
+
+                        const data = await response.json();
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Success',
+                                text: data.message || 'Status updated successfully',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error',
+                                text: data.message || 'An error occurred while updating the status',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    } catch (error) {
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Something went wrong. Please try again later.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                        console.error('Error:', error);
+                    }
+                });
+            });
+        });
+
+        document.querySelector('.cancel-order-btn').addEventListener('click', async (event) => {
+            event.preventDefault();
+
+            // Get the CSRF token from the meta tag
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const orderId = event.target.getAttribute('data-order-id');
+
+            if (!orderId) {
+                console.error('Order ID not found!');
+                return;
+            }
+
+            try {
+                const result = await swal.fire({
+                    icon: 'warning',
+                    title: 'Are you sure?',
+                    text: 'Do you really want to cancel this order?',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes'
+                });
+
+                if (result.isConfirmed) {
+                    // Make the POST request to cancel the order
+                    const response = await fetch(`/admin/orders/order-details/cancel/${orderId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': csrfToken  // Include CSRF token in headers
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Display success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: data.message
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        // Display error message
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message
+                        });
+                    }
+                }
+            } catch (error) {
+                // Handle any unexpected errors
+                console.error('Error updating item status:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An unexpected error occurred.'
+                });
+            }
+        });
+    });
+</script>
+
+<% script = `
+    <script src="/js/orders.js"></script>
+` %>

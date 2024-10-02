@@ -1,0 +1,77 @@
+<div class="container mt-5">
+    <% if (locals.message && locals.message.success || locals.message.error) { %>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const messageType = '<%= locals.message.success ? "success" : "error" %>';
+                const messageText = '<%= locals.message.success ? locals.message.success : locals.message.error %>';
+                const messageTitle = messageType === 'success' ? 'Success!' : 'Oops...';
+                const confirmButtonColor = messageType === 'success' ? '#28a745' : '#d33';
+
+                swal.fire({
+                    icon: messageType,
+                    title: messageTitle,
+                    text: messageText,
+                    confirmButtonColor: confirmButtonColor,
+                    confirmButtonText: 'Ok'
+                });
+            });
+        </script>
+    <% } %>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/admin/dashboard" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Products</li>
+        </ol>
+    </nav>
+
+    <section class="product-list mt-5">
+        <h2 class="text-center" style="font-weight: bolder;">Products List</h2>
+        <div class="login-line"></div>
+        <div class="mb-4 text-end">
+            <a href="/admin/add-products" class="btn addProduct-btn">
+                Add Product+
+            </a>
+        </div>
+        <div class="table-responsive mt-5">
+            <table id="advancedTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">No</th>
+                        <th scope="col">Image</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Stock</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% products.forEach((product, number) => { %>
+                        <tr>
+                            <td><%= number + 1 %></td>
+                            <td><img src="/images/products/<%= product.images[0] %>" alt="" style="width: 80px; height: 80px;"></td>
+                            <td><%= product.name %></td>
+                            <td>₹ <%= product.price %></td>
+                            <td><%= product.stock %> kg</td>
+                            <td><%= product.availability ? 'Available' : 'Unavailable' %></td>
+                            <td>
+                                <div class="d-flex">
+                                    <button class="btn btn-warning btn-sm"><a href="/admin/edit-products/<%= product._id %>" style="text-decoration: none; color: white;">Edit</a></button>
+                                    <form id="toggle-product-form-<%= product._id %>" action="/admin/<%= product.availability ? 'unlist-product' : 'list-product' %>/<%= product._id %>" method="post">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                        <button class="btn <%= product.availability ? 'btn-danger' : 'btn-success' %>" id="unlist-product-btn-<%= product._id %>" data-name="<%= product.name %>" data-availability="<%= product.availability %>">
+                                            <%= product.availability ? 'unlist' : 'list' %>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<% script = `<script src="/js/adminActions.js"></script>` %>

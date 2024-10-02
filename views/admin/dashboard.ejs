@@ -1,0 +1,235 @@
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item active" aria-current="page"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</li>
+        </ol>
+    </nav>
+
+    <section class="product-list mt-5">
+        <h2 class="text-center" style="font-weight: bolder;">Dashboard</h2>
+        <div class="login-line"></div>
+        <div class="row">
+            <div class="col-lg-3 col-sm-6">
+                <div class="card">
+                    <div class="stat-widget-two card-body">
+                        <div class="stat-content">
+                            <div class="stat-text">Total Users</div>
+                            <div class="stat-digit"><i class="fa fa-users"></i> <%= totalUsers %></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6">
+                <div class="card">
+                    <div class="stat-widget-two card-body">
+                        <div class="stat-content">
+                            <div class="stat-text">Total Products</div>
+                            <div class="stat-digit"><i class="fa fa-cubes"></i> <%= totalProducts %></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6">
+                <div class="card">
+                    <div class="stat-widget-two card-body">
+                        <div class="stat-content">
+                            <div class="stat-text">Total Orders</div>
+                            <div class="stat-digit"><i class="fa fa-shopping-cart"></i> <%= totalOrders %></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6">
+                <div class="card">
+                    <div class="stat-widget-two card-body">
+                        <div class="stat-content">
+                            <div class="stat-text">Total Revenue</div>
+                            <div class="stat-digit"><i class="fa fa-inr"></i> <%= totalRevenue %></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Order Analysis Chart -->
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title mb-0">Order Analysis</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-lg-4">
+                                    <select id="filterType" class="form-control">
+                                        <option value="products">Products</option>
+                                        <option value="categories">Categories</option>
+                                    </select>
+                                </div>
+                                <div class="col-lg-4">
+                                    <select id="dateRange" class="form-control">
+                                        <option value="today">Today</option>
+                                        <option value="month">This Month</option>
+                                        <option value="year">This Year</option>
+                                        <option value="custom">Custom Date</option>
+                                    </select>
+                                    <input type="text" id="filterDate" class="form-control" placeholder="Select Date" style="display:none;">
+                                    <div class="error-message text-danger" id="dateError" style="display:none;"></div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <button id="applyFilter" class="btn btn-primary">Apply Filter</button>
+                                </div>
+                            </div>
+                            <canvas id="orderAnalysisChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of Chart Section -->
+        </div>
+    
+        <!-- Top Categories -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Top Categories</h4>
+                    </div>
+                    <div class="card-body">
+                        <% if (topCategories.length > 0) { %>
+                            <ul class="list-group">
+                                <% topCategories.forEach((category) => { %>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span><%= category.categoryName %></span>
+                                        <span class="badge badge-primary badge-pill"><%= category.count %> sold</span>
+                                    </li>
+                                <% }); %>
+                            </ul>
+                        <% } else { %>
+                            <p>No top categories found.</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Best Selling Products -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Best Selling Products</h4>
+                    </div>
+                    <div class="card-body">
+                        <% if (bestsellingProducts.length > 0) { %>
+                            <ul class="list-group">
+                                <% bestsellingProducts.forEach((product) => { %>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <img src="/images/products/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="img-thumbnail" style="width: 50px; height: 50px;">
+                                            <span class="ml-3"><%= product.productName %></span>
+                                        </div>
+                                        <span class="badge badge-primary badge-pill"><%= product.count %> sold</span>
+                                    </li>
+                                <% }); %>
+                            </ul>
+                        <% } else { %>
+                            <p>No best selling products found.</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('applyFilter').addEventListener('click', async function () {
+            const filterType = document.getElementById('filterType').value;
+            const dateRange = document.getElementById('dateRange').value;
+            const filterDate = document.getElementById('filterDate').value;
+            const dateError = document.getElementById('dateError'); // Reference to the error message div
+
+            // Clear previous error message
+            dateError.style.display = 'none';
+            dateError.textContent = '';
+
+            // Check if the selected date is a future date
+            if (dateRange === 'custom' && filterDate) {
+                const selectedDate = new Date(filterDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Set time to midnight for accurate comparison
+
+                if (selectedDate > today) {
+                    dateError.textContent = 'Please select a date that is today or earlier.'; // Set the error message
+                    dateError.style.display = 'block'; // Show the error message
+                    document.getElementById('filterDate').value = ''; // Clear the input
+                    return; // Exit the function early
+                }
+            }
+
+            try {
+                const response = await fetch(`/admin/order/analysis?filterType=${filterType}&dateRange=${dateRange}&filterDate=${filterDate}`);
+                
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                updateChart(data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        });
+
+        document.getElementById('dateRange').addEventListener('change', function () {
+            const dateRange = this.value;
+            const filterDate = document.getElementById('filterDate');
+            const dateError = document.getElementById('dateError'); // Reference to the error message div
+
+            if (dateRange === 'custom') {
+                filterDate.style.display = 'block';
+            } else {
+                filterDate.style.display = 'none';
+                dateError.style.display = 'none'; // Hide error message when not in custom mode
+            }
+        });
+
+        const ctx = document.getElementById('orderAnalysisChart').getContext('2d');
+        let orderAnalysisChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [], // Will be updated dynamically
+                datasets: [{
+                    label: 'Orders',
+                    data: [], // Will be updated dynamically
+                    backgroundColor: 'rgba(227, 256, 211, 0.2)',
+                    borderColor: 'rgba(65, 61, 180, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        function updateChart(data) {
+            orderAnalysisChart.data.labels = data.labels;
+            orderAnalysisChart.data.datasets[0].data = data.orders;
+            orderAnalysisChart.update();
+        }
+
+        $(document).ready(function () {
+            $('#filterDate').datepicker({
+                dateFormat: 'yy-mm-dd'
+            });
+        });
+    });
+</script>

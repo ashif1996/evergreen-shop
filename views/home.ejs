@@ -1,0 +1,365 @@
+<style>
+    /* Banner Section Styles */
+    .banner-section {
+        margin-top: 20px;
+        padding: 20px 0;
+    }
+
+    .banner {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .banner img {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+    }
+
+    .banner-details {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        max-width: 400px;
+    }
+
+    .banner-title {
+        font-size: 24px;
+        font-weight: bold;
+        margin: 0;
+        animation: fadeInUp 1s ease-out;
+    }
+
+    .banner-subtitle {
+        font-size: 18px;
+        margin: 5px 0;
+        animation: fadeInUp 1.2s ease-out;
+    }
+
+    .banner-description {
+        font-size: 16px;
+        margin: 10px 0;
+        animation: fadeInUp 1.6s ease-out;
+    }
+
+    .btn-primary {
+        background-color: #4CAF50;
+        border: none;
+        padding: 10px 20px;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+
+    .btn-primary:hover {
+        background-color: #45a049;
+    }
+
+    .carousel-item {
+        transition: transform 2s ease, opacity 2s ease; /* Smooth transition */
+    }
+
+    /* Keyframe Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Product Section */
+    .product-details {
+        text-align: center;
+    }
+
+    .product-price .current-price {
+        font-weight: bold;
+        color: #28a745;
+    }
+
+    .product-price .original-price {
+        text-decoration: line-through;
+        color: #888;
+    }
+    .btn {
+        z-index: 10; /* Ensure it's higher than the carousel or other elements */
+        position: relative; /* Ensure it responds correctly to z-index */
+    }
+</style>
+
+<!-- Banner Section -->
+<section class="banner-section mt-5">
+    <div class="container">
+        <% if (banners.length > 0) { %>
+        <div id="bannerCarousel" class="carousel">
+            <div class="carousel-inner">
+                <% banners.forEach((banner, index) => { %>
+                <div class="carousel-item <%= index === 0 ? 'active' : '' %>">
+                    <img class="d-block w-100" src="/images/products/<%= banner.imageUrl %>" alt="<%= banner.title %>">
+                    <div class="banner-details">
+                        <h3 class="banner-title">SALE UP TO 30% OFF</h3>
+                        <h4 class="banner-subtitle mt-5"><%= banner.description %></h4>
+                        <p class="banner-description">The Real Taste And Boost Your Day With The Power</p>
+                        <a href="/products/list" class="btn btn-primary">Shop Now</a>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+            <!-- Carousel controls -->
+            <a class="carousel-control-prev" href="#bannerCarousel" role="button">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#bannerCarousel" role="button">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+            </a>
+        </div>
+        <% } %>
+    </div>
+</section>
+
+<!-- Main Content Section -->
+<section class="mt-5 pb-3">
+    <div class="container">
+        <!-- Vegetables Section -->
+        <div class="row">
+            <div class="col-12 text-center mb-4">
+                <h2>Vegetables</h2>
+                <div class="line"></div>
+            </div>
+        </div>
+        <div class="row">
+            <% products.filter(product => product.category.name === 'Vegetables').slice(0, 5).forEach(product => { %>
+                <div class="col-lg-3 col-md-4 col-sm-6 col-xl-2-4 mb-4">
+                    <div class="box-element product">
+                        <!-- Product details as before -->
+                        <div class="product-image-container">
+                            <a href="/products/product-details/<%= product._id %>" class="product-link" style="color: black;">
+                                <img class="img-fluid thumbnail" src="/images/products/<%= product.images[0] %>" alt="<%= product.name %> Image">
+                            </a>
+                        </div>
+                        <div class="product-details">
+                            <h6><strong><%= product.name %></strong></h6>
+                        </div>
+                        <div class="product-extra">
+                            <!-- Product price, rating, and add to cart as before -->
+                            <div class="rating">
+                                <% for (let i = 1; i <= 5; i++) { %>
+                                    <i class="fa<%= i <= product.rating ? 's' : 'r' %> fa-star"></i>
+                                <% } %>
+                            </div>
+                            <div class="product-price">
+                                <% if (product.discountPrice) { %>
+                                    <span class="current-price">₹<%= product.discountPrice %> / kg</span>
+                                    <span class="original-price">₹<%= product.price %> / kg</span>
+                                <% } else { %>
+                                    <span class="current-price">₹<%= product.price %> / kg</span>
+                                <% } %>
+                            </div>
+                            <% if (product.stock > 0) { %>
+                                <form action="/users/shoppingCart/add" method="POST" class="add-to-cart-form mt-3">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="productId" value="<%= product._id %>">
+                                    <button type="submit" class="btn add-product-btn">
+                                        Add to Cart <i class="fa fa-shopping-cart"></i>
+                                    </button>
+                                </form>
+                            <% } else { %>
+                                <span class="out-of-stock-text" style="color: red;">Currently out of stock</span>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+
+        <!-- Fruits Section -->
+        <div class="row mt-5">
+            <div class="col-12 text-center mb-4">
+                <h2>Fruits</h2>
+                <div class="line"></div>
+            </div>
+        </div>
+        <div class="row">
+            <% products.filter(product => product.category.name === 'Fruits').slice(0, 5).forEach(product => { %>
+                <div class="col-lg-3 col-md-4 col-sm-6 col-xl-2-4 mb-4">
+                    <div class="box-element product">
+                        <!-- Product details as before -->
+                        <div class="product-image-container">
+                            <a href="/products/product-details/<%= product._id %>" class="product-link" style="color: black;">
+                                <img class="img-fluid thumbnail" src="/images/products/<%= product.images[0] %>" alt="<%= product.name %> Image">
+                            </a>
+                        </div>
+                        <div class="product-details">
+                            <h6><strong><%= product.name %></strong></h6>
+                        </div>
+                        <div class="product-extra">
+                            <!-- Product price, rating, and add to cart as before -->
+                            <div class="rating">
+                                <% for (let i = 1; i <= 5; i++) { %>
+                                    <i class="fa<%= i <= product.rating ? 's' : 'r' %> fa-star"></i>
+                                <% } %>
+                            </div>
+                            <div class="product-price">
+                                <% if (product.discountPrice) { %>
+                                    <span class="current-price">₹<%= product.discountPrice %> / kg</span>
+                                    <span class="original-price">₹<%= product.price %> / kg</span>
+                                <% } else { %>
+                                    <span class="current-price">₹<%= product.price %> / kg</span>
+                                <% } %>
+                            </div>
+                            <% if (product.stock > 0) { %>
+                                <form action="/users/shoppingCart/add" method="POST" class="add-to-cart-form mt-3">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="productId" value="<%= product._id %>">
+                                    <button type="submit" class="btn add-product-btn">
+                                        Add to Cart <i class="fa fa-shopping-cart"></i>
+                                    </button>
+                                </form>
+                            <% } else { %>
+                                <span class="out-of-stock-text" style="color: red;">Currently out of stock</span>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+
+        <!-- Juices & Drinks Section -->
+        <div class="row mt-5">
+            <div class="col-12 text-center mb-4">
+                <h2>Juices & Drinks</h2>
+                <div class="line"></div>
+            </div>
+        </div>
+        <div class="row">
+            <% products.filter(product => product.category.name === 'Juice and Drinks').forEach(product => { %>
+                <div class="col-lg-3 col-md-4 col-sm-6 col-xl-2-4 mb-4">
+                    <div class="box-element product">
+                        <!-- Product details as before -->
+                        <div class="product-image-container">
+                            <a href="/products/product-details/<%= product._id %>" class="product-link" style="color: black;">
+                                <img class="img-fluid thumbnail" src="/images/products/<%= product.images[0] %>" alt="<%= product.name %> Image">
+                            </a>
+                        </div>
+                        <div class="product-details">
+                            <h6><strong><%= product.name %></strong></h6>
+                        </div>
+                        <div class="product-extra">
+                            <!-- Product price, rating, and add to cart as before -->
+                            <div class="rating">
+                                <% for (let i = 1; i <= 5; i++) { %>
+                                    <i class="fa<%= i <= product.rating ? 's' : 'r' %> fa-star"></i>
+                                <% } %>
+                            </div>
+                            <div class="product-price">
+                                <% if (product.discountPrice) { %>
+                                    <span class="current-price">₹<%= product.discountPrice %> / kg</span>
+                                    <span class="original-price">₹<%= product.price %> / kg</span>
+                                <% } else { %>
+                                    <span class="current-price">₹<%= product.price %> / kg</span>
+                                <% } %>
+                            </div>
+                            <% if (product.stock > 0) { %>
+                                <form action="/users/shoppingCart/add" method="POST" class="add-to-cart-form mt-3">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="productId" value="<%= product._id %>">
+                                    <button type="submit" class="btn add-product-btn">
+                                        Add to Cart <i class="fa fa-shopping-cart"></i>
+                                    </button>
+                                </form>
+                            <% } else { %>
+                                <span class="out-of-stock-text" style="color: red;">Currently out of stock</span>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+
+        <!-- Nuts & Seeds Section -->
+        <div class="row mt-5">
+            <div class="col-12 text-center mb-4">
+                <h2>Nuts & Seeds</h2>
+                <div class="line"></div>
+            </div>
+        </div>
+        <div class="row">
+            <% products.filter(product => product.category.name === 'Nuts and Seeds').forEach(product => { %>
+                <div class="col-lg-3 col-md-4 col-sm-6 col-xl-2-4 mb-4">
+                    <div class="box-element product">
+                        <!-- Product details as before -->
+                        <div class="product-image-container">
+                            <a href="/products/product-details/<%= product._id %>" class="product-link" style="color: black;">
+                                <img class="img-fluid thumbnail" src="/images/products/<%= product.images[0] %>" alt="<%= product.name %> Image">
+                            </a>
+                        </div>
+                        <div class="product-details">
+                            <h6><strong><%= product.name %></strong></h6>
+                        </div>
+                        <div class="product-extra">
+                            <!-- Product price, rating, and add to cart as before -->
+                            <div class="rating">
+                                <% for (let i = 1; i <= 5; i++) { %>
+                                    <i class="fa<%= i <= product.rating ? 's' : 'r' %> fa-star"></i>
+                                <% } %>
+                            </div>
+                            <div class="product-price">
+                                <% if (product.discountPrice) { %>
+                                    <span class="current-price">₹<%= product.discountPrice %> / kg</span>
+                                    <span class="original-price">₹<%= product.price %> / kg</span>
+                                <% } else { %>
+                                    <span class="current-price">₹<%= product.price %> / kg</span>
+                                <% } %>
+                            </div>
+                            <% if (product.stock > 0) { %>
+                                <form action="/users/shoppingCart/add" method="POST" class="add-to-cart-form mt-3">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="productId" value="<%= product._id %>">
+                                    <button type="submit" class="btn add-product-btn">
+                                        Add to Cart <i class="fa fa-shopping-cart"></i>
+                                    </button>
+                                </form>
+                            <% } else { %>
+                                <span class="out-of-stock-text" style="color: red;">Currently out of stock</span>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let currentIndex = 0;
+        const slides = document.querySelectorAll('.carousel-item');
+        const totalSlides = slides.length;
+
+        function showSlide(index) {
+            slides.forEach((slide, idx) => {
+                slide.classList.toggle('active', idx === index);
+            });
+        }
+
+        function nextSlide() {
+            currentIndex = (currentIndex + 1) % totalSlides;
+            showSlide(currentIndex);
+        }
+
+        // Auto-slide every 4 seconds
+        setInterval(nextSlide, 4000);
+    });
+</script>
+<script src="/js/userActions.js"></script>

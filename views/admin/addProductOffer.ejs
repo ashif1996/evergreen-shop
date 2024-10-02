@@ -1,0 +1,83 @@
+<div class="container mt-5">
+    <div class="form-container">
+        <h2 class="product-title" style="font-weight: bolder;">Add Product Offers</h2>
+        <div class="login-line"></div>
+        <form id="product-offer-form" action="/admin/products/offers/add" method="post">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="">
+
+            <!-- Product Selection -->
+            <div class="form-group">
+                <label for="product">Product</label>
+                <select class="form-control" id="product" name="product" required>
+                    <option value="" disabled selected>Select product</option>
+                    <% products.forEach(product => { %>
+                        <option value="<%= product._id %>"><%= product.name %></option>
+                    <% }); %>
+                </select>
+            </div>
+
+            <!-- Offer Type -->
+            <div class="form-group">
+                <label for="offerType">Offer Type</label>
+                <select class="form-control" id="offerType" name="offerType" required>
+                    <option value="" disabled selected>Select Offer Type</option>
+                    <% offerTypes.forEach(type => { %>
+                        <option value="<%= type %>"><%= type %></option>
+                    <% }); %>
+                </select>
+            </div>
+
+            <!-- Offer Value -->
+            <div class="form-group">
+                <label for="fixedDiscount">Fixed Discount</label>
+                <input type="number" class="form-control" id="fixedDiscount" name="fixedDiscount" placeholder="Enter fixed discount">
+            </div>
+            <span id="product-offer-form-fixedDiscountError" class="error-message"></span>
+
+            <div class="form-group">
+                <label for="percentageDiscount">Percentage Discount</label>
+                <input type="number" class="form-control" id="percentageDiscount" name="percentageDiscount" placeholder="Enter percentage discount">
+            </div>
+            <span id="product-offer-form-percentageDiscountError" class="error-message"></span>
+
+            <div class="form-group">
+                <label for="minimumPurchaseAmount">Minimum Purchase Amount</label>
+                <input type="number" class="form-control" id="minimumPurchaseAmount" name="minimumPurchaseAmount" placeholder="Enter minimum purchase amount">
+            </div>
+            <span id="product-offer-form-minimumPurchaseAmountError" class="error-message"></span>
+
+            <!-- Is Active Radio Buttons -->
+            <div class="form-group">
+                <label>Is Active?</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="offerIsActive" id="isActiveYes" value="true" checked>
+                    <label class="form-check-label" for="isActiveYes">
+                        Yes
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="offerIsActive" id="isActiveNo" value="false">
+                    <label class="form-check-label" for="isActiveNo">
+                        No
+                    </label>
+                </div>
+            </div>
+
+            <!-- Expiration Date -->
+            <div class="form-group">
+                <label for="expirationDate">Expiration Date</label>
+                <input type="date" class="form-control" id="offerExpirationDate" name="offerExpirationDate">
+            </div>
+            <span id="product-offer-form-offerExpirationDateError" class="error-message"></span>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn category-btn mt-3">Add Product Offer</button>
+            <div id="success-message" class="success-message"></div>
+        </form>
+    </div>
+</div>
+
+<% script = `
+    <script src="/js/offers.js"></script>
+` %>

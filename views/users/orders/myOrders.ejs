@@ -1,0 +1,385 @@
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .section {
+        padding: 60px 0;
+    }
+
+    .user-profile .sidebar {
+        background: linear-gradient(45deg, #4CAF50, #85FF00);
+        padding: 30px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+
+    .user-profile .widget.user {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .user-profile .widget.user .image {
+        margin-bottom: 20px;
+    }
+
+    .user-profile .widget.user img {
+        border-radius: 50%;
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border: 4px solid #fff;
+    }
+
+    .user-profile .widget.user h5 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li {
+        width: 100%;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li a {
+        display: block;
+        padding: 15px;
+        color: #fff;
+        text-decoration: none;
+        font-weight: bolder;
+        font-size: 16px;
+        transition: color 0.3s ease;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li a i {
+        margin-right: 10px;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li a:hover,
+    .user-profile .widget.user-dashboard-menu ul li.active > a {
+        color: #4e5e94;
+        text-decoration: none;
+    }
+
+    .user-profile .widget.welcome-message {
+        background: #fff;
+        padding: 30px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+
+    .user-profile .widget h2, 
+    .user-profile .widget h3 {
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .user-profile .widget p {
+        font-size: 16px;
+        line-height: 1.6;
+    }
+
+    .user-profile .widget.address-management {
+        background: #fff;
+        padding: 30px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+
+    .user-profile .form-group {
+        margin-bottom: 20px;
+    }
+
+    .user-profile .form-group label {
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .user-profile .form-group input {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+    }
+
+    .user-btn {
+        background: linear-gradient(45deg, #85FF00, #4CAF50);
+        color: white;
+        font-weight: bold;
+    }
+
+    .user-btn:hover {
+        background: transparent;
+        color: #85FF00;
+        border-color: #85FF00;
+    }
+
+    @media (max-width: 768px) {
+        .user-profile .widget {
+            margin-bottom: 20px;
+        }
+    }
+
+    /* Enhancements for the order section */
+    .order-management {
+        background: #fff;
+        padding: 30px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+
+    .order-management h2 {
+        font-weight: 700;
+        margin-bottom: 20px;
+        font-size: 24px;
+    }
+
+    .order-list {
+        margin-top: 20px;
+    }
+
+    .order-item {
+        background: #f9f9f9;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .order-item img {
+        border-radius: 8px;
+        margin-right: 20px;
+    }
+
+    .order-item h4 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .order-item p {
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #666;
+    }
+
+    .order-actions {
+        text-align: right;
+    }
+
+    .btn-view-details {
+        background: #4CAF50;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .btn-view-details:hover {
+        background: #388E3C;
+    }
+
+    .search-bar {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .search-bar input {
+        width: calc(100% - 120px);
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 4px 0 0 4px;
+        outline: none;
+    }
+
+    .search-bar button {
+        width: 120px;
+        background: #4CAF50;
+        color: #fff;
+        border: none;
+        padding: 10px;
+        border-radius: 0 4px 4px 0;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .search-bar button:hover {
+        background: #388E3C;
+    }
+
+    .filter-options {
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between; /* Distribute space between items */
+        align-items: center; /* Align items vertically in the center */
+    }
+
+    .filter-options .showing-text {
+        margin: 0; /* Remove default margin */
+    }
+
+    .filter-controls {
+        display: flex;
+        align-items: center; /* Align items vertically in the center */
+    }
+
+    .filter-controls label {
+        margin-right: 10px; /* Add a small margin to the right of the label */
+    }
+
+    .filter-controls select {
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        outline: none;
+    }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 20px;
+    }
+
+    .page-btn {
+        background: #4CAF50;
+        color: #fff;
+        border: none;
+        padding: 10px 15px;
+        margin: 0 5px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .page-btn:hover {
+        background: #388E3C;
+    }
+
+    #pageNumbers {
+        margin: 0 10px;
+        font-size: 16px;
+        font-weight: bold;
+    }
+</style>
+
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">My Orders</li>
+        </ol>
+    </nav>
+    
+    <section class="user-profile section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="sidebar">
+                        <div class="widget user">
+                            <div class="image d-flex justify-content-center">
+                                <img src="#" alt="">
+                            </div>
+                            <h5 class="text-center" style="color: #fff;"><%= locals.user.firstName %> <%= locals.user.lastName %></h5>
+                        </div>
+                        <div class="widget user-dashboard-menu">
+                            <ul>
+                                <li><a href="/users/profile"><i class="fas fa-user"></i>Your Profile</a></li>
+                                <li><a href="/users/wishlist"><i class="fas fa-heart"></i>Your Wishlist</a></li>
+                                <li><a href="/orders/my-orders"><i class="fas fa-history"></i>Order History</a></li>
+                                <li><a href="/users/referrals"><i class="fas fa-users"></i>Your Referrals</a></li>
+                                <li><a href="/users/wallet"><i class="fas fa-wallet"></i>Wallet</a></li>
+                                <li><a href="/users/address-management"><i class="fas fa-map-marker-alt"></i>Manage Addresses</a></li>
+                                <li><a href="/users/editProfile"><i class="fas fa-edit"></i>Edit Profile</a></li>
+                                <li><a href="/users/change-password"><i class="fas fa-key"></i>Change Password</a></li>
+                                <li><a href="/users/logout"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="widget order-management">
+                        <h2>Your Orders</h2>
+    
+                        <!-- Search bar and filter options -->
+                        <form action="/orders/my-orders" method="get">
+        
+                            <div class="filter-options">
+                                <p class="showing-text">Showing All Orders</p>
+                                <div class="filter-controls">
+                                    <label for="orderStatusFilter">Filter by:</label>
+                                    <select id="orderStatusFilter" name="status" onchange="this.form.submit()">
+                                        <option value="all">All</option>
+                                        <option value="Pending" <%= statusFilter === "Pending" ? 'selected' : '' %>>Pending</option>
+                                        <option value="Processing" <%= statusFilter === "Processing" ? 'selected' : '' %>>Processing</option>
+                                        <option value="Shipped" <%= statusFilter === "Shipped" ? 'selected' : '' %>>Shipped</option>
+                                        <option value="Delivered" <%= statusFilter === "Delivered" ? 'selected' : '' %>>Delivered</option>
+                                        <option value="Cancelled" <%= statusFilter === "Cancelled" ? 'selected' : '' %>>Cancelled</option>
+                                        <option value="Returned" <%= statusFilter === "Returned" ? 'selected' : '' %>>Returned</option>
+                                    </select>
+                                </div>
+                            </div> 
+                        </form>                  
+    
+                        <!-- Order list -->
+                        <div class="order-list" id="orderList">
+                            <% if (orders.length > 0) { %>
+                                <% orders.forEach((order, i) => { %>
+                                    <img src="/images/products/<%= order.orderItems[0].productId.images[0] %>" style="width: 80px; height: 80px;"/>
+                                    <div class="order-item" data-status="<%= order.orderStatus %>" data-date="<%= new Date(order.createdAt).toISOString().split('T')[0] %>">
+                                        <div>
+                                            <h4>Order ID: <%= order.generatedOrderId %></h4>
+                                            <p>Ordered on <%= new Date(order.createdAt).toDateString() %> - (Total Items: <%= order.orderItems.length %>)</p>
+                                            <p>Status: <%= order.orderStatus %></p>
+                                            <p><strong>Total:</strong> ₹<%= order.totalPrice %></p>
+                                        </div>
+                                        <div class="order-actions">
+                                            <a href="/orders/my-orders/order-details/<%= order._id %>" class="btn-view-details">View Details</a>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            <% } else { %>
+                                <p>No orders found. Place an order to see it here.</p>
+                            <% } %>
+                        </div>
+
+                        <!-- Pagination Controls -->
+                        <div class="pagination">
+                            <% if (currentPage > 1) { %>
+                                <a class="page-btn" href="?page=<%= currentPage - 1 %>&status=<%= statusFilter %>">Previous</a>
+                            <% } %>
+                            
+                            <% for (let i = 1; i <= totalPages; i++) { %>
+                                <a href="?page=<%= i %>&status=<%= statusFilter %>" class="<%= i === currentPage ? 'active' : '' %>"><%= i %></a>
+                            <% } %>
+                            
+                            <% if (currentPage < totalPages) { %>
+                                <a class="page-btn" href="?page=<%= currentPage + 1 %>&status=<%= statusFilter %>">Next</a>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

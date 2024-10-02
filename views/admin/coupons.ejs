@@ -1,0 +1,83 @@
+<div class="container mt-5">
+    <% if (success_msg && success_msg.length > 0) { %>
+        <div class="alert alert-success alert-dismissible fade show my-5" role="alert">
+            <%= success_msg %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+    <% if (error_msg && error_msg.length > 0) { %>
+        <div class="alert alert-danger alert-dismissible fade show my-5" role="alert">
+            <%= error_msg %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/admin/dashboard" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Coupons</li>
+        </ol>
+    </nav>
+
+       
+    <section class="coupon-list mt-5">
+        <h2 class="text-center" style="font-weight: bolder;">Coupons List</h2>
+        <div class="login-line"></div>
+        <div class="mb-4 text-end">
+            <a href="/admin/add-coupons" class="btn addProduct-btn">
+                Add Coupon+
+            </a>
+        </div> 
+        <div class="table-responsive mt-5">
+            <table id="advancedTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">No</th>
+                        <th scope="col">Code</th>
+                        <th scope="col">Discount Type</th>
+                        <% let hasMinimumPurchase = coupons.some(coupon => coupon.minimumPurchaseAmount && coupon.minimumPurchaseAmount > 0); %>
+                        <% if (hasMinimumPurchase) { %>
+                            <th scope="col">Minimum Purchase</th>
+                        <% } %>
+                        <th scope="col">Discount Value</th>
+                        <th scope="col">Expiration Date</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% coupons.forEach((coupon, number) => { %>
+                        <tr>
+                            <td><%= number + 1 %></td>
+                            <td><%= coupon.code %></td>
+                            <td><%= coupon.discountType %></td>
+                            <td>
+                                <% if (coupon.minimumPurchaseAmount && coupon.minimumPurchaseAmount > 0) { %>
+                                    <%= '₹' + coupon.minimumPurchaseAmount %>
+                                <% } %>
+                            </td>
+                            <td><%= coupon.discountType === 'PERCENTAGE' ? coupon.discountValue + '%' : '₹' + coupon.discountValue %></td>
+                            <td><%= new Date(coupon.expirationDate).toLocaleDateString() %></td>
+                            <td><%= coupon.isActive ? 'Active' : 'Inactive' %></td>
+                            <td>
+                                <div class="d-flex">
+                                    <button class="btn btn-warning btn-sm"><a href="/admin/edit-coupons/<%= coupon._id %>" style="text-decoration: none; color: white;">Edit</a></button>
+                                    <form id="toggle-coupon-form-<%= coupon._id %>" action="/admin/<%= coupon.isActive ? 'deactivate-coupon' : 'activate-coupon' %>/<%= coupon._id %>" method="post">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                        <button class="btn <%= coupon.isActive ? 'btn-danger' : 'btn-success' %>" id="toggle-coupon-btn-<%= coupon._id %>" data-code="<%= coupon.code %>" data-active="<%= coupon.isActive %>">
+                                            <%= coupon.isActive ? 'Deactivate' : 'Activate' %>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<% script = `
+    <script src="/js/coupons.js"></script>
+` %>

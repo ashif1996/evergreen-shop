@@ -1,0 +1,287 @@
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .section {
+        padding: 60px 0;
+    }
+
+    .user-profile .sidebar {
+        background: linear-gradient(45deg, #4CAF50, #85FF00);
+        padding: 30px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+
+    .user-profile .widget.user {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .user-profile .widget.user .image {
+        margin-bottom: 20px;
+    }
+
+    .user-profile .widget.user img {
+        border-radius: 50%;
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border: 4px solid #fff;
+    }
+
+    .user-profile .widget.user h5 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li {
+        width: 100%; /* Ensure the list item takes the full width of the sidebar */
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li a {
+        display: block; /* Ensure the link takes up the full width */
+        padding: 15px;
+        color: #fff;
+        text-decoration: none;
+        font-weight: bolder;
+        font-size: 16px;
+        transition: color 0.3s ease;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li a i {
+        margin-right: 10px; /* Adjust the gap between icon and text */
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li a:hover,
+    .user-profile .widget.user-dashboard-menu ul li.active > a {
+        color: #4e5e94;
+        text-decoration: none;
+    }
+
+    .user-profile .widget.welcome-message,
+    .user-profile .widget.personal-info,
+    .user-profile .widget.change-password,
+    .user-profile .widget.change-email {
+        background: #fff;
+        padding: 30px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+
+    .user-profile .widget-header {
+        margin-bottom: 20px;
+    }
+
+    .user-profile .form-group {
+        margin-bottom: 20px;
+    }
+
+    .user-profile .form-group label {
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .user-profile .form-group input {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        transition: border-color 0.3s ease;
+    }
+
+    .user-profile .form-group input:focus {
+        border-color: #007bff;
+        outline: none;
+    }
+
+    .user-btn {
+        background: linear-gradient(45deg, #85FF00, #4CAF50);
+        color: white;
+        font-weight: bold;
+    }
+
+    .user-btn:hover {
+        background: transparent;
+        color: #85FF00;
+        border-color: #85FF00;
+    }
+
+    @media (max-width: 768px) {
+        .user-profile .widget {
+            margin-bottom: 20px;
+        }
+    }
+</style>
+
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit Profile</li>
+        </ol>
+    </nav>
+    
+    <section class="user-profile section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="sidebar">
+                        <div class="widget user">
+                            <div class="image d-flex justify-content-center">
+                                <img src="#" alt="" class="">
+                            </div>
+                            <h5 class="text-center" style="color: #fff;"><%= locals.user.firstName %> <%= locals.user.lastName %></h5>
+                        </div>
+                        <div class="widget user-dashboard-menu">
+                            <ul>
+                                <li><a href="/users/profile"><i class="fas fa-user"></i>Your Profile</a></li>
+                                <li><a href="/users/wishlist"><i class="fas fa-heart"></i>Your Wishlist</a></li>
+                                <li><a href="/orders/my-orders"><i class="fas fa-history"></i>Order History</a></li>
+                                <li><a href="/users/wallet"><i class="fas fa-wallet"></i>Wallet</a></li>
+                                <li><a href="/users/address-management"><i class="fas fa-map-marker-alt"></i>Manage Addresses</a></li>
+                                <li><a href="/users/editProfile"><i class="fas fa-edit"></i>Edit Profile</a></li>
+                                <li><a href="/users/change-password"><i class="fas fa-key"></i>Change Password</a></li>
+                                <li><a href="/users/logout"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="widget welcome-message">
+                        <h2>Edit Profile</h2>
+                        <p>Update your profile information and settings.</p>
+                    </div>
+                    <div class="widget personal-info">
+                        <h3 class="widget-header user">Personal Information</h3>
+                        <form id="editProfileForm" action="/users/profile/edit" method="POST">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                            <div class="form-group">
+                                <label for="firstName">First Name</label>
+                                <input type="text" class="form-control" id="firstName" name="firstName" value="<%= locals.user.firstName %>">
+                                <span id="firstNameError" class="error-message"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName">Last Name</label>
+                                <input type="text" class="form-control" id="lastName" name="lastName" value="<%= locals.user.lastName %>">
+                                <span id="lastNameError" class="error-message"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" value="<%= locals.user.email %>">
+                                <span id="emailError" class="error-message"></span>
+                            </div>
+                            <button type="submit" class="btn user-btn">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    document.getElementById('editProfileForm').addEventListener('submit', async (event) => {
+        event.preventDefault(); // Prevent the default form submission
+
+        // Clear previous error messages
+        document.getElementById('firstNameError').textContent = '';
+        document.getElementById('lastNameError').textContent = '';
+        document.getElementById('emailError').textContent = '';
+
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const csrfToken = document.querySelector('input[name="_csrf"]').value;
+        
+        let isValid = true; // Track overall form validity
+
+        // Validation: Check if fields are empty
+        if (!firstName) {
+            document.getElementById('firstNameError').textContent = 'First name is required.';
+            isValid = false;
+        } else if (!/^[A-Z][a-zA-Z '-]*$/.test(firstName)) {
+            document.getElementById('firstNameError').textContent = 'First name must start with a capital letter and contain only letters, spaces, or hyphens.';
+            isValid = false;
+        }
+        
+        if (!lastName) {
+            document.getElementById('lastNameError').textContent = 'Last name is required.';
+            isValid = false;
+        } else if (!/^[A-Z][a-zA-Z '-]*$/.test(lastName)) {
+            document.getElementById('lastNameError').textContent = 'Last name must start with a capital letter and contain only letters, spaces, or hyphens.';
+            isValid = false;
+        }
+        
+        if (!email) {
+            document.getElementById('emailError').textContent = 'Email is required.';
+            isValid = false;
+        } else {
+            // Validation: Check for valid email format
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(email)) {
+            document.getElementById('emailError').textContent = 'Please enter a valid email address.';
+            isValid = false;
+            }
+        }
+
+        // If the form is valid, proceed with submission
+        if (isValid) {
+            const formData = new FormData(editProfileForm);
+            const extractedData = Object.fromEntries(formData.entries());
+            const response = await fetch('/users/profile/edit', {
+                method: 'POST',
+                headers: {
+                            'Content-Type': 'application/json',
+                            'CSRF-Token': csrfToken
+                        },
+                body: JSON.stringify(extractedData),
+            });
+            
+            const data = await response.json(); // Parse JSON response
+
+            if (data.success) {
+                // Show success message with SweetAlert
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: data.message,
+                    confirmButtonText: 'OK',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '/users/profile';
+                    }
+                });
+                // Optionally, you might want to update the UI or redirect
+                } else {
+                // Show error message with SweetAlert
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: data.message,
+                    confirmButtonText: 'Try Again',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '/users/profile';
+                    }
+                });
+            }
+        }
+    });
+</script>

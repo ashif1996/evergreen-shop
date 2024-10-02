@@ -1,0 +1,64 @@
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/admin/dashboard" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item"><a href="/admin/offers" style="color: black;">Offers</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Category Offers</li>
+        </ol>
+    </nav>
+
+    <h3 class="text-center" style="font-weight: bold;">Category Offers</h3>
+    <div class="login-line"></div>
+    <div class="mb-4 text-end">
+        <a href="/admin/categories/offers/add" class="btn addProduct-btn">
+            Add Category Offer+
+        </a>
+    </div>
+    <div class="table-responsive mt-5">
+        <table id="advancedTable" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Category Name</th>
+                    <th>Offer Type</th>
+                    <% if (categories.some(category => category.offer && category.offer.fixedDiscount)) { %>
+                        <th>Fixed Discount</th>
+                    <% } %>
+                    <% if (categories.some(category => category.offer && category.offer.percentageDiscount)) { %>
+                        <th>Percentage Discount</th>
+                    <% } %> 
+                    <th>Minimum Purchase Amount</th>
+                    <th>Is Active</th>
+                    <th>Expiration Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (categories.length > 0) { %>
+                    <% categories.forEach(category => { %>
+                        <tr>
+                            <td><%= category.name %></td>
+                            <td><%= category.offer.type %></td>
+                            <td><%= category.offer.fixedDiscount %></td>
+                            <td><%= category.offer.percentageDiscount %></td>
+                            <td><%= category.offer.minimumPurchaseAmount %></td>
+                            <td><%= category.offer.isActive ? 'Yes' : 'No' %></td>
+                            <td><%= category.offer.expirationDate ? category.offer.expirationDate.toDateString() : 'N/A' %></td>
+                            <td>
+                                <a href="/admin/edit-category-offer/<%= category._id %>" class="btn btn-warning btn-sm">
+                                    <i class="fa fa-edit"></i>
+                                </a>
+                                <button class="btn btn-danger btn-sm">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="8" class="text-center">No Categories available with offer.</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>

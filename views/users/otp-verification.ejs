@@ -1,0 +1,42 @@
+<% if (success_msg.length > 0) { %>
+    <div class="alert alert-success alert-dismissible fade show my-5" role="alert">
+        <%= success_msg %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<% } %>
+<% if (error_msg.length > 0) { %>
+    <div class="alert alert-danger alert-dismissible fade show my-5" role="alert">
+        <%= error_msg %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<% } %>
+<% if (error.length > 0) { %>
+    <div class="alert alert-danger alert-dismissible fade show my-5" role="alert">
+        <%= error %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<% } %>
+<div class="otp-container">
+    <div class="otp-form">
+        <h2 class="text-center mb-4">OTP Verification</h2>
+        <form action="/otp/verify-otp" method="post">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="email" value="<%= email %>">
+            <input type="hidden" name="otpSend" value="<%= otpSend %>">
+            <input type="hidden" name="redirectUrl" value="/otp/reset-password">
+            <div class="form-group">
+                <input type="text" class="form-control" id="otp" name="otp" placeholder="Enter OTP" required>
+            </div>
+            <span id="otpError" class="error-message"></span>
+            <div class="timer"></div>
+            <button type="submit" class="btn contact-btn" id="verifyOtpBtn">Verify OTP</button>
+        </form>
+        <div class="resend-otp-link">
+            <a href="#" id="resendOtpLink">Resend OTP</a>
+        </div>
+    </div>
+</div>
+
+<% script = `
+    <script src="/js/otpValidation.js"></script>
+` %>

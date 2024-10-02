@@ -1,0 +1,96 @@
+<style>
+    .add-coupon-btn {
+        background-color: #85FF00;
+        color: #fff;
+        width: 50%;
+        border-radius: 30px;
+        font-size: 20px;
+        font-weight: bold;
+        margin: 20px auto 0;
+        display: block;
+        text-align: center;
+        padding: 0.5rem;
+        border: 2px solid transparent;
+        transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+    }
+
+    .add-coupon-btn:hover {
+        background-color: transparent;
+        color: #85FF00;
+        border-color: #85FF00;
+    }
+</style>
+
+<div class="container mt-5">
+    <% if (success_msg && success_msg.length > 0) { %>
+        <div class="alert alert-success alert-dismissible fade show my-5" role="alert">
+            <%= success_msg %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+    <% if (error_msg && error_msg.length > 0) { %>
+        <div class="alert alert-danger alert-dismissible fade show my-5" role="alert">
+            <%= error_msg %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/admin/dashboard" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item"><a href="/admin/coupons" style="color: black;">Coupons</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Add Coupon</li>
+        </ol>
+    </nav>
+
+    <div class="form-container">
+        <h2 class="coupon-title text-center" style="font-weight: bolder;">Add Coupon</h2>
+        <div class="login-line"></div>
+        <form id="add-coupon-form" action="/admin/add-coupons" method="post">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="redirectUrl" value="/admin/coupons">
+            
+            <div class="mb-3">
+                <label for="code" class="form-label">Coupon Code</label>
+                <input type="text" class="form-control" id="code" name="code" placeholder="Enter coupon code" required>
+            </div>
+            <span class="error-message" id="codeError"></span>
+            
+            <div class="mb-3">
+                <label for="discountType" class="form-label">Discount Type</label>
+                <select class="form-control" id="discountType" name="discountType" required>
+                    <option value="" disabled selected>Select Discount Type</option>
+                    <option value="PERCENTAGE">Percentage</option>
+                    <option value="FIXED">Fixed Amount</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="discountValue" class="form-label">Discount Value</label>
+                <input type="number" class="form-control" id="discountValue" name="discountValue" placeholder="Enter discount value" required>
+            </div>
+            <span class="error-message" id="discountValueError"></span>
+            <div class="mb-3">
+                <label for="minimumPurchaseAmount" class="form-label">Minimum Purchase Amount</label>
+                <input type="number" class="form-control" id="minimumPurchaseAmount" name="minimumPurchaseAmount" placeholder="Enter minimum purchase amount">
+            </div>
+            <span class="error-message" id="minimumPurchaseAmountError"></span>
+            <div class="mb-3">
+                <label for="expirationDate" class="form-label">Expiration Date</label>
+                <input type="date" class="form-control" id="expirationDate" name="expirationDate" required>
+            </div>
+            <span class="error-message" id="expirationDateError"></span>
+            
+            <div class="form-group">
+                <label for="isActive">Active</label>
+                <input type="checkbox" class="form-check-input" id="isActive" name="isActive" checked>
+            </div>
+            
+            <button type="submit" class="btn add-coupon-btn">Add Coupon</button>
+        </form>
+    </div>  
+</div>
+
+<% script = `
+    <script src="/js/coupons.js"></script>
+` %>

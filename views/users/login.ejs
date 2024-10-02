@@ -1,0 +1,70 @@
+<div class="container mt-5">
+    <% if (locals.message && locals.message.error) { %>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: '<%= locals.message.error %>',
+                    background: '#f8d7da',
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: 'Ok',
+                    willClose: () => {
+                        window.location.href = '/users/login';
+                    }
+                });
+            });
+        </script>
+    <% } else { %>
+        <section class="login_box_area section_gap">
+            <div class="container">
+                <div class="row justify-content-center align-items-center" style="min-height: 100vh;">
+                    <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
+                        <div class="login_form_inner mx-auto my-auto">
+                            <h3>Log in to enter</h3>
+                            <div class="login-line"></div>
+                            <form id="loginForm" action="/users/login" method="post">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <div class="form-group">
+                                    <input type="email" class="form-control" id="loginEmail" name="email" placeholder="Email Address" required>
+                                    <span id="loginEmailError" class="error-message"></span>
+                                </div>
+                                <div class="form-group">
+                                    <input type="password" class="form-control" id="loginPassword" name="password" placeholder="Password" required>
+                                    <span id="loginPasswordError" class="error-message"></span>
+                                </div>
+                                <div class="form-group">
+                                    <button type="submit" value="submit" class="btn login-btn">Log In</button>
+                                </div>
+                                <div class="form-group text-center">
+                                    <a href="/users/forgot-password" class="forgot-password-link">Forgot Password?</a>
+                                </div>
+                                <div class="social-signup-options text-center mt-3">
+                                    <p>Or you can sign in with</p>
+                                    <a href="/users/auth/google" class="btn btn-google-login"><i class="bi bi-google"></i> Sign in with Google</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="row justify-content-center mt-5">
+                    <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
+                        <div class="login_box_img mx-auto my-auto">
+                            <img class="img-fluid" src="/images/main/login.jpg" alt="">
+                            <div class="hover text-center">
+                                <h4>New to our website?</h4>
+                                <p>Join our community of fresh enthusiasts and start your journey towards healthier living with farm-fresh fruits and vegetables delivered right to your door.</p>
+                                <a class="btn create-account-btn" href="/users/signup" style="border-radius: 30px;">Signup</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    <% } %>
+</div>
+
+<% script = `
+    <script src="/js/authValidation.js"></script>
+    <script src="/js/otpValidation.js"></script>
+` %>

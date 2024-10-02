@@ -1,0 +1,59 @@
+<div class="container-fluid p-0">
+  <!-- Search bar, hidden on larger screens -->
+  <div class="search-bar d-flex justify-content-center d-lg-none py-2" style="background-color: #E5E6DE;">
+    <form class="d-flex w-75" action="/search" method="get">
+      <input class="form-control me-2 top-search-bar" type="search" name="searchTerm" placeholder="Search" aria-label="Search">
+      <button class="search-icon-btn" type="submit"><i class="fas fa-search"></i></button>
+    </form>
+  </div>
+
+  <nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <img src="/images/main/logo.png" alt="Logo" class="nav-logo">
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="/">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/products/list">Shop</a>
+          </li>
+        </ul>
+        <!-- Search form, hidden on smaller screens -->
+        <form class="d-none d-lg-flex mx-auto" action="/search" method="get">
+          <input class="form-control me-2" type="search" name="searchTerm" placeholder="Search" aria-label="Search">
+          <button class="search-icon-btn" type="submit"><i class="fas fa-search"></i></button>
+        </form>
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 user-links" id="userLinks" data-is-logged-in="<%- locals.isLoggedIn %>">
+          <li class="nav-item">
+            <a class="nav-link" href="/users/wishlist"><i class="fas fa-heart"></i> <span>Wishlist</span> <span class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle" id="wishlistCount">0</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/users/shoppingCart"><i class="fas fa-shopping-cart"></i> <span>Cart</span> <span class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle" id="cartCount">0</span></a>
+          </li>
+          <% if (locals.isLoggedIn) { %>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-user"></i> <%= locals.user.firstName %> <% locals.user.lastName %>
+              </a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/users/profile">Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/users/logout">Logout</a></li>
+              </ul>
+            </li>
+          <% } else { %>
+            <li class="nav-item" id="loginLink">
+              <a class="btn btn-outline-primary" href="/users/login"> <span>Login</span></a>
+            </li>
+          <% } %>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</div>

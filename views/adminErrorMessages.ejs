@@ -1,0 +1,48 @@
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorMessage = urlParams.get('errorMessage');
+        const statusCode = parseInt(urlParams.get('statusCode'), 10) || 500;
+
+        let icon, title, backgroundColor, redirectUrl;
+
+        switch(statusCode) {
+            case 401:
+                icon = 'warning';
+                title = 'Unauthorized';
+                backgroundColor = '#fff3cd'; // Light yellow
+                break;
+            case 404:
+                icon = 'error';
+                title = 'Not Found';
+                backgroundColor = '#f8d7da'; // Light red
+                break;
+            case 500:
+                icon = 'error';
+                title = 'Server Error';
+                backgroundColor = '#f5c6cb'; // Light pink
+                break;
+            default:
+                icon = 'error';
+                title = 'Oops...';
+                backgroundColor = '#f8d7da'; // Default light red
+                break;
+        }
+
+        redirectUrl = '/admin/login';
+
+        if (errorMessage) {
+            swal.fire({
+                icon: icon,
+                title: title,
+                text: decodeURIComponent(errorMessage),
+                background: backgroundColor,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Ok',
+                willClose: () => {
+                    window.location.href = redirectUrl; // Redirect after closing the alert
+                }
+            });
+        }
+    });
+</script>

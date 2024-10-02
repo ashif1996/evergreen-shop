@@ -1,0 +1,719 @@
+<style>
+    body {
+        background-color: #f8f9fa;
+        color: #333;
+    }
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .section {
+        padding: 60px 0;
+    }
+
+    .user-profile .sidebar {
+        background: linear-gradient(45deg, #4CAF50, #85FF00);
+        padding: 30px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+
+    .user-profile .widget.user {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .user-profile .widget.user .image {
+        margin-bottom: 20px;
+    }
+
+    .user-profile .widget.user img {
+        border-radius: 50%;
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border: 4px solid #fff;
+    }
+
+    .user-profile .widget.user h5 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li {
+        width: 100%;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li a {
+        display: block;
+        padding: 15px;
+        color: #fff;
+        text-decoration: none;
+        font-weight: bolder;
+        font-size: 16px;
+        transition: color 0.3s ease;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li a i {
+        margin-right: 10px;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li a:hover,
+    .user-profile .widget.user-dashboard-menu ul li.active > a {
+        color: #4e5e94;
+        text-decoration: none;
+    }
+
+    .user-profile .widget.welcome-message {
+        background: #fff;
+        padding: 30px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+
+    .user-profile .widget h2, 
+    .user-profile .widget h3 {
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .user-profile .widget p {
+        font-size: 16px;
+        line-height: 1.6;
+    }
+
+    .user-profile .widget.address-management {
+        background: #fff;
+        padding: 30px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+
+    .user-profile .form-group {
+        margin-bottom: 20px;
+    }
+
+    .user-profile .form-group label {
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .user-profile .form-group input {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+    }
+
+    .user-btn {
+        background: linear-gradient(45deg, #85FF00, #4CAF50);
+        color: white;
+        font-weight: bold;
+    }
+
+    .user-btn:hover {
+        background: transparent;
+        color: #85FF00;
+        border-color: #85FF00;
+    }
+
+    @media (max-width: 768px) {
+        .user-profile .widget {
+            margin-bottom: 20px;
+        }
+    }
+    .card {
+        border: none;
+        margin-bottom: 20px;
+        background-color: #fff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+        background: linear-gradient(45deg, #4CAF50, #85FF00);
+        color: #fff;
+        font-weight: bold;
+    }
+    .card-body {
+        padding: 20px;
+    }
+    .info-section {
+        padding: 15px;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    .info-section h5 {
+        margin-bottom: 15px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    .order-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        align-items: center;
+    }
+    .order-item:last-child {
+        border-bottom: none;
+    }
+    .order-item img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        margin-right: 20px;
+        border-radius: 5px;
+    }
+    .order-item h6 {
+        font-size: 16px;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    .order-item .status {
+        font-size: 14px;
+        color: #666;
+    }
+    .order-summary .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+    .order-summary .summary-item.total {
+        font-weight: bold;
+        font-size: 18px;
+        color: #28a745;
+    }
+    .cancel-order-btn {
+        margin-top: 20px;
+        background-color: #dc3545;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .cancel-order-btn:hover {
+        background-color: #c82333;
+    }
+    .return-item-btn {
+        margin-top: 10px;
+        background-color: #ffc107;
+        color: #fff;
+        border: 2px solid transparent;
+        padding: 8px 15px;
+        font-weight: bold;
+        font-size: 14px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .return-item-btn:hover {
+        background-color: transparent;
+        color: #e0a800;
+        border-color: #e0a800;
+    }
+    
+    .exchange-item-btn {
+        margin-top: 10px;
+        background-color: #ffc107;
+        color: #fff;
+        border: 2px solid transparent;
+        padding: 8px 15px;
+        font-size: 14px;
+        font-weight: bold;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .exchange-item-btn:hover {
+        background-color: transparent;
+        color: #e0a800;
+        border-color: #e0a800;
+    }
+
+    .download-invoice-btn {
+        margin-top: 10px;
+        background-color: #ffc107;
+        color: #fff;
+        border: 2px solid transparent;
+        padding: 8px 15px;
+        font-size: 14px;
+        font-weight: bold;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .download-invoice-btn:hover {
+        background-color: transparent;
+        color: #e0a800;
+        border-color: #e0a800;
+    }
+
+    .modal-content {
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        background: linear-gradient(45deg, #4CAF50, #85FF00);
+        color: #fff;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+
+    .modal-title {
+        font-weight: bold;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        font-weight: bold;
+    }
+
+    .btn-warning {
+        background-color: #ffc107;
+        border-color: #ffc107;
+    }
+    .rate-product-btn {
+        background-color: #3cf696;
+        color: white;
+        font-weight: bold;
+        border-radius: 25px;
+        border: 2px solid transparent;
+        padding: 10px 20px;
+        text-align: center;
+        display: inline-block;
+        text-decoration: none;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .rate-product-btn:hover {
+        background-color: transparent;
+        color: #3cf696;
+        border-color: #3cf696;
+    }
+</style>
+
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item"><a href="/users/profile" style="color: black;">Profile</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Address Management</li>
+        </ol>
+    </nav>
+
+    <section class="user-profile section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="sidebar">
+                        <div class="widget user">
+                            <div class="image d-flex justify-content-center">
+                                <img src="#" alt="">
+                            </div>
+                            <h5 class="text-center" style="color: #fff;"><%= locals.user.firstName %> <%= locals.user.lastName %></h5>
+                        </div>
+                        <div class="widget user-dashboard-menu">
+                            <ul>
+                                <li><a href="/users/profile"><i class="fas fa-user"></i>Your Profile</a></li>
+                                <li><a href="/users/wishlist"><i class="fas fa-heart"></i>Your Wishlist</a></li>
+                                <li><a href="/orders/my-orders"><i class="fas fa-history"></i>Order History</a></li>
+                                <li><a href="/users/wallet"><i class="fas fa-wallet"></i>Wallet</a></li>
+                                <li><a href="/users/address-management"><i class="fas fa-map-marker-alt"></i>Manage Addresses</a></li>
+                                <li><a href="/users/editProfile"><i class="fas fa-edit"></i>Edit Profile</a></li>
+                                <li><a href="#"><i class="fas fa-key"></i>Forgot Password</a></li>
+                                <li><a href="/users/logout"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            Order Items
+                        </div>
+                        <div class="card-body">
+                            <% order.orderItems.forEach((item, i) => { %>
+                                <div class="order-item">
+                                    <img src="/images/products/<%= item.productId.images[0] %>" alt="Product Image" width="100">
+                                    <div>
+                                        <h6><%= item.productId.name %></h6>
+                                        <p class="status"><strong>Status:</strong> <%= item.itemStatus %></p>
+                                        <p><strong>Quantity:</strong> <%= item.productId.category.name === 'Juice and Drinks' ? item.quantity + ' L' : item.quantity + ' kg' %></p>
+                                        <p><strong>Item Total:</strong> ₹<%= item.itemTotal %></p>
+                                        <% if (!locals.hasNonReturnableItem) { %>
+                                            <button class="return-item-btn btn btn-primary" data-bs-toggle="modal" data-bs-target="#returnModal-<%= item._id %>">Return Item</button>
+                                            <button class="exchange-item-btn btn btn-warning" data-bs-toggle="modal" data-bs-target="#exchangeModal-<%= item._id %>">Exchange Item</button>
+                                        <% } %>
+                                    </div>
+                                </div>
+                
+                                <!-- Return/Exchange Modal for the specific item -->
+                                <div class="modal fade" id="returnModal-<%= item._id %>" tabindex="-1" aria-labelledby="returnModalLabel-<%= item._id %>" aria-hidden="true">
+                                    <div class="modal-dialog" style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="returnModalLabel-<%= item._id %>">Return Product</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form id="returnForm-<%= item._id %>" action="/orders/return-item/<%= item._id %>" method="POST">
+                                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                                    <div class="mb-3">
+                                                        <label for="returnReason-<%= item._id %>" class="form-label">Return Reason</label>
+                                                        <textarea class="form-control" id="returnReason-<%= item._id %>" name="returnReason" rows="3"></textarea>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-primary">Submit Return Request</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Exchange Modal for the specific item -->
+                                <div class="modal fade" id="exchangeModal-<%= item._id %>" tabindex="-1" aria-labelledby="exchangeModalLabel-<%= item._id %>" aria-hidden="true">
+                                    <div class="modal-dialog" style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="exchangeModalLabel-<%= item._id %>">Exchange Product</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form id="exchangeForm-<%= item._id %>" action="/orders/exchange-item/<%= item._id %>" method="POST">
+                                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                                    <div class="mb-3">
+                                                        <label for="exchangeReason-<%= item._id %>" class="form-label">Exchange Reason</label>
+                                                        <textarea id="exchangeReason-<%= item._id %>" name="exchangeReason" class="form-control" rows="3" required></textarea>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-warning">Submit Exchange</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    </div>
+                </div>                
+
+                    <!-- First Row: Order Information and Payment Information -->
+                    <div class="row mt-5">
+                        <div class="col-md-6">
+                            <div class="info-section">
+                                <h5>Order Information</h5>
+                                <p>Order Date: <strong><%= new Date(order.createdAt).toDateString() %></strong></p>
+                                <p>Order ID: <strong><%= order.generatedOrderId %></strong></p>
+                                <p>Order Total: <strong>₹<%= order.totalPrice %></strong></p>
+                                <!-- Add the Download Invoice button conditionally -->
+                                <% if (order.orderStatus === 'Delivered') { %>
+                                    <a class="download-invoice-btn btn btn-small" href="/orders/my-orders/<%= order._id %>/invoice/download">Download Invoice</a><br>
+                                <% } %>
+                                <!-- Check if the cancel button should be shown -->
+                                <% if (locals.showCancelButton) { %>
+                                    <button class="cancel-order-btn" data-order-id="<%= order._id %>">Cancel Order</button>
+                                <% } %>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-section">
+                                <h5>Payment Information</h5>
+                                <p>Payment Method: <strong><%= order.paymentMethod %></strong></p>
+                                <p>Payment Status: <strong><%= order.orderPaymentStatus %></strong></p>
+                                <% if (order.paymentMethod === 'Razorpay' && order.orderPaymentStatus === 'Failed') { %>
+                                    <button id="retryPaymentBtn" class="btn btn-primary mt-3" data-order-id="<%= order._id %>" data-csrf="<%= csrfToken %>">Retry Payment</button>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <!-- Second Row: Shipping Address and Order Summary -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-section">
+                                <h5>Shipping Address</h5>
+                                <p><%= order.shippingAddress.address %></p>
+                                <p><%= order.shippingAddress.city %></p>
+                                <p><%= order.shippingAddress.state %></p>
+                                <p><%= order.shippingAddress.zipCode %></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-section">
+                                <h5>Order Summary</h5>
+                                <div class="summary-item">
+                                    <span>Items Total:</span>
+                                    <span> <strong>₹<%= order.subTotal %></strong></span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Shipping Charge:</span>
+                                    <span> <strong>₹<%= order.shippingCharge %></strong></span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Coupons Applied:</span>
+                                    <span> <strong><%= order.couponDiscount ? '-₹' + order.couponDiscount : 'None' %></strong></span>
+                                </div>
+                                <div class="summary-item total">
+                                    <span>Order Total:</span>
+                                    <span> <strong>₹<%= order.totalPrice %></strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    // Attach event listener to each return item button
+    document.querySelectorAll('.return-item-btn').forEach(button => {
+        if (button) {
+            button.addEventListener('click', function () {
+                const itemId = this.getAttribute('data-item-id');
+                const csrfToken = document.querySelector('input[name="_csrf"]')?.value; // Get the CSRF token if present
+                if (csrfToken && itemId) {
+                    const formAction = `/orders/return-item/${itemId}?_csrf=${csrfToken}`; // Append the CSRF token to the form action
+                    document.getElementById('returnForm')?.setAttribute('action', formAction);
+
+                    // Show the return/exchange modal
+                    const returnExchangeModal = new bootstrap.Modal(document.getElementById('returnExchangeModal'));
+                    returnExchangeModal?.show();
+                }
+            });
+        }
+    });
+
+    // Handle form submission on clicking the return button
+    const returnBtn = document.getElementById('returnBtn');
+    if (returnBtn) {
+        returnBtn.addEventListener('click', function () {
+            const returnReason = document.getElementById('returnReason')?.value; // Get return reason input value
+            const formElement = document.getElementById('returnForm');
+
+            if (!returnReason) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Return Reason Required',
+                    text: 'Please provide a reason for the return.'
+                });
+                return; // Stop form submission if no return reason provided
+            }
+
+            formElement.submit(); // Submit the form with the return reason
+
+            // Hide the modal after submission
+            const modalElement = document.getElementById('returnExchangeModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            modalInstance?.hide();
+        });
+    }
+
+    // Show SweetAlert if the return request was successful
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('returnRequestSuccess') === 'true') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Return Requested',
+                text: 'Your return request has been submitted successfully!',
+                confirmButtonText: 'OK'
+            });
+        }
+
+        const retryButton = document.getElementById('retryPaymentBtn');
+        const orderId = retryButton.getAttribute('data-order-id');
+        const csrfToken = retryPaymentBtn.getAttribute('data-csrf');
+
+        if (!retryButton) {
+            console.error('Retry payment button not found');
+            return;
+        }
+
+        retryButton.addEventListener('click', async function () {
+            try {
+                const retryPayment = await Swal.fire({
+                    title: 'Retry Payment?',
+                    text: "Your payment has failed. Would you like to retry?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes'
+                });
+
+                if (retryPayment.isConfirmed) {
+                    console.log(`Fetching retry payment data for order ID: ${orderId}`);
+
+                    const response = await fetch(`/orders/${orderId}/payment/razorpay/retry`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'CSRF-Token': csrfToken // Include CSRF token if needed
+                        }
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error('Error response from server:', errorData);
+                        throw new Error(errorData.message || 'There was a problem retrying the payment.');
+                    }
+
+                    const data = await response.json();
+                    console.log('Retry payment data:', data);
+
+                    const options = {
+                        key: data.razorpayKeyId,
+                        amount: data.totalAmount * 100, // Convert to paise
+                        currency: 'INR',
+                        name: 'EverGreen',
+                        description: `Order payment.`,
+                        order_id: data.razorpayOrderId,
+                        handler: async function (response) {
+                            try {
+                                console.log('Payment response:', response);
+
+                                const verifyResponse = await fetch(`/orders/checkout/razorpay/verify/confirm`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'CSRF-Token': csrfToken // Include CSRF token if needed
+                                    },
+                                    body: JSON.stringify({
+                                        razorpay_payment_id: response.razorpay_payment_id,
+                                        razorpay_order_id: response.razorpay_order_id,
+                                        razorpay_signature: response.razorpay_signature
+                                    })
+                                });
+
+                                const verifyData = await verifyResponse.json();
+                                console.log('Payment verification response:', verifyData);
+
+                                if (verifyData.success) {
+                                    await Swal.fire('Payment Successful!', 'Your payment was processed successfully.', 'success');
+                                    window.location.reload(); // Reload the page after success
+                                } else {
+                                    throw new Error('There was an issue verifying your payment. Please try again.');
+                                }
+                            } catch (err) {
+                                Swal.fire('Payment Failed', err.message || 'An error occurred during payment verification.', 'error');
+                            }
+                        },
+                        prefill: {
+                            name: "Ashif Hassan",
+                            email: "ashif123@gmail.com",
+                            contact: "91896543332"
+                        },
+                        theme: {
+                            color: "#3399cc"
+                        }
+                    };
+
+                    const razorpayInstance = new Razorpay(options);
+                    razorpayInstance.open();
+                }
+            } catch (error) {
+                Swal.fire('Error!', error.message || 'An unexpected error occurred.', 'error');
+            }
+        });
+    });
+
+    const exchangeBtn = document.getElementById('exchangeBtn');
+    if (exchangeBtn) {
+        exchangeBtn.addEventListener('click', function () {
+            const modalElement = document.getElementById('returnExchangeModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            modalInstance?.hide();
+        });
+    }
+
+    const cancelOrderBtn = document.querySelector('.cancel-order-btn');
+    if (cancelOrderBtn) {
+        cancelOrderBtn.addEventListener('click', async (event) => {
+            event.preventDefault();
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const orderId = event.target.getAttribute('data-order-id');
+
+            if (!orderId) {
+                console.error('Order ID not found!');
+                return;
+            }
+
+            try {
+                const result = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Are you sure?',
+                    text: 'Do you really want to cancel this order?',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes'
+                });
+
+                if (result.isConfirmed && csrfToken) {
+                    const response = await fetch(`/orders/my-orders/order-details/cancel/${orderId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': csrfToken
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        let message = data.message;
+
+                        if (data.refundAmount) { // Check if refund amount is present
+                            message += ` Rs.${data.refundAmount} credited to your wallet.`;
+                        }
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: message
+                        }).then(() => {
+                            window.location.reload(); // Reload page after successful cancellation
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error cancelling order:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An unexpected error occurred.'
+                });
+            }
+        });
+    }
+</script>

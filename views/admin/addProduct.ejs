@@ -1,0 +1,180 @@
+<!-- Image Upload with Cropping -->
+<div class="container mt-5">
+    <% if (locals.message && locals.message.success || locals.message.error) { %>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const messageType = '<%= locals.message.success ? "success" : "error" %>';
+                const messageText = '<%= locals.message.success ? locals.message.success : locals.message.error %>';
+                const messageTitle = messageType === 'success' ? 'Success!' : 'Oops...';
+                const confirmButtonColor = messageType === 'success' ? '#28a745' : '#d33';
+
+                swal.fire({
+                    icon: messageType,
+                    title: messageTitle,
+                    text: messageText,
+                    confirmButtonColor: confirmButtonColor,
+                    confirmButtonText: 'Ok'
+                });
+            });
+        </script>
+    <% } %>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/admin/dashboard" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item"><a href="/admin/products" style="color: black;">Products</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Add Products</li>
+        </ol>
+    </nav>
+
+    <div class="form-container">
+        <h2 class="product-title" style="font-weight: bolder;">Add Products</h2>
+        <div class="login-line"></div>
+        <form id="add-product-form" action="/admin/add-products" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="redirectUrl" value="/admin/products">
+            <div class="form-group">
+                <input type="text" class="form-control" placeholder="Product Name" id="name" name="name">
+                <div class="error-message" id="nameError"></div>
+            </div>
+            <div class="form-group">
+                <input type="number" class="form-control" placeholder="Price" id="price" name="price">
+                <div class="error-message" id="priceError"></div>
+            </div>
+            <div class="form-group">
+                <textarea class="form-control" placeholder="Description" id="description" name="description"></textarea>
+                <div class="error-message" id="descriptionError"></div>
+            </div>
+            <div class="form-group">
+                <input type="number" class="form-control" placeholder="Available Stock" name="stock" id="stock" step="0.5" min="0">
+                <div class="error-message" id="stockError"></div>
+            </div>
+            <div class="form-group">
+                <label for="availability">Availability</label>
+                <select class="form-control" id="availability" name="availability" >
+                    <option value="true">Available</option>
+                    <option value="false">Not Available</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="images">Product Images</label>
+                <input type="file" id="images" name="images" accept="image/*" multiple >
+                <div class="error-message" id="imagesError"></div>
+            </div>
+    
+            <div id="image-previews"></div>
+            <div class="form-group">
+                <select class="form-control" name="category" id="category" style="background-color:#d8f0dd">
+                    <option value="" disabled selected>Select Category:</option>
+                    <% categories.forEach(category => { %>
+                        <option value="<%= category._id %>">
+                            <%= category.name %>
+                        </option>
+                    <% }) %>
+                </select>
+                <div class="error-message" id="categoryError"></div>
+            </div>
+            <div class="form-group">
+                <label for="featured">Featured</label>
+                <input type="checkbox" class="form-check-input" id="featured" name="featured">
+                <div class="error-message" id="featuredError"></div>
+            </div>
+            <button type="submit" class="btn category-btn mt-3">Add Product</button>
+            <div id="success-message" class="success-message"></div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const imageInput = document.getElementById('images');
+        const imagePreviewsContainer = document.getElementById('image-previews');
+        const croppers = [];
+
+        imageInput.addEventListener('change', (event) => {
+            const files = event.target.files;
+
+            imagePreviewsContainer.innerHTML = ''; // Clear previous previews
+
+            Array.from(files).forEach((file, i) => {
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+
+                    reader.onload = (e) => {
+                        const previewContainer = document.createElement('div');
+                        previewContainer.className = 'image-preview-container';
+
+                        const imageElement = document.createElement('img');
+                        imageElement.id = `image-crop-preview-${i}`;
+                        imageElement.src = e.target.result;
+                        imageElement.style.maxWidth = '300px'; // Reduced max width for better preview
+                        imageElement.style.maxHeight = '300px'; // Reduced max height for better preview
+
+                        const cropButton = document.createElement('button');
+                        cropButton.type = 'button';
+                        cropButton.className = 'btn btn-primary mt-2';
+                        cropButton.innerText = 'Crop Image';
+                        
+                        previewContainer.appendChild(imageElement);
+                        previewContainer.appendChild(cropButton);
+                        imagePreviewsContainer.appendChild(previewContainer);
+
+                        // Initialize cropper for this image
+                        const cropper = new Cropper(imageElement, {
+                            aspectRatio: 1, // Adjust aspect ratio as needed
+                            viewMode: 1,
+                            autoCropArea: 0.5, // Adjust crop area size as needed
+                            scalable: true,
+                            movable: true,
+                            zoomable: true,
+                            ready() {
+                                this.cropper.setCropBoxData({
+                                    width: 150, // Adjust crop box width as needed
+                                    height: 150, // Adjust crop box height as needed
+                                });
+                            }
+                        });
+
+                        // Store cropper instance and file info
+                        croppers[i] = { cropper, file, index: i };
+
+                        cropButton.addEventListener('click', function() {
+                            const cropperData = croppers[i]; // Capture the correct cropper data using i
+                            const canvas = cropperData.cropper.getCroppedCanvas({
+                                width: 150, // Adjust output canvas width as needed
+                                height: 150, // Adjust output canvas height as needed
+                            });
+
+                            canvas.toBlob((blob) => {
+                                const croppedImage = new File([blob], cropperData.file.name, {
+                                    type: 'image/jpeg',
+                                    lastModified: Date.now(),
+                                });
+
+                                // Replace the original file with the cropped image
+                                const dataTransfer = new DataTransfer();
+                                Array.from(imageInput.files).forEach((f, j) => {
+                                    if (j === cropperData.index) {
+                                        dataTransfer.items.add(croppedImage);
+                                    } else {
+                                        dataTransfer.items.add(f);
+                                    }
+                                });
+                                imageInput.files = dataTransfer.files;
+
+                                // Optionally, hide the cropped image preview
+                                previewContainer.style.display = 'none';
+                            });
+                        });
+                    };
+
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    });
+</script>
+
+<% script = `
+    <script src="/js/productUpload.js"></script>
+` %>

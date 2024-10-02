@@ -1,0 +1,643 @@
+<style>
+    /* General Styles */
+    body {
+        font-family: 'Open Sans', sans-serif;
+        line-height: 1.6;
+        margin: 0;
+        padding: 0;
+        background-color: #fff;
+    }
+
+    .card-wrapper {
+        max-width: 1200px;
+        margin: 50px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 20px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; /* Align items to the left */
+    }
+
+    .product-imgs {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    .img-display {
+        width: 100%;
+        overflow: hidden;
+        margin-bottom: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .img-display img {
+        width: 100%;
+        height: auto;
+        transition: transform 0.5s ease, box-shadow 0.5s ease;
+        border-radius: 15px;
+    }
+
+    .img-display img:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .img-select {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+    .img-select .img-item {
+        margin: 0 10px;
+        cursor: pointer;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+    .img-select .img-item img {
+        width: 80px;
+        height: auto;
+        transition: transform 0.3s ease;
+    }
+
+    .img-select .img-item img:hover {
+        transform: scale(1.1);
+    }
+
+    .product-content {
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 15px;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-title {
+        font-size: 24px !important;
+        line-height: 32px !important;
+        color: #333;
+        margin-bottom: 20px;
+        text-align: left; /* Align text to the left */
+    }
+
+    .rating {
+        color: #FFD700; /* Gold color for stars */
+        font-size: 1.2em;
+        margin-bottom: 5px;
+    }
+
+    .product-price {
+        font-size: 28px;
+        margin-bottom: 20px;
+        color: #333;
+        text-align: left; /* Align text to the left */
+    }
+
+    .product-detail {
+        margin-bottom: 20px;
+        text-align: left; /* Align text to the left */
+    }
+
+    .product-detail h2 {
+        margin-bottom: 20px;
+        font-size: 1.6em;
+        color: #333;
+    }
+
+    .product-detail ul {
+        list-style: none;
+        padding: 0;
+        font-size: 1em;
+        color: #555;
+    }
+
+    .product-detail ul li {
+        margin-bottom: 10px;
+    }
+
+    .purchase-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; /* Align items to the left */
+        width: 100%;
+    }
+
+    .purchase-info form {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .purchase-info input[type="number"] {
+        width: 60px;
+        margin-right: 10px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        text-align: center;
+        font-size: 1em;
+    }
+
+    .social-links {
+        display: flex;
+        justify-content: flex-start; /* Align to the left */
+        margin-top: 20px;
+    }
+
+    .social-links a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        color: #fff;
+        background-color: #000;
+        margin: 0 5px;
+        border-radius: 50%;
+        text-decoration: none;
+        font-size: 1.2rem;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .social-links a:hover {
+        background-color: #3cf696;
+        transform: scale(1.1);
+    }
+
+    .add-product-btn {
+        background-color: #85FF00;
+        color: white;
+        font-weight: bold;
+        border-radius: 25px;
+        border: 2px solid transparent;
+        padding: 10px 20px;
+        text-align: center;
+        display: inline-block;
+        text-decoration: none;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .add-product-btn:hover {
+        background-color: transparent;
+        color: #85FF00;
+        border-color: #85FF00;
+    }
+
+    .rate-product-btn {
+        background-color: #3cf696;
+        color: white;
+        font-weight: bold;
+        border-radius: 25px;
+        border: 2px solid transparent;
+        padding: 10px 20px;
+        text-align: center;
+        display: inline-block;
+        text-decoration: none;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .rate-product-btn:hover {
+        background-color: transparent;
+        color: #3cf696;
+        border-color: #3cf696;
+    }
+
+    .product-price {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; /* Ensure content is aligned to the left */
+    }
+
+    .price-details {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        font-size: 0.9em;
+    }
+
+    .original-price {
+        text-decoration: line-through;
+        color: grey;
+        margin-right: 5px;
+        font-size: 16px !important;
+        line-height: 16px !important;
+    }
+
+    .discount-percentage {
+        color: gray;
+        font-size: 16px !important;
+        line-height: 16px !important;
+    }
+
+    .payment-info {
+        display: flex; /* Arrange information side-by-side */
+        flex-direction: column;
+    }
+
+    .payment-info p {
+        margin-right: 10px;
+    }
+
+    .payment-info i {
+        margin-right: 5px;
+        color: #85FF00;
+    }
+
+    @media (min-width: 768px) {
+        .card-wrapper {
+            flex-direction: row;
+            padding: 40px;
+        }
+
+        .product-imgs,
+        .product-content {
+            width: 50%;
+            padding: 20px;
+        }
+
+        .product-imgs {
+            margin-right: 20px;
+        }
+    }
+
+    .reviews-section h2,
+    .related-products-section h2 {
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    .review-item {
+        margin-bottom: 20px;
+    }
+
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+
+    .review-rating i {
+        color: #FFD700;
+    }
+
+    .review-header {
+        margin-bottom: 5px; /* Optional: Space below the header */
+    }
+
+    .review-rating {
+        margin-top: 3px; /* Space between name and rating */
+    }
+
+    .review-comment {
+        color: #555;
+        font-size: 1em;
+    }
+
+    .box-element {
+        box-shadow: hsl(0, 0%, 80%) 0 0 16px;
+        background-color: #fff;
+        border-radius: 4px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column; /* Stack items vertically */
+        height: 100%; /* Ensure full height for alignment */
+        position: relative; /* For positioning wishlist icon */
+        justify-content: space-between; /* Push content to top and bottom */
+    }
+
+    .thumbnail {
+        width: 100%;
+        height: 200px;
+        box-shadow: -1px -3px 5px -2px rgba(214, 214, 214, 1);
+    }
+
+    .product-image-container {
+        position: relative;
+    }
+
+    .related-product-details {
+        margin-bottom: 10px;
+    }
+
+    .product-extra {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start; /* Align items to the start */
+        height: 100%; /* Ensure it takes full height */
+    }
+
+    .related-product-price {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; /* Ensure content is aligned to the left */
+        font-size: 18px;
+    }
+
+    .related-price-details {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        font-size: 21px;
+    }
+
+    .related-original-price {
+        text-decoration: line-through;
+        color: grey;
+        margin-right: 5px;
+    }
+
+    .related-discount-percentage {
+        color: gray;
+    }
+
+    .rating {
+        color: #FFD700;
+        font-size: 1.2em;
+        margin-bottom: 5px;
+    }
+
+    .results-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    /* Ensure wishlist-icon container is positioned correctly */
+    .wishlist-icon {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 24px; /* Size of the icon */
+        display: none; /* Hidden by default */
+        opacity: 0; /* Invisible by default */
+        transition: opacity 0.3s ease; /* Smooth transition for opacity */
+    }
+
+    /* Show the icon when hovering over the box-element */
+    .box-element:hover .wishlist-icon {
+        display: block; /* Show the icon */
+        opacity: 1; /* Make it visible */
+    }
+
+    /* Remove default styling from form and button elements */
+    .wishlist-icon form {
+        margin: 0; /* Remove margin */
+        padding: 0; /* Remove padding */
+        border: none; /* Remove border */
+        background: none; /* Remove background */
+    }
+
+    .wishlist-icon button {
+        background: none; /* Remove background */
+        border: none; /* Remove border */
+        padding: 0; /* Remove padding */
+        margin: 0; /* Remove margin */
+        display: inline; /* Ensure it's inline */
+        cursor: pointer; /* Pointer cursor on hover */
+    }
+
+    /* Style for the icon inside the wishlist-icon class */
+    .wishlist-icon i {
+        color: #4CAF50; /* Green color for the icon */
+    }
+
+    /* Tooltip styling */
+    .wishlist-tooltip {
+        position: absolute;
+        top: -30px;
+        right: 50%;
+        transform: translateX(50%);
+        background-color: #333;
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        white-space: nowrap;
+    }
+
+    /* Show tooltip on icon hover */
+    .wishlist-icon:hover .wishlist-tooltip {
+        opacity: 1;
+    }
+</style>
+
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item"><a href="/products/list" style="color: black;">Products</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Product Details</li>
+        </ol>
+    </nav>
+    <div class="card-wrapper">
+        <div class="product-imgs">
+            <div class="img-display">
+                <% if (product.images && product.images.length > 0) { %>
+                    <!-- Display the main image, default to the first image if no specific image is provided -->
+                    <img id="mainImage" src="/images/products/<%= product.images[3] || product.images[0] %>" alt="Product Image">
+                <% } else { %>
+                    <!-- Placeholder or default image if no images are available -->
+                    <img id="mainImage" src="/images/products/default-placeholder.png" alt="Default Image">
+                <% } %>
+            </div>
+            <div class="img-select">
+                <% if (product.images && product.images.length > 0) { %>
+                    <% product.images.forEach((image, index) => { %>
+                        <div class="img-item">
+                            <img src="/images/products/<%= image %>" alt="Product Image <%= index + 1 %>" onclick="changeImage('/images/products/<%= image %>')">
+                        </div>
+                    <% }); %>
+                <% } %>
+            </div>
+        </div>
+        <div class="product-content">
+            <h1 class="product-title"><%= product.name %></h1>
+            <div class="rating">
+                <% if (hasRatings) { %>
+                    <% for (let i = 1; i <= 5; i++) { %>
+                        <i class="fa<%= i <= averageRating ? 's' : 'r' %> fa-star"></i>
+                    <% } %>
+                    <p style="color: #000;"><%= averageRating.toFixed(1) %> / 5</p>
+                <% } else { %>
+                    <!-- No ratings available -->
+                    <p style="color: #000;">No ratings yet</p>
+                <% } %>
+            </div>
+            <hr>
+            <div class="product-price">
+                <% if (product.discountedPrice < product.price) { %>
+                    <span class="current-price">₹<%= product.discountedPrice %>/kg</span>
+                    <% if (product.discountType === 'fixed') { %>
+                        <div class="price-details mt-2">
+                            <span style="color: gray;">M.R.P: </span>
+                            <span class="original-price">₹<%= product.price %>/kg</span>
+                            <span class="discount-percentage">(₹<%= product.fixedDiscount %> off)</span>
+                        </div>
+                    <% } else if (product.discountType === 'percentage') { %>
+                        <div class="price-details mt-2">
+                            <span style="color: gray;">M.R.P: </span>
+                            <span class="original-price">₹<%= product.price %>/kg</span>
+                            <span class="discount-percentage">(<%= Math.ceil(product.discountPercentage) + '% off' %>)</span>
+                        </div>
+                    <% } %>
+                <% } else { %>
+                    <span class="current-price">₹<%= product.price %>/kg</span>
+                    <span class="mt-2" style="color: gray;">No offers available</span>
+                <% } %>
+            </div>
+            <hr>
+            <div class="purchase-info">
+                <% if (product.stock > 0) { %>
+                    <p style="color: #007600; font-size: 18px; line-height: 24px;">Available Stock: <%= product.category.name === 'Juice and Drinks' ? product.stock + ' L' : product.stock + ' kg' %></p>
+                <% } %>
+            
+                <% if (product.stock > 0) { %>
+                    <form action="/users/shoppingCart/add" method="POST" class="add-to-cart-form mt-3">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="hidden" name="productId" value="<%= product._id %>">
+                        
+                        <!-- Quantity Input -->
+                        <div class="quantity-selector">
+                            <label for="quantity">Quantity:</label>
+                            <input type="number" name="quantity" id="quantity" value="1" min="1" max="<%= product.stock %>" required>
+                        </div>
+                        
+                        <button type="submit" class="btn add-product-btn">
+                            Add to Cart <i class="fa fa-shopping-cart"></i>
+                        </button>
+                    </form>
+                <% } else { %>
+                    <span class="out-of-stock-text" style="color: red;">Currently out of stock</span>
+                <% } %>
+                <form action="/products/buy-now/<%= product._id %>" method="POST" class="buy-now-form mt-3">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <input type="hidden" name="productId" value="<%= product._id %>">
+                    <input type="hidden" name="quantity" id="buyNowQuantity" value="1">
+                    <button type="submit" class="btn rate-product-btn">
+                        Buy Now
+                    </button>
+                </form>
+                <div class="payment-info">
+                    <p class="discount-percentage"><i class="fas fa-shield-alt"></i>Secure transaction</p>
+                    <p class="discount-percentage"><i class="fas fa-shipping-fast"></i>Ships from Evergreen</p>
+                    <p class="discount-percentage"><i class="fas fa-store"></i>Sold by Evergreen</p>
+                  </div>
+            </div>
+            <hr>
+            <div class="product-detail mt-5">
+                <h2 style="font-size: 16px; line-height: 24px; font-weight: 700;">About this item</h2>
+                <ul>
+                    <li style="font-size: 14px;"><strong>Category:</strong> <%= product.category.name %></li>
+                    <li style="font-size: 14px;"><strong>Description:</strong> <%= product.description %></li>
+                </ul>
+            </div>
+            <a href="#" class="btn add-product-btn" id="rate-product-button" data-product-id="<%= product._id %>">Write a product review</a>
+        </div>
+    </div>
+    <hr>
+
+    <div class="reviews-section mt-5">
+        <h2 style="font-weight: bold;">Customer Reviews</h2>
+        <% if (product.ratings && product.ratings.length > 0) { %>
+            <% product.ratings.forEach((rating) => { %>
+                <div class="review-item">
+                    <div class="review-header">
+                        <strong><%= rating.userId.firstName %> <%= rating.userId.lastName %></strong>
+                        <div class="review-rating"> <!-- Use div for rating for better control -->
+                            <% for (let i = 1; i <= 5; i++) { %>
+                                <i class="fa<%= i <= rating.rating ? 's' : 'r' %> fa-star"></i>
+                            <% } %>
+                        </div>
+                    </div>
+                    <p class="review-comment"><%= rating.review %></p>
+                </div>
+                <hr>
+            <% }); %>
+        <% } else { %>
+            <p>No reviews yet. Be the first to review this product!</p>
+        <% } %>
+    </div>    
+    
+    <div class="mt-5" style="margin-bottom: 100px;">
+        <h2 style="font-weight: bold;">Products related to this item</h2>
+        <div class="row mt-5">
+            <% relatedProducts.slice(0, 5).forEach((relatedProduct) => { %>
+                <div class="col-lg-3 col-md-4 col-sm-6 col-xl-2-4 mb-4">
+                    <div class="box-element product">
+                        <div class="product-image-container">
+                            <a href="/products/product-details/<%= relatedProduct._id %>"" class="product-link" style="color: black;">
+                                <img class="img-fluid thumbnail" src="/images/products/<%= relatedProduct.images[0] %>" alt="<%= relatedProduct.name %> Image">
+                                <div class="wishlist-icon">
+                                    <form id="wishlist-form" method="POST" action="/users/wishlist/add" class="d-inline-block">
+                                        <input type="hidden" name="productId" value="<%= relatedProduct._id %>">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                        <button type="submit" class="wishlist-btn">
+                                            <i class="fa fa-heart"></i>
+                                            <div class="wishlist-tooltip">Add to Wishlist</div>
+                                        </button>
+                                    </form>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="related-product-details">
+                            <h6><strong><%= relatedProduct.name %></strong></h6>
+                        </div>
+                        <div class="product-extra">
+                            <div class="rating">
+                                <% for (let i = 1; i <= 5; i++) { %>
+                                    <i class="fa<%= i <= product.rating ? 's' : 'r' %> fa-star"></i>
+                                <% } %>
+                            </div>
+                            <div class="related-product-price">
+                                <% if (relatedProduct.discountedPrice < relatedProduct.price) { %>
+                                    <span class="related-current-price">₹<%= relatedProduct.discountedPrice %>/kg</span>
+                                    <% if (relatedProduct.discountType === 'fixed') { %>
+                                        <div class="price-details mt-2">
+                                            <span style="color: gray;">M.R.P: </span>
+                                            <span class="original-price">₹<%= relatedProduct.price %>/kg</span>
+                                            <span class="discount-percentage">(₹<%= relatedProduct.fixedDiscount %> off)</span>
+                                        </div>
+                                    <% } else if (relatedProduct.discountType === 'percentage') { %>
+                                        <div class="price-details mt-2">
+                                            <span style="color: gray;">M.R.P: </span>
+                                            <span class="original-price">₹<%= relatedProduct.price %>/kg</span>
+                                            <span class="discount-percentage">(<%= Math.ceil(relatedProduct.discountPercentage) + '% off' %>)</span>
+                                        </div>
+                                    <% } %>
+                                <% } else { %>
+                                    <span class="related-current-price">₹<%= relatedProduct.price %>/kg</span>
+                                    <span class="mt-2" style="color: gray;">No offers available</span>
+                                <% } %>
+                            </div>                                                
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevatezoom.min.js"></script>
+<script>
+     $(document).ready(function () {
+        $('#mainImage').elevateZoom();
+    });
+
+    function changeImage(imageUrl) {
+        $('#mainImage').attr('src', imageUrl).data('zoom-image', imageUrl).elevateZoom();
+    }
+</script>
+<script src="/js/userActions.js"></script>
+<script src="/js/wishlist.js"></script>
+<script src="/js/review.js"></script>

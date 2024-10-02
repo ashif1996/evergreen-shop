@@ -1,0 +1,233 @@
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .container {
+        max-width: 1200px;
+    }
+    .order_box {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .order_box h2 {
+        margin-bottom: 20px;
+    }
+    .order_box ul {
+        padding: 0;
+        list-style: none;
+    }
+    .order_box ul li {
+        padding: 10px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .order_box ul li a {
+        display: flex;
+        justify-content: space-between;
+        text-decoration: none;
+        color: #000;
+    }
+    .order_box ul.list_2 li {
+        border-bottom: none;
+    }
+    .order_box ul.list_2 li a {
+        font-weight: bold;
+    }
+    .order_box .payment_item {
+        margin-top: 20px;
+    }
+    .order_box .radion_btn {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .order_box .radion_btn input {
+        margin-right: 10px;
+    }
+    .order_box .creat_account {
+        display: flex;
+        align-items: center;
+        margin-top: 20px;
+    }
+    .order_box .creat_account input {
+        margin-right: 10px;
+    }
+    .primary-btn {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        text-align: center;
+        border-radius: 8px;
+        text-decoration: none;
+        margin-top: 20px;
+    }
+    .primary-btn:hover {
+        background-color: #0056b3;
+    }
+    .address_textarea {
+        width: 100%;
+        height: 120px;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 10px;
+        background-color: #f8f9fa;
+        resize: none;
+    }
+    .change_address_btn {
+        display: inline-block;
+        margin-top: 10px;
+        background-color: #007bff;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        text-align: center;
+        width: 250px; /* Set your desired width */
+    }
+    .change_address_btn:hover {
+        background-color: #fff;
+        color: #0056b3;
+        border: 2px solid #0056b3;
+    }
+</style>
+
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item"><a href="/users/shoppingCart" style="color: black;">Shopping Cart</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Checkout Page</li>
+        </ol>
+    </nav>
+    <section class="py-5">
+        <div class="container">
+            <h2 class="mb-4">Billing Details</h2>
+            <div class="row">
+                <div class="col-lg-8">
+                    <form id="order-form" method="POST">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="hidden" id="paymentMethod" name="paymentMethod">
+                        <input type="hidden" id="terms-conditions" name="termsConditions">
+                        <input type="hidden" id="cart-shipping-charge" name="shippingCharge" value="<%= locals.cart.shippingCharge %>">
+                        <input type="hidden" id="totalPrice" name="totalPrice" value="<%= locals.cart.totalPrice %>">
+                        <input type="hidden" id="couponId" name="couponId" value="<%= locals.couponId %>">
+                        <input type="hidden" id="couponDiscount" name="couponDiscount" value="<%= locals.couponDiscount %>">
+
+                        <div class="row">
+                            <div class="col-lg-6 form-group">
+                                <label class="text-small" for="firstName">First Name</label>
+                                <input class="form-control" id="firstName" type="text" readonly value="<%= locals.user.firstName %>">
+                            </div>
+                            <div class="col-lg-6 form-group">
+                                <label class="text-small" for="lastName">Last Name</label>
+                                <input class="form-control" id="lastName" type="text" readonly value="<%= locals.user.lastName %>">
+                            </div>
+                            <div class="col-lg-6 form-group">
+                                <label class="text-small" for="email">Email Address</label>
+                                <input class="form-control" id="email" type="email" readonly value="<%= locals.user.email %>">
+                            </div>
+                            <div class="col-lg-12 form-group mt-5">
+                                <h4>Shipping Addresses</h4>
+                                <% if (locals.addresses && locals.addresses.length > 0) { %>
+                                    <% locals.addresses.forEach((address, i) => { %>
+                                        <div class="radio_btn mt-3">
+                                            <input class="h5" type="radio" id="address-option-<%= i %>" name="addressId" value="<%= address._id %>">
+                                            <label for="address-option-<%= i %>">Address <%= i + 1 %>: <%= address.address %>, <%= address.city %>, <%= address.state %>, <%= address.zipCode %></label>
+                                        </div>
+                                    <% }); %>
+                                <% } else { %>
+                                    <p>No addresses found. Please add a new address.</p>
+                                <% } %>
+                                <span class="error-message" id="addressError"></span>
+                            </div>
+                            <a class="change_address_btn mt-3" href="/users/address-management">Manage Address</a>                        
+                        </div>
+                    </form>
+                </div>
+                <div class="col-lg-4">
+                    <div class="order_box">
+                        <h2>Your Order</h2>
+                        <ul class="list">
+                            <li><a href="#">Product <span>Total</span></a></li>
+                            <% if (locals.cart.items && locals.cart.items.length > 0) { %>
+                                <% locals.cart.items.forEach(item => { %>
+                                    <li>
+                                        <a href="#">
+                                            <%= item.productId.name %> 
+                                            <span class="middle">x<%= item.quantity %></span> 
+                                            <span class="last">₹<%= item.itemTotal %></span>
+                                        </a>
+                                    </li>
+                                <% }); %>
+                            <% } else { %>
+                                <li>Your cart is empty</li>
+                            <% } %>
+                        </ul>
+                        <ul class="list list_2">
+                            <li><a href="#">Subtotal <span id="cart-subtotal">₹<%= locals.cart.subTotal %></span></a></li>
+                            <li><a href="#">Shipping Charge <span id="cart-shipping-charge">₹<%= locals.cart.shippingCharge %></span></a></li>
+                            <% if (locals.couponDiscount && locals.couponDiscount > 0) { %>
+                                <li class="d-flex align-items-center justify-content-between text-success mb-2">
+                                    <strong class="text-uppercase small">Coupon Discount: </strong>
+                                    <span class="small" id="cart-coupon-discount">-₹<%= locals.couponDiscount %></span>
+                                </li>
+                                <span class="error-message" id="cart-coupon-discountError"></span>
+                            <% } %>
+                            <li><a href="#">Total <span id="cart-total-price">₹<%= locals.totalPrice %></span></a></li>
+                            <hr>
+                            <li>
+                                <h3>Apply Coupon</h3>
+                                <form action="/orders/checkout/apply-coupon" method="POST" id="coupon-form" class="mt-3">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <div class="mb-3">
+                                        <input class="form-control" type="text" name="couponCode" placeholder="Enter your coupon">
+                                        <button class="btn btn-dark btn-sm btn-block mt-3" type="submit">
+                                            <i class="fas fa-gift"></i> Apply Coupon
+                                        </button>
+                                    </div>
+                                </form>
+                            </li>
+                        </ul>
+                        <hr class="mt-3">
+                        <div class="payment_item active">
+                            <h3>Payment Methods</h3>
+                            <div class="payment_item">
+                                <div class="radion_btn">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="razorpay" value="Razorpay">
+                                    <label class="form-check-label" for="razorpay">Razorpay</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="payment_item">
+                            <div class="radion_btn">
+                                <input class="form-check-input" type="radio" id="cod-option" name="paymentMethod" value="COD">
+                                <label class="form-check-label" for="cod-option">Cash on Delivery</label>
+                            </div>
+                        </div>
+                        <div class="payment_item">
+                            <div class="radion_btn">
+                                <input class="form-check-input" type="radio" id="wallet-option" name="paymentMethod" value="Wallet">
+                                <label class="form-check-label" for="wallet-option">Wallet</label>
+                            </div>
+                        </div>
+                        <span id="paymentMethodError" class="error-message"></span>
+                        <hr class="mt-3">
+                        <div class="creat_account mt-3">
+                            <input type="checkbox" id="terms-conditions" name="termsConditions">
+                            <label for="terms-conditions">I’ve read and accept the <a href="#">terms & conditions*</a></label>
+                        </div>
+                        <span id="termsConditionsError" class="error-message"></span>
+                        <button id="submit-button" class="primary-btn mt-5">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script src="/js/orders.js"></script>
+<script src="/js/userActions.js"></script>
+<script src="/js/checkout.js"></script>

@@ -1,0 +1,58 @@
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/admin/dashboard" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Banners</li>
+        </ol>
+    </nav>
+
+    <section class="banner-list mt-5">
+        <h2 class="text-center" style="font-weight: bolder;">Banners List</h2>
+        <div class="login-line"></div>
+        <div class="mb-4 text-end">
+            <a href="/admin/banners/add" class="btn addProduct-btn">
+                Add Banner+
+            </a>
+        </div>
+        <div class="table-responsive mt-5">
+            <table id="advancedTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">No</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Image</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% banners.forEach((banner, number) => { %>
+                        <tr>
+                            <td><%= number + 1 %></td>
+                            <td><%= banner.title %></td>
+                            <td>
+                                <img src="/images/products/<%= banner.imageUrl %>" alt="Banner Image" style="width: 100px;">
+                            </td>
+                            <td><%= banner.description %></td>
+                            <td><%= banner.isActive ? 'Active' : 'Inactive' %></td>
+                            <td>
+                                <div class="d-flex">
+                                    <button class="btn btn-warning btn-sm">
+                                        <a href="/admin/edit-banner/<%= banner._id %>" style="text-decoration: none; color: white;">Edit</a>
+                                    </button>
+                                    <form id="toggle-banner-form-<%= banner._id %>" action="/admin/<%= banner.isActive ? 'deactivate-banner' : 'activate-banner' %>/<%= banner._id %>" method="post">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                        <button class="btn <%= banner.isActive ? 'btn-danger' : 'btn-success' %>" id="toggle-banner-btn-<%= banner._id %>" data-title="<%= banner.title %>" data-active="<%= banner.isActive %>">
+                                            <%= banner.isActive ? 'Deactivate' : 'Activate' %>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>

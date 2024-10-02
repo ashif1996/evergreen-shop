@@ -1,0 +1,268 @@
+<style>
+    /* CSS code */
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .section {
+        padding: 60px 0;
+    }
+
+    .user-profile .sidebar {
+        background: linear-gradient(45deg, #4CAF50, #85FF00);
+        padding: 30px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+
+    .user-profile .widget.user {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .user-profile .widget.user .image {
+        margin-bottom: 20px;
+    }
+
+    .user-profile .widget.user img {
+        border-radius: 50%;
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border: 4px solid #fff;
+    }
+
+    .user-profile .widget.user h5 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li {
+        width: 100%; /* Ensure the list item takes the full width of the sidebar */
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li a {
+        display: block; /* Ensure the link takes up the full width */
+        padding: 15px;
+        color: #fff;
+        text-decoration: none;
+        font-weight: bolder;
+        font-size: 16px;
+        transition: color 0.3s ease;
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li a i {
+        margin-right: 10px; /* Adjust the gap between icon and text */
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .user-profile .widget.user-dashboard-menu ul li a:hover,
+    .user-profile .widget.user-dashboard-menu ul li.active > a {
+        color: #4e5e94;
+        text-decoration: none;
+    }
+
+    /* Wallet Section */
+    .widget.order-management {
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .widget.order-management h2 {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 20px;
+        font-weight: 700;
+    }
+
+    .wallet-summary h3 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 15px;
+    }
+
+    .wallet-summary .btn-view-details {
+        background-color: #007bff;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-transform: uppercase;
+        font-weight: 600;
+        transition: background-color 0.3s ease;
+    }
+
+    .wallet-summary .btn-view-details:hover {
+        background-color: #0056b3;
+        text-decoration: none;
+    }
+
+    .table-responsive {
+        margin-top: 30px;
+    }
+
+    .table-responsive h3 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+
+    .table-striped {
+        width: 100%;
+        margin-bottom: 1rem;
+        background-color: transparent;
+        border-collapse: collapse;
+    }
+
+    .table-striped thead th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+        text-align: left;
+        padding: 10px;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .table-striped tbody td {
+        padding: 10px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .table-striped tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .table-striped tbody td:nth-child(3) {
+        font-weight: 600;
+    }
+
+    .table-striped tbody td:nth-child(3)[style*="color: green;"] {
+        color: green;
+    }
+
+    .table-striped tbody td:nth-child(3)[style*="color: red;"] {
+        color: red;
+    }
+
+    p {
+        font-size: 16px;
+        color: #666;
+    }
+
+    /* Breadcrumb Styles */
+    .breadcrumb {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .breadcrumb-item a {
+        color: #343a40;
+        width: 15px;
+        text-decoration: none;
+    }
+
+    .breadcrumb-item.active {
+        color: #6c757d;
+    }
+</style>
+
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="/" style="color: black;">
+                    <i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Wallet</li>
+        </ol>
+    </nav>
+
+    <section class="user-profile section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="sidebar">
+                        <div class="widget user">
+                            <div class="image d-flex justify-content-center">
+                                <img src="#" alt="">
+                            </div>
+                            <h5 class="text-center" style="color: #fff;"><%= locals.user.firstName %> <%= locals.user.lastName %></h5>
+                        </div>
+                        <div class="widget user-dashboard-menu">
+                            <ul>
+                                <li><a href="/users/profile"><i class="fas fa-user"></i>Your Profile</a></li>
+                                <li><a href="/users/wishlist"><i class="fas fa-heart"></i>Your Wishlist</a></li>
+                                <li><a href="/orders/my-orders"><i class="fas fa-history"></i>Order History</a></li>
+                                <li><a href="/users/referrals"><i class="fas fa-users"></i>Your Referrals</a></li>
+                                <li><a href="/users/wallet"><i class="fas fa-wallet"></i>Wallet</a></li>
+                                <li><a href="/users/address-management"><i class="fas fa-map-marker-alt"></i>Manage Addresses</a></li>
+                                <li><a href="/users/editProfile"><i class="fas fa-edit"></i>Edit Profile</a></li>
+                                <li><a href="/users/change-password"><i class="fas fa-key"></i>Change Password</a></li>
+                                <li><a href="/users/logout"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="widget order-management">
+                        <h2>Wallet</h2>
+                        <div class="wallet-summary">
+                            <h3>Wallet Balance: ₹<%= wallet.balance %></h3>
+                            <a href="/users/wallet/money/add" class="btn btn-view-details mt-3">Add Money</a>
+                        </div>
+                        
+                        <!-- Transaction History -->
+                        <div class="table-responsive mt-4">
+                            <h3>Transaction History</h3>
+                            <% if (wallet.transactions && wallet.transactions.length > 0) { %>
+                                <table id="advancedTable" class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Description</th>
+                                            <th>Amount</th>
+                                            <th>Type</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% wallet.transactions.forEach((transaction) => { %>
+                                            <tr>
+                                                <td><%= new Date(transaction.date).toLocaleDateString() %></td>
+                                                <td><%= transaction.description %></td>
+                                                <td>
+                                                    <%= transaction.type === 'credit' ? '+' : '-' %> ₹<%= transaction.amount %>
+                                                </td>
+                                                <td><%= transaction.type %></td>
+                                                <td><%= transaction.status %></td>
+                                            </tr>
+                                        <% }) %>
+                                    </tbody>
+                                </table>
+                            <% } else { %>
+                                <p>No transactions yet.</p>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>                
+            </div>
+        </div>
+    </section>
+</div>
+
+<script src="/js/userActions.js"></script>

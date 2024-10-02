@@ -1,0 +1,75 @@
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/admin/dashboard" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Categories</li>
+        </ol>
+    </nav>
+
+    <section class="add-category mt-5">
+        <h2 class="text-center" style="font-weight: bolder;"><span id="formTitle">Add Category</span></h2>
+        <div class="login-line"></div>
+        <form id="categoryForm" action="/admin/add-category" method="post">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" id="categoryId" name="categoryId">
+            <div class="form-row mt-5">
+                <div class="form-group">
+                    <input class="form-control mb-30" type="text" id="categoryName" name="categoryName" placeholder="Category Name" required>
+                    <span class="error-message" id="categoryNameError"></span>
+                </div>
+                <div class="form-group form-group-inline">
+                    <label for="status">Status:</label>
+                    <select class="form-control mb-30" name="status" id="status" required>
+                        <option value="select">Select</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                    <span class="error-message" id="statusError"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <textarea class="form-control mb-30" id="description" name="description" rows="4" placeholder="Description" required></textarea>
+                <span class="error-message" id="descriptionError"></span>
+            </div>
+            <button type="submit" class="btn category-btn mt-3" id="formButton">Add Category</button>
+        </form>
+    </section>
+
+    <section class="category-list mt-5">
+        <h2 class="text-center" style="font-weight: bolder;">Category List</h2>
+        <div class="login-line"></div>
+        <div class="table-responsive mt-5">
+            <table id="advancedTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Category Name</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% categories.forEach((category) => { %>
+                        <tr>
+                            <td><%= category.name %></td>
+                            <td><%= category.status %></td>
+                            <td><%= category.description %></td>
+                            <td>
+                                <div class="d-flex">
+                                    <button class="btn btn-warning btn-sm me-2 edit-category-btn" data-id="<%= category._id %>" data-name="<%= category.name %>" data-status="<%= category.status %>" data-description="<%= category.description %>">Edit</button>
+                                    <button class="btn btn-sm me-2 toggle-category-btn <%= category.isListed ? 'btn-danger' : 'btn-success' %>" data-id="<%= category._id %>" data-name="<%= category.name %>" data-status="<%= category.isListed %>" data-descritpion="<%= category.descritpion %>">
+                                        <%= category.isListed ? 'unlist' : 'list' %>
+                                    </button>
+                                </div>
+                            </td>                           
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<% script = `
+    <script src="/js/categoryValidation.js"></script>
+` %>

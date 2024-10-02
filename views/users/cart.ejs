@@ -1,0 +1,129 @@
+<style>
+    .product-price {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; /* Ensure content is aligned to the left */
+    }
+
+    .price-details {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        font-size: 0.9em;
+    }
+
+    .original-price {
+        text-decoration: line-through;
+        color: grey;
+        margin-right: 5px;
+        font-size: 16px !important;
+        line-height: 16px !important;
+    }
+
+    .discount-percentage {
+        color: gray;
+        font-size: 16px !important;
+        line-height: 16px !important;
+    }
+</style>
+
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Shopping Cart</li>
+        </ol>
+    </nav>
+
+    <section class="py-3 mt-5">
+        <div class="container">
+            <h3 class="text-uppercase font-weight-bold">Shopping Cart</h3>
+            <% if (cart && cart.items.length > 0) { %>
+                <div class="row mt-5">
+                    <div class="col-lg-8 mb-4 mb-lg-0">
+                        <% cart.items.forEach(item => { %>
+                            <div class="bg-light p-3 mb-4 rounded">
+                                <div class="d-flex align-items-center">
+                                    <img src="/images/products/<%= item.productId.images[0] %>" width="100" alt="Product Image">
+                                    <div class="ms-3">
+                                        <h5 class="mb-1"><%= item.productId.name %></h5>
+                                        <div class="product-price mt-3">
+                                            <% if (item.discountedPrice < item.price) { %>
+                                                <span class="current-price">₹<%= item.discountedPrice %> <%= item.productId.category.name === 'Juice and Drinks' ? '/ L' : '/ kg' %></span>
+                                                <% if (item.discountType === 'fixed') { %>
+                                                    <div class="price-details mt-2">
+                                                        <span style="color: gray;">M.R.P: </span>
+                                                        <span class="original-price">₹<%= item.price %> <%= item.productId.category.name === 'Juice and Drinks' ? '/ L' : '/ kg' %></span>
+                                                        <span class="discount-percentage">(₹<%= item.fixedDiscount %> off)</span>
+                                                    </div>
+                                                <% } else if (item.discountType === 'percentage') { %>
+                                                    <div class="price-details mt-2">
+                                                        <span style="color: gray;">M.R.P: </span>
+                                                        <span class="original-price">₹<%= item.price %> <%= item.productId.category.name === 'Juice and Drinks' ? '/ L' : '/ kg' %></span>
+                                                        <span class="discount-percentage">(<%= Math.ceil(item.discountPercentage) + '% off' %>)</span>
+                                                    </div>
+                                                <% } %>
+                                            <% } else { %>
+                                                <span class="current-price">₹<%= item.price %> <%= item.productId.category.name === 'Juice and Drinks' ? '/ L' : '/ kg' %></span>
+                                                <span class="mt-2" style="color: gray;">No offers available</span>
+                                            <% } %>
+                                        </div>
+                                        <div class="d-flex align-items-center mt-3">
+                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                            <button class="btn btn-outline-secondary btn-sm dec-btn" data-product-id="<%= item.productId._id %>"><i class="fas fa-minus"></i></button>
+                                            <input type="text" class="form-control form-control-sm quantity-input text-center mx-2" value="<%= item.productId.category.name === 'Juice and Drinks' ? item.quantity + ' L' : item.quantity + ' kg' %>" data-category="<%= item.productId.category.name %>" data-stock="<%= item.productId.stock %>" data-quantity="<%= item.quantity %>" data-product-id="<%= item.productId._id %>">
+                                            <button class="btn btn-outline-secondary btn-sm inc-btn" data-product-id="<%= item.productId._id %>"><i class="fas fa-plus"></i></button>
+                                        </div>                                        
+                                        <span class="error-message" id="quantityError"></span>
+                                        <p class="mb-0 mt-3" data-product-id="<%= item.productId._id %>">Total: ₹<%= item.itemTotal %></p>
+                                    </div>
+                                    <a href="#" class="ms-auto text-danger delete-cart-item" data-product-id="<%= item.productId._id %>"><i class="fas fa-trash-alt"></i></a>
+                                </div>
+                            </div>
+                        <% }); %>                        
+                        <div class="bg-light px-4 py-3 rounded">
+                            <div class="row align-items-center text-center">
+                                <div class="col-md-6 mb-3 mb-md-0 text-md-start">
+                                    <a href="/" class="btn btn-success continue-btn">
+                                        <i class="fas fa-long-arrow-alt-left"></i> Continue Shopping
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card border-0 rounded-0 p-lg-4 bg-light">
+                            <div class="card-body">
+                                <h5 class="text-uppercase mb-4">Cart Total</h5>
+                                <ul class="list-unstyled mb-0">
+                                    <li class="d-flex align-items-center justify-content-between">
+                                        <strong class="text-uppercase small">Subtotal</strong>
+                                        <span class="small" id="cart-subtotal">₹<%= cart.subTotal %></span>
+                                    </li>
+                                    <li class="d-flex align-items-center justify-content-between">
+                                        <strong class="text-uppercase small">Shipping Charge</strong>
+                                        <span class="small">₹<%= cart.shippingCharge %></span>
+                                    </li>
+                                    <li class="border-bottom my-2"></li>
+                                    <li class="d-flex align-items-center justify-content-between mb-4">
+                                        <strong class="text-uppercase small">Total</strong>
+                                        <span id="cart-total-price">₹<%= cart.totalPrice %></span>
+                                    </li>
+                                </ul>
+                                <button id="checkout-btn" class="btn btn-primary w-100 mt-5" data-cart-items-length="<%= cart.items.length %>">
+                                    <i class="fas fa-credit-card"></i> Proceed to Checkout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="text-center py-5">
+                    <h3 class="mb-3">Your cart is empty.</h3>
+                </div>
+            <% } %>
+        </div>
+    </section>
+</div>
+
+<script src="/js/userActions.js"></script>

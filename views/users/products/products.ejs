@@ -1,0 +1,273 @@
+<style>
+    .box-element {
+        box-shadow: hsl(0, 0%, 80%) 0 0 16px;
+        background-color: #fff;
+        border-radius: 4px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column; /* Stack items vertically */
+        height: 100%; /* Ensure full height for alignment */
+        position: relative; /* For positioning wishlist icon */
+        justify-content: space-between; /* Push content to top and bottom */
+    }
+
+    .thumbnail {
+        width: 100%;
+        height: 200px;
+        box-shadow: -1px -3px 5px -2px rgba(214, 214, 214, 1);
+    }
+
+    .product-image-container {
+        position: relative;
+    }
+
+    .product-details {
+        margin-bottom: 10px;
+    }
+
+    .product-extra {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start; /* Align items to the start */
+        height: 100%; /* Ensure it takes full height */
+    }
+
+    .product-price {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; /* Ensure content is aligned to the left */
+    }
+
+    .price-details {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        font-size: 0.9em;
+    }
+
+    .original-price {
+        text-decoration: line-through;
+        color: grey;
+        margin-right: 5px;
+    }
+
+    .discount-percentage {
+        color: gray;
+    }
+
+    .rating {
+        color: #FFD700;
+        font-size: 1.2em;
+        margin-bottom: 5px;
+    }
+
+    .results-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    /* Ensure wishlist-icon container is positioned correctly */
+    .wishlist-icon {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 24px; /* Size of the icon */
+        display: none; /* Hidden by default */
+        opacity: 0; /* Invisible by default */
+        transition: opacity 0.3s ease; /* Smooth transition for opacity */
+    }
+
+    /* Show the icon when hovering over the box-element */
+    .box-element:hover .wishlist-icon {
+        display: block; /* Show the icon */
+        opacity: 1; /* Make it visible */
+    }
+
+    /* Remove default styling from form and button elements */
+    .wishlist-icon form {
+        margin: 0; /* Remove margin */
+        padding: 0; /* Remove padding */
+        border: none; /* Remove border */
+        background: none; /* Remove background */
+    }
+
+    .wishlist-icon button {
+        background: none; /* Remove background */
+        border: none; /* Remove border */
+        padding: 0; /* Remove padding */
+        margin: 0; /* Remove margin */
+        display: inline; /* Ensure it's inline */
+        cursor: pointer; /* Pointer cursor on hover */
+    }
+
+    /* Style for the icon inside the wishlist-icon class */
+    .wishlist-icon i {
+        color: #4CAF50; /* Green color for the icon */
+    }
+
+    /* Tooltip styling */
+    .wishlist-tooltip {
+        position: absolute;
+        top: -30px;
+        right: 50%;
+        transform: translateX(50%);
+        background-color: #333;
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        white-space: nowrap;
+    }
+
+    /* Show tooltip on icon hover */
+    .wishlist-icon:hover .wishlist-tooltip {
+        opacity: 1;
+    }
+
+    .add-to-cart-form {
+        margin-top: auto; /* Push the form to the bottom */
+    }
+</style>
+
+<div class="container mt-5">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Products</li>
+        </ol>
+    </nav>
+
+    <!-- Header Section -->
+    <header class="border-bottom mb-4 pb-3">
+        <div class="d-sm-flex align-items-center mb-3">
+            <div class="flex-grow-1 mt-3">
+                <h3 class="text-center">Our Products</h3>
+                <div class="login-line"></div>
+            </div>
+        </div>
+        <div class="results-container mb-3">
+            <form action="/products/list" method="get" class="d-inline-block">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <select name="categoryId" class="form-select w-auto border pt-1" onchange="this.form.submit()">
+                    <option value="0">Categories: All</option>
+                    <% categories.forEach(category => { %>
+                        <option value="<%= category._id %>" <%= category._id.toString() === locals.selectedCategory ? 'selected' : '' %>><%= category.name %></option>
+                    <% }); %>
+                </select>
+            </form>
+            <form action="/products/list" method="get" class="d-inline-block">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="categoryId" value="<%= locals.selectedCategory %>">
+                <select name="sort" class="form-select w-auto border pt-1" onchange="this.form.submit()">
+                    <option value="0">Sort by: </option>
+                    <option value="popularity" <%= locals.sort === 'popularity' ? 'selected' : '' %>>Popularity</option>
+                    <option value="priceLowToHigh" <%= locals.sort === 'priceLowToHigh' ? 'selected' : '' %>>Price: Low to High</option>
+                    <option value="priceHighToLow" <%= locals.sort === 'priceHighToLow' ? 'selected' : '' %>>Price: High to Low</option>
+                    <option value="discountPrice" <%= locals.sort === 'discountPrice' ? 'selected' : '' %>>Discount Price</option>
+                    <option value="averageRating" <%= locals.sort === 'averageRating' ? 'selected' : '' %>>Average Rating</option>
+                    <option value="featured" <%= locals.sort === 'featured' ? 'selected' : '' %>>Featured</option>
+                    <option value="newArrivals" <%= locals.sort === 'newArrivals' ? 'selected' : '' %>>New Arrivals</option>
+                    <option value="aToZ" <%= locals.sort === 'aToZ' ? 'selected' : '' %>>A - Z</option>
+                    <option value="zToA" <%= locals.sort === 'zToA' ? 'selected' : '' %>>Z - A</option>
+                </select>
+            </form>
+        </div>
+    </header>
+
+    <!-- Product Listings -->
+    <div class="row">
+        <% products.forEach(product => { %>
+            <div class="col-lg-3 col-md-4 col-sm-6 col-xl-2-4 mb-4">
+                <div class="box-element product">
+                    <div class="product-image-container">
+                        <a href="/products/product-details/<%= product._id %>" class="product-link" style="color: black;">
+                            <img class="img-fluid thumbnail" src="/images/products/<%= product.images[0] %>" alt="<%= product.name %> Image">
+                            <div class="wishlist-icon">
+                                <form id="wishlist-form" method="POST" action="/users/wishlist/add" class="d-inline-block">
+                                    <input type="hidden" name="productId" value="<%= product._id %>">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <button type="submit" class="wishlist-btn">
+                                        <i class="fa fa-heart"></i>
+                                        <div class="wishlist-tooltip">Add to Wishlist</div>
+                                    </button>
+                                </form>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="product-details">
+                        <h6><strong><%= product.name %></strong></h6>
+                    </div>
+                    <div class="product-extra">
+                        <div class="rating">
+                            <% for (let i = 1; i <= 5; i++) { %>
+                                <i class="fa<%= i <= product.rating ? 's' : 'r' %> fa-star"></i>
+                            <% } %>
+                        </div>
+                        <div class="product-price">
+                            <% if (product.discountedPrice < product.price) { %>
+                                <span class="current-price">₹<%= product.discountedPrice %>/kg</span>
+                                <% if (product.discountType === 'fixed') { %>
+                                    <div class="price-details mt-2">
+                                        <span style="color: gray;">M.R.P: </span>
+                                        <span class="original-price">₹<%= product.price %>/kg</span>
+                                        <span class="discount-percentage">(₹<%= product.fixedDiscount %> off)</span>
+                                    </div>
+                                <% } else if (product.discountType === 'percentage') { %>
+                                    <div class="price-details mt-2">
+                                        <span style="color: gray;">M.R.P: </span>
+                                        <span class="original-price">₹<%= product.price %>/kg</span>
+                                        <span class="discount-percentage">(<%= Math.ceil(product.discountPercentage) + '% off' %>)</span>
+                                    </div>
+                                <% } %>
+                            <% } else { %>
+                                <span class="current-price">₹<%= product.price %>/kg</span>
+                                <span class="mt-2" style="color: gray;">No offers available</span>
+                            <% } %>
+                        </div>                                                                        
+                        <% if (product.stock > 0) { %>
+                            <form action="/users/shoppingCart/add" method="POST" class="add-to-cart-form pt-3">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <input type="hidden" name="productId" value="<%= product._id %>">
+                                <button type="submit" class="btn add-product-btn">
+                                    Add to Cart <i class="fa fa-shopping-cart"></i>
+                                </button>
+                            </form>
+                        <% } else { %>
+                            <span class="out-of-stock-text" style="color: red;">Currently out of stock</span>
+                        <% } %>
+                    </div>
+                </div>                
+            </div>
+        <% }) %>        
+    </div>    
+
+    <hr>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation example" class="d-flex justify-content-center mt-3 pagination-gap">
+        <ul class="pagination">
+            <% if (currentPage > 1) { %>
+                <li class="page-item">
+                    <a class="page-link" href="?page=<%= currentPage - 1 %>&categoryId=<%= locals.selectedCategory %>&sort=<%= locals.sort %>">&laquo; Previous</a>
+                </li>
+            <% } %>
+            <% for (let i = 1; i <= totalPages; i++) { %>
+                <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= i %>&categoryId=<%= locals.selectedCategory %>&sort=<%= locals.sort %>"><%= i %></a>
+                </li>
+            <% } %>
+            <% if (currentPage < totalPages) { %>
+                <li class="page-item">
+                    <a class="page-link" href="?page=<%= currentPage + 1 %>&categoryId=<%= locals.selectedCategory %>&sort=<%= locals.sort %>">Next &raquo;</a>
+                </li>
+            <% } %>
+        </ul>
+    </nav>
+</div>
+
+<script src="/js/userActions.js"></script>
+<script src="/js/wishlist.js"></script>

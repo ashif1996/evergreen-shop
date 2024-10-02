@@ -1,0 +1,121 @@
+<style>
+    /* Custom styles for the rating page */
+    .rating-container {
+        max-width: 1000px;
+        margin: 80px auto 100px auto; /* Added 80px margin for top and 100px margin for bottom */
+        padding: 20px;
+        padding-bottom: 50px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+    .rating-header {
+        font-size: 24px;
+        font-weight: bolder;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .rating-stars {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+        position: relative; /* Required for positioning labels */
+    }
+    .rating-stars input[type="radio"] {
+        display: none;
+    }
+    .rating-stars label {
+        font-size: 30px;
+        color: #ccc;
+        cursor: pointer;
+        transition: color 0.2s;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Highlight stars from left to right when hovering */
+    .rating-stars label:hover,
+    .rating-stars label:hover ~ label {
+        color: #f5b50a;
+    }
+
+    /* Keep stars highlighted when a radio button is checked */
+    .rating-stars input[type="radio"]:checked ~ label {
+        color: #ccc; /* Reset all stars to default */
+    }
+    .rating-stars input[type="radio"]:checked + label,
+    .rating-stars input[type="radio"]:checked + label ~ label {
+        color: #f5b50a;
+    }
+
+    .rating-comment {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .submit-rating {
+        display: block; /* Make the button a block-level element */
+        margin: 0 auto; /* Center the button horizontally */
+        padding: 10px;
+        background-color: #28a745;
+        color: #fff;
+        text-align: center;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 18px;
+        transition: background-color 0.2s;
+        width: 50%; /* Adjust the width as needed */
+    }
+
+    .submit-rating:hover {
+        background-color: #fff;
+        color: #28a745;
+        border: 2px solid;
+        border-color: #28a745;
+    }
+</style>
+
+<div class="container mt-5">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" style="color: black;"><i class="fa fa-home" style="margin-right: 5px; color: #85FF00;"></i>Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Products</li>
+        </ol>
+    </nav>
+
+    <div class="rating-container">
+        <h2 class="rating-header">Rate <%= productName %></h2>
+        <div class="line"></div>
+        <!-- Product Image -->
+        <div class="product-image text-center mt-5">
+            <img src="/images/products/<%= productImage %>" alt="<%= productName %>" style="max-width: 100%; height: auto; border-radius: 8px;">
+        </div>
+        <form id="reviewForm">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="productId" value="<%= productId %>">
+            <div class="rating-stars">
+                <input type="radio" name="rating" id="star5" value="5">
+                <label for="star5">&#9733;</label>
+                <input type="radio" name="rating" id="star4" value="4">
+                <label for="star4">&#9733;</label>
+                <input type="radio" name="rating" id="star3" value="3">
+                <label for="star3">&#9733;</label>
+                <input type="radio" name="rating" id="star2" value="2">
+                <label for="star2">&#9733;</label>
+                <input type="radio" name="rating" id="star1" value="1">
+                <label for="star1">&#9733;</label>
+            </div>
+            <span class="error-message" id="rating-error"></span>
+            <textarea class="rating-comment" name="comment" rows="4" placeholder="Write your review here..."></textarea>
+            <span class="error-message" id="comment-error"></span>
+            <button type="submit" class="submit-rating">Submit</button>
+        </form>
+    </div>    
+</div>
+
+<script src="/js/review.js"></script>

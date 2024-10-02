@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= csrfToken %>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.9.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.17/dist/sweetalert2.min.css">
+    <link href="https://unpkg.com/cropperjs/dist/cropper.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/mainStyle.css">
+    <link rel="stylesheet" href="/css/adminStyle.css">
+    <link rel="icon" href="/images/main/logo1.png" type="image/x-icon">
+    <title>EverGreen | Always Fresh</title>
+</head>
+<body id="body-pd">
+
+    <%- include('../partials/adminHeader') %>
+
+    <main class="content flex-grow-1">
+      <%- body %>
+    </main>
+
+    <!-- Include jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    
+    <!-- Include jQuery UI (for datepicker) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+
+    <!-- Popper.js and Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"></script>
+    
+    <!-- DataTables and CropperJS -->
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://unpkg.com/cropperjs"></script>
+    
+    <!-- Chart.js and SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Custom Script -->
+    <script>
+        $(document).ready(function() {
+            $('#advancedTable').DataTable();
+        });
+
+        /*document.addEventListener("DOMContentLoaded", function(event) {
+            const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+            const sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+            const sidebar = document.getElementById('sidebar');
+            const bodyPd = document.getElementById('body-pd');
+            const headerPd = document.getElementById('admin-nav');
+
+            sidebarToggleBtn.addEventListener('click', () => {
+                sidebar.classList.add('active');
+                sidebarToggleBtn.classList.add('d-none');
+                sidebarCloseBtn.classList.remove('d-none');
+            });
+
+            sidebarCloseBtn.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                sidebarToggleBtn.classList.remove('d-none');
+                sidebarCloseBtn.classList.add('d-none');
+            });
+
+            // Active link handling
+            const linkColor = document.querySelectorAll('.list-unstyled.components li a');
+            function colorLink() {
+                linkColor.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            }
+            linkColor.forEach(l => l.addEventListener('click', colorLink));
+        });*/
+    </script>
+    <%- script %>
+</body>
+</html>
