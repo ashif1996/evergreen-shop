@@ -520,12 +520,11 @@
                 <% } else { %>
                     <span class="out-of-stock-text" style="color: red;">Currently out of stock</span>
                 <% } %>
-                <form action="/products/buy-now/<%= product._id %>" method="POST" class="buy-now-form mt-3">
-                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <form id="wishlist-form" method="POST" action="/users/wishlist/add">
                     <input type="hidden" name="productId" value="<%= product._id %>">
-                    <input type="hidden" name="quantity" id="buyNowQuantity" value="1">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <button type="submit" class="btn rate-product-btn">
-                        Buy Now
+                        Add to Wishlist
                     </button>
                 </form>
                 <div class="payment-info">
