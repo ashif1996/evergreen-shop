@@ -1,0 +1,184 @@
+body {
+    font-family: 'Nunito', sans-serif;
+    background-color: #f4f4f4;
+}
+button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+a {
+    text-decoration: none !important;
+}
+.btn:focus {
+    outline: none !important;
+}
+
+.sidebar {
+    height: 100vh;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: linear-gradient(45deg, #85FF00, #4CAF50); /* Gradient from green to another shade of green */
+    color: #fff;
+    transition: all 0.3s;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+}
+
+.sidebar .sidebar-header {
+    padding: 10px;
+    text-align: center;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar ul li {
+    padding: 10px;
+    font-size: 1.1em;
+    display: block;
+    border: none; /* Ensure no border */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Optional: Add a subtle border for separation */
+}
+
+.sidebar ul li a {
+    color: #fff;
+    display: block;
+    text-decoration: none;
+    transition: background-color 0.3s, color 0.3s;
+    border: none; /* Ensure no border */
+}
+
+.sidebar ul li a:hover,
+.sidebar ul li.active > a {
+    color: #4e5e94; /* Hover and active text color */
+    text-decoration: none;
+}
+
+.sidebar ul li a i {
+    margin-right: 10px;
+}
+
+.sidebar ul li:hover {
+    background: rgba(255, 255, 255, 0.1); /* Optional: Add background color on hover */
+}
+
+.content {
+    width: calc(100% - 250px);
+    margin-left: 250px;
+    padding: 20px;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+    .sidebar ul li a {
+        text-align: center;
+        float: none;
+    }
+    .content {
+        width: 100%;
+        margin: 0;
+    }
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.form-row .form-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.form-group-inline {
+    display: flex;
+    align-items: center;
+}
+
+.form-group-inline label {
+    margin-right: 10px;
+}
+
+.category-btn {
+    background-color: #85FF00;
+    color: #fff;
+    width: 50%;
+    border-radius: 30px;
+    font-size: 20px;
+    font-weight: bold;
+    margin: 20px auto 0;
+    display: block;
+    text-align: center;
+    padding: 0.5rem;
+    border: 2px solid transparent;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.category-btn:hover {
+    background-color: transparent;
+    color: #85FF00;
+    border-color: #85FF00;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+    }
+}
+
+.product-title {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.add-product-btn {
+    background-color: #85FF00;
+    color: white;
+    font-weight: bold;
+}
+.add-product-btn:hover {
+    background-color: transparent;
+    color: #85FF00;
+    border-color: #85FF00;
+}
+.addProduct-btn {
+    background: linear-gradient(45deg, #85FF00, #4CAF50);
+    color: white;
+    font-weight: bold;
+}
+.addProduct-btn:hover {
+    background: transparent;
+    color: #85FF00;
+    border-color: #85FF00;
+}
+
+.login-line {
+    width: 80px;
+    height: 4px;
+    background: #85FF00;
+    margin: 15px auto;
+    border-radius: 5px;
+}
