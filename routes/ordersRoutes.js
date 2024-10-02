@@ -7,6 +7,7 @@ const razorpayController = require('../utils/paymentServices/razorpayServices');
 // Checkout routes with user authentication
 router.get('/checkout', isUser, isLoggedIn, orderController.getCheckout); // Get checkout page
 router.post('/checkout/apply-coupon', isUser, isLoggedIn, orderController.applyCoupon); // Apply coupon
+router.post('/checkout/remove-coupon', isUser, isLoggedIn, orderController.removeCoupon);
 router.post('/checkout/create/order', isUser, isLoggedIn, orderController.createOrder); // Create order
 
 // Razorpay integration routes

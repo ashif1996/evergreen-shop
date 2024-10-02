@@ -175,6 +175,13 @@
                                     <span class="small" id="cart-coupon-discount">-₹<%= locals.couponDiscount %></span>
                                 </li>
                                 <span class="error-message" id="cart-coupon-discountError"></span>
+                                <!-- Remove Coupon Button -->
+                                <form action="/orders/checkout/remove-coupon" method="POST" id="remove-coupon-form" class="mt-2">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <button class="btn btn-danger btn-sm btn-block" type="submit">
+                                         Remove Coupon
+                                    </button>
+                                </form>
                             <% } %>
                             <li><a href="#">Total <span id="cart-total-price">₹<%= locals.totalPrice %></span></a></li>
                             <hr>

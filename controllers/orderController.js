@@ -149,6 +149,41 @@ const applyCoupon = async (req, res) => {
   }
 };
 
+// Remove a coupon from the user's cart
+const removeCoupon = async (req, res) => {
+  const userId = req.session.user._id;
+
+  try {
+    const user = await User.findById(userId).populate("cart");
+    const cart = user.cart;
+
+    if (!user || !user.cart || user.cart.items.length === 0) {
+      return errorHandler(res, 400, "Cart is empty or not found");
+    }
+
+    // Remove coupon details from session and recalculate total
+    if (!req.session.coupon) {
+      return errorHandler(res, 400, "No coupon applied to remove.");
+    }
+
+    const subtotal = cart.subTotal;
+    const totalPrice = cart.subTotal + cart.shippingCharge; // Recalculate without coupon discount
+
+    // Remove coupon from the session
+    delete req.session.coupon;
+
+    res.json({
+      success: true,
+      message: "Coupon removed successfully",
+      subtotal,
+      totalPrice,
+    });
+  } catch (error) {
+    console.error("Error removing coupon:", error);
+    return errorHandler(res, 500, "An internal server error occurred.");
+  }
+};
+
 // Create a new order for the user
 const createOrder = async (req, res) => {
   const userId = req.session.user._id;
@@ -817,6 +852,7 @@ const downloadInvoice = async (req, res) => {
 module.exports = {
   getCheckout,
   applyCoupon,
+  removeCoupon,
   createOrder,
   verifyRazorpayPayment,
   retryPayment,
