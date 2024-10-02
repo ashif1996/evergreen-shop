@@ -53,7 +53,6 @@ app.use(session({
     }
 }));
 
-
 app.use(mongoSanitize());
 app.use(hpp());
 app.use(cors());
