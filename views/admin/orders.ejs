@@ -70,7 +70,13 @@
                             <td>
                                 <form id="order-status-form-<%= order._id %>" action="/admin/orders/update-order-status/<%= order._id %>" method="post">
                                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                                    <select name="orderStatus" id="order-status-<%= order._id %>" class="form-select" data-order-id="<%= order._id %>" data-current="<%= order.orderStatus %>">
+                                    <select 
+                                        name="orderStatus" 
+                                        id="order-status-<%= order._id %>" 
+                                        class="form-select" 
+                                        data-order-id="<%= order._id %>" 
+                                        data-current="<%= order.orderStatus %>" 
+                                        <%= (order.orderStatus === 'Delivered' || order.orderStatus === 'Cancelled') ? 'disabled' : '' %>>
                                         <option value="Pending" <%= order.orderStatus === 'Pending' ? 'selected' : '' %>>Pending</option>
                                         <option value="Processing" <%= order.orderStatus === 'Processing' ? 'selected' : '' %>>Processing</option>
                                         <option value="Shipped" <%= order.orderStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
