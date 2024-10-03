@@ -59,6 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             title: 'Success!',
                             text: data.message,
                             icon: 'success'
+                        }).then(() => {
+                            location.reload(); // Reloads the page when the user clicks OK
                         });
                     } else {
                         await Swal.fire({

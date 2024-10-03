@@ -37,6 +37,8 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
+const setCartAndWishlistCounts = require('./middlewares/setCartWishlistCounts');
+
 // Middleware configuration
 app.use(session({
     secret: process.env.SESSION_SECRET,
@@ -79,6 +81,8 @@ app.use((req, res, next) => {
     res.locals.isLoggedIn = req.session.user ? true : false;
     next();
 });
+
+app.use(['/' ,'/users', '/products', '/orders'], setCartAndWishlistCounts);
 
 app.use(express.static(path.join(__dirname, 'public')));
 

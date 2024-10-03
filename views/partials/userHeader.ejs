@@ -31,10 +31,10 @@
         </form>
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 user-links" id="userLinks" data-is-logged-in="<%- locals.isLoggedIn %>">
           <li class="nav-item">
-            <a class="nav-link" href="/users/wishlist"><i class="fas fa-heart"></i> <span>Wishlist</span> <span class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle" id="wishlistCount">0</span></a>
+            <a class="nav-link" href="/users/wishlist"><i class="fas fa-heart"></i> <span>Wishlist</span> <span class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle" id="wishlistCount"><%= wishlistItemsCount %></span></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/users/shoppingCart"><i class="fas fa-shopping-cart"></i> <span>Cart</span> <span class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle" id="cartCount">0</span></a>
+            <a class="nav-link" href="/users/shoppingCart"><i class="fas fa-shopping-cart"></i> <span>Cart</span> <span class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle" id="cartCount"><%= cartItemsCount %></span></a>
           </li>
           <% if (locals.isLoggedIn) { %>
             <li class="nav-item dropdown">

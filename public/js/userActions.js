@@ -65,12 +65,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             title: 'Success!',
                             text: 'Product added to cart!',
                             icon: 'success'
+                        }).then(() => {
+                            location.reload(); // Reloads the page when the user clicks OK
                         });
                     } else {
                         await Swal.fire({
-                            title: 'Warning',
+                            title: 'Error',
                             text: data.message,
-                            icon: 'warning'
+                            icon: 'error'
                         });
                     }
                 } catch (error) {
