@@ -9,11 +9,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.9.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.17/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="/css/loaderStyle.css">
     <link rel="stylesheet" href="/css/mainStyle.css">
     <link rel="icon" href="/images/main/logo1.png" type="image/x-icon">
     <title><%= locals.title %></title>
 </head>
 <body>
+    <!-- Loader HTML -->
+    <div id="loader" class="loader-wrapper">
+      <div class="loader"></div>
+    </div>
 
     <%- include('../partials/userHeader') %>
 
@@ -30,6 +35,7 @@
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="/js/loader.js"></script>
     <script>
       $(document).ready(function() {
           setTimeout(function() {

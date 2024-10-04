@@ -10,7 +10,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const signupResendOtpLink = document.getElementById('signupResendOtpLink');
     const resendOtpLink = document.getElementById('resendOtpLink');
     const resetPasswordForm = document.getElementById('resetPassword');
+    const spinner = document.getElementById('loader');
     let otpTimer;
+
+    // Function to show the loader
+    const showLoader = () => {
+        spinner.style.display = 'flex';  // Show the loader
+    };
+
+    // Function to hide the loader
+    const hideLoader = () => {
+        spinner.style.display = 'none';  // Hide the loader
+    };
 
     const startOtpTimer = () => {
         let time = 60;
@@ -45,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const handleSendOtpResponse = (data, redirectUrl) => {
+        hideLoader();
         if (data.success) {
             Swal.fire({
                 icon: 'success', // You can change the icon depending on your message type
@@ -146,6 +158,8 @@ document.addEventListener('DOMContentLoaded', () => {
             emailError.textContent = '';
             emailError.classList.remove('error-message');
 
+            showLoader();
+
             const response = await fetch('/otp/send-otp', {
                 method: 'POST',
                 headers: {
@@ -217,17 +231,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const redirectUrl = window.location.href;
             const email = document.querySelector('input[name="email"]').value;
 
-            const response = await fetch('/otp/send-otp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'CSRF-Token': document.querySelector('input[name="_csrf"]').value
-                },
-                body: JSON.stringify({ email, redirectUrl })
-            });
+            showLoader();
 
-            const data = await response.json();
-            handleSendOtpResponse(data, redirectUrl);
+            try {
+                const response = await fetch('/otp/send-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'CSRF-Token': document.querySelector('input[name="_csrf"]').value
+                    },
+                    body: JSON.stringify({ email, redirectUrl })
+                });
+    
+                const data = await response.json();
+    
+                // Handle the response and hide the loader when the response is received
+                handleSendOtpResponse(data, redirectUrl);
+            } catch (error) {
+                console.error('Error sending OTP:', error);
+                emailError.textContent = 'Error resending OTP';
+                emailError.classList.add('error-message');
+                hideLoader();  // Hide the loader if an error occurs
+            }
         });
     };
 

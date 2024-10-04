@@ -11,12 +11,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.17/dist/sweetalert2.min.css">
     <link href="https://unpkg.com/cropperjs/dist/cropper.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/loaderStyle.css">
     <link rel="stylesheet" href="/css/mainStyle.css">
     <link rel="stylesheet" href="/css/adminStyle.css">
     <link rel="icon" href="/images/main/logo1.png" type="image/x-icon">
     <title>EverGreen | Always Fresh</title>
 </head>
 <body id="body-pd">
+    <!-- Loader HTML -->
+    <div id="loader" class="loader-wrapper">
+        <div class="loader"></div>
+    </div> 
 
     <%- include('../partials/adminHeader') %>
 
@@ -46,6 +51,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+    <script src="/js/loader.js"></script>
 
     <!-- Custom Script -->
     <script>

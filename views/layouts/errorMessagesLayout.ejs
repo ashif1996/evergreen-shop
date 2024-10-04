@@ -8,11 +8,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.9.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.17/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="/css/loaderStyle.css">
     <link rel="stylesheet" href="/css/mainStyle.css">
     <link rel="icon" href="/images/main/logo1.png" type="image/x-icon">
     <title><%= locals.title %></title>
 </head>
 <body class="d-flex flex-column min-vh-100">
+    <!-- Loader HTML -->
+    <div id="loader" class="loader-wrapper">
+        <div class="loader"></div>
+    </div>
 
     <%- include('../partials/authHeader') %>
 
@@ -26,5 +31,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/loader.js"></script>
 </body>
 </html>
