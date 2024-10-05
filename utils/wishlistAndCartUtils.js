@@ -14,14 +14,6 @@ const getUserCartAndWishlistCount = async (userId) => {
         populate: { path: "items" },
       });
 
-    if (user.cart && user.cart.items) {
-      console.log("Cart items:", user.cart.items.length);
-    }
-
-    if (user.wishlist && user.wishlist.items) {
-      console.log("Wishlist items:", user.wishlist.items.length);
-    }
-
     return {
       cartItemsCount: user.cart ? user.cart.items.length : 0,
       wishlistItemsCount: user.wishlist ? user.wishlist.items.length : 0,

@@ -416,9 +416,9 @@ const retryPayment = async (req, res) => {
       return errorHandler(res, 404, "Order not found.");
     }
 
-    if (order.orderPaymentStatus !== "Failed") {
+    if (order.orderPaymentStatus !== "Failed" && order.orderPaymentStatus !== "Pending") {
       return errorHandler(res, 400, "Payment already completed.");
-    }
+    }    
 
     // Return the Razorpay order details for retrying the payment
     res.json({
@@ -481,7 +481,7 @@ const getUserOrders = async (req, res) => {
 
   const userId = req.session.user._id;
   const page = parseInt(req.query.page || 1);
-  const limit = 10; // Orders per page
+  const limit = 5; // Orders per page
   const statusFilter = req.query.status || "";
 
   const skip = (page - 1) * limit;

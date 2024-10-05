@@ -1,4 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const spinner = document.getElementById('loader');
+
+    // Function to show the loader
+    const showLoader = () => {
+        spinner.style.display = 'flex';  // Show the loader
+    };
+
+    // Function to hide the loader
+    const hideLoader = () => {
+        spinner.style.display = 'none';  // Hide the loader
+    };
+
     const displayErrors = (field, message) => {
         const errorElement = document.getElementById(`${field}Error`);
         if (errorElement) {
@@ -77,6 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(form);
         const jsonData = JSON.stringify(Object.fromEntries(formData.entries()));
 
+        showLoader();
+
         try {
             const response = await fetch(endPoint, {
                 method: 'POST',
@@ -88,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await response.json();
+            hideLoader();
 
             if (!response.ok) {
                 return {
@@ -98,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return data;
         } catch (error) {
+            hideLoader();
             console.error("Error submitting form:", error);
             return {
                 success: false,
@@ -136,7 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to handle Razorpay payment failure
     const handleRazorpayPaymentFailure = async (response) => {
-        console.log('Handling Razorpay payment failure:', response);
         const razorpayOrderId = response.error.metadata.order_id;
         const csrfToken = document.querySelector('input[name="_csrf"]').value;
 
@@ -163,7 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const failureData = await failureResponse.json();
-            console.log('Payment failure response:', failureData);
 
             if (failureData.success) {
                 showErrorAlert(
@@ -224,9 +238,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to handle Razorpay payment
     const handleRazorpayPayment = async () => {
         const orderForm = document.getElementById('order-form');
+
+        showLoader();
+
         const formResponse = await handleFormSubmit(orderForm, '/orders/checkout/create/order');
 
         if (formResponse && formResponse.success && formResponse.razorpayOrderId) {
+            hideLoader();
             const options = {
                 key: formResponse.razorpayKeyId,
                 amount: formResponse.totalAmount * 100, // in paise
@@ -235,6 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 description: 'Order Payment',
                 order_id: formResponse.razorpayOrderId,
                 handler: async (response) => {
+                    showLoader();
                     try {
                         await verifyRazorpayPayment(response);
                     } catch (error) {
@@ -244,6 +263,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             'There was an error verifying your payment. Please contact support.',
                             '/orders/my-orders'
                         );
+                    } finally {
+                        hideLoader(); // Always hide loader here
                     }
                 },
                 prefill: {
@@ -259,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 modal: {
                     ondismiss: function () {
+                        hideLoader();
                         console.log("Payment popup closed");
                         showErrorAlert(
                             'Payment Unsuccessful',
@@ -271,10 +293,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const rzp = new Razorpay(options);
             rzp.on('payment.failed', async (response) => {
+                showLoader();
                 await handleRazorpayPaymentFailure(response);
+                hideLoader();
             });
             rzp.open();
         } else {
+            hideLoader();
             showErrorAlert(
                 'Order Creation Failed',
                 formResponse.message || 'There was an error creating your order. Please try again.',

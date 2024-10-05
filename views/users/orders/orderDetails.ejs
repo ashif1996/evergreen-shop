@@ -441,7 +441,7 @@
                                 <h5>Payment Information</h5>
                                 <p>Payment Method: <strong><%= order.paymentMethod %></strong></p>
                                 <p>Payment Status: <strong><%= order.orderPaymentStatus %></strong></p>
-                                <% if (order.paymentMethod === 'Razorpay' && order.orderPaymentStatus === 'Failed') { %>
+                                <% if (order.paymentMethod === 'Razorpay' && (order.orderPaymentStatus === 'Failed' || order.orderPaymentStatus === 'Pending')) { %>
                                     <button id="retryPaymentBtn" class="btn btn-primary mt-3" data-order-id="<%= order._id %>" data-csrf="<%= csrfToken %>">Retry Payment</button>
                                 <% } %>
                             </div>
