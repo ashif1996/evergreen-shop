@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return isValid;
     };
     
-    const handleFormSubmit = async (form, endpoint) => {
+    const handleFormSubmit = async (form, endpoint, method = 'POST') => {
         console.log("Form submission initiated");
         const csrfToken = document.querySelector('input[name="_csrf"]').value;
     
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
         try {
             const response = await fetch(endpoint, {
-                method: 'POST',
+                method: method,
                 headers: {
                     'CSRF-Token': csrfToken
                 },
@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isValidAddProductForm = validateProductForm();
             if (isValidAddProductForm) {
-                handleFormSubmit(addForm, '/admin/add-products');
+                handleFormSubmit(addForm, '/admin/add-products', 'POST');
             }
         });
     }
@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isValidEditProductForm = validateProductForm(true);
             if (isValidEditProductForm) {
                 const productId = editForm.getAttribute('data-product-id');
-                handleFormSubmit(editForm, `/admin/edit-products/${productId}`);
+                handleFormSubmit(editForm, `/admin/edit-products/${productId}`, 'PUT');
             }
         });
     }

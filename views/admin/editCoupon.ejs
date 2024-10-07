@@ -61,7 +61,7 @@
                 <label for="discountType" class="form-label">Discount Type</label>
                 <select class="form-control" id="discountType" name="discountType" required>
                     <option value="PERCENTAGE" <%= coupon.discountType === 'PERCENTAGE' ? 'selected' : '' %>>Percentage</option>
-                    <option value="AMOUNT" <%= coupon.discountType === 'AMOUNT' ? 'selected' : '' %>>Fixed Amount</option>
+                    <option value="FIXED" <%= coupon.discountType === 'FIXED' ? 'selected' : '' %>>Fixed Amount</option>
                 </select>
             </div>
             <span class="error-message" id="discountTypeError"></span>

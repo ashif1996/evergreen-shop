@@ -29,7 +29,7 @@
     <div class="form-container">
         <h2 class="product-title" style="font-weight: bolder;">Edit Products</h2>
         <div class="login-line"></div>
-        <form id="edit-product-form" data-product-id="<%= product._id %>" action="/admin/edit-products/<%= product._id %>" method="post" enctype="multipart/form-data">
+        <form id="edit-product-form" data-product-id="<%= product._id %>" action="/admin/edit-products/<%= product._id %>" method="put" enctype="multipart/form-data">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <input type="hidden" name="redirectUrl" value="/admin/products">
             <div class="mb-3">
@@ -62,8 +62,11 @@
             <div class="mb-3">
                 <label for="images" class="form-label">Product Images</label>
                 <% product.images.forEach((image, index) => { %>
-                    <div class="mb-2">
+                    <div class="mb-2 d-flex align-items-center">
                         <img src="/images/products/<%= image %>" alt="Product Image" style="width: 80px; height: 80px;">
+                        <input type="checkbox" name="removeImage[]" value="<%= image %>" class="ml-2"> Remove
+                        <label for="changeImage<%= index %>" class="btn btn-secondary ml-2">Change</label>
+                        <input type="file" id="changeImage<%= index %>" name="images" accept="image/*" style="display: none;">
                     </div>
                 <% }); %>
                 <input type="file" class="form-control" id="images" name="images" multiple accept="image/*">

@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require('fs');
 const bcrypt = require("bcrypt");
 const Admin = require("../models/admin");
 const User = require("../models/user");
@@ -7,6 +8,7 @@ const Product = require("../models/product");
 const Coupon = require("../models/couponSchema");
 const Order = require("../models/orderSchema");
 const Banner = require("../models/bannerSchema");
+const uploadDir = path.join(__dirname, '../public/images/products');
 const { getDateRange } = require("../utils/chartUtils");
 const topSelling = require("../utils/topSellingUtils");
 const { processRefund } = require("../utils/paymentServices/walletServices");
@@ -316,6 +318,7 @@ const toggleCategoryListing = async (req, res) => {
 
     // Toggle listing status and save
     category.isListed = !category.isListed;
+    category.status = category.isListed ? 'active' : 'inactive';
     await category.save();
 
     return res.status(200).json({
@@ -629,73 +632,51 @@ const getEditProduct = async (req, res) => {
 // Update product details
 const editProduct = async (req, res) => {
   try {
-    // Extract product details and ID from request
-    const {
-      name,
-      description,
-      price,
-      discountPrice,
-      category,
-      stock,
-      availability,
-      featured,
-      redirectUrl,
-    } = req.body;
-    const productId = req.params.id;
-    let images = req.files;
+      const productId = req.params.id;
+      const { removeImage, redirectUrl } = req.body; // Get images to remove
+      let newImages = req.files; // Get new images from the upload
 
-    // Ensure images is an array
-    if (!Array.isArray(images) && images) {
-      images = [images];
-    }
+      // Find the existing product
+      const product = await Product.findById(productId);
+      if (!product) {
+          return res.status(404).json({ success: false, message: "Product not found" });
+      }
 
-    const product = await Product.findById(productId);
+      // Handle image removal
+      if (removeImage) {
+          removeImage.forEach(image => {
+              const imagePath = path.join(uploadDir, image);
+              if (fs.existsSync(imagePath)) {
+                  fs.unlinkSync(imagePath); // Delete image from the filesystem
+              }
+          });
+          // Update the product images array by filtering out removed images
+          product.images = product.images.filter(image => !removeImage.includes(image));
+      }
 
-    // Check if product exists
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-        originalUrl: req.originalUrl,
-      });
-    }
+      // Handle new image uploads
+      if (newImages && newImages.length > 0) {
+          newImages.forEach(file => {
+              product.images.push(file.filename); // Add new images
+          });
+      }
 
-    // Handle image uploads or retain existing ones
-    let imagePaths =
-      images && images.length > 0
-        ? images.map((file) => file.filename)
-        : product.images; // Keep existing images if none provided
+      // Update other product fields as needed
+      product.name = req.body.name; // Update name, description, etc.
+      product.description = req.body.description;
+      product.price = req.body.price;
+      product.discountPrice = req.body.discountPrice;
+      product.category = req.body.category;
+      product.stock = req.body.stock;
+      product.availability = req.body.availability === "true";
+      product.featured = req.body.featured === "on";
 
-    const updateProduct = {
-      name,
-      description,
-      price,
-      discountPrice,
-      category,
-      stock,
-      availability: availability === "true",
-      images: imagePaths,
-      featured: featured === "on",
-    };
-
-    // Update product in the database
-    const updatedProduct = await Product.findByIdAndUpdate(
-      productId,
-      updateProduct,
-      { new: true }
-    );
-
-    res.status(200).json({
-      success: true,
-      updatedProduct,
-      message: `${updateProduct.name} updated successfully`,
-      redirectUrl,
-    });
+      // Save the updated product
+      const updatedProduct = await product.save();
+      res.status(200).json({ success: true, updatedProduct, message: "Product updated successfully!", redirectUrl });
   } catch (err) {
-    console.error("Error updating the product:", err);
-    res
-      .status(500)
-      .json({ success: false, message: "Error updating the product!" });
+      console.error("Error updating the product:", err);
+      res.status(500).json({ success: false, message: "Error updating the product!" });
   }
 };
 

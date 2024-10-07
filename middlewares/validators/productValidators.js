@@ -20,7 +20,7 @@ const productValidationRules = (isEdit = false) => [
   body("stock")
     .notEmpty()
     .withMessage("Stock is required")
-    .isFloat({ gt: 0 })
+    .isFloat({ gte: 0 })
     .withMessage("Stock must be a positive integer"), // Stock must be a positive float
   body("availability")
     .isBoolean()
