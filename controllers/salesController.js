@@ -127,7 +127,7 @@ const generateHTMLContent = (orders, reportDetails, fromDate, toDate) => {
     .map(
       (order) => `
         <tr>
-            <td>${order._id}</td> <!-- Order ID -->
+            <td>${order.generatedOrderId}</td> <!-- Order ID -->
             <td>${moment(order.orderDate).format(
               "YYYY-MM-DD HH:mm:ss"
             )}</td> <!-- Formatted order date -->
@@ -246,7 +246,7 @@ const downloadSalesReport = async (req, res) => {
     // Add rows to the worksheet
     orders.forEach((order) => {
       worksheet.addRow({
-        _id: order._id,
+        _id: order.generatedOrderId,
         orderDate: moment(order.orderDate).format("YYYY-MM-DD HH:mm:ss"),
         user: order.userId
           ? `${order.userId.firstName} ${order.userId.lastName}`
@@ -316,7 +316,7 @@ const downloadSalesReport = async (req, res) => {
 
     // Add each order's details to the PDF
     orders.forEach((order) => {
-      doc.fontSize(10).text(`Order ID: ${order._id}`);
+      doc.fontSize(10).text(`Order ID: ${order.generatedOrderId}`);
       doc
         .fontSize(10)
         .text(

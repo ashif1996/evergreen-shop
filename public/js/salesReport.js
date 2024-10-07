@@ -19,7 +19,7 @@ const fetchReport = () => {
             table.clear();
             response.orders.forEach(order => {
                 table.row.add([
-                    order._id,
+                    order.generatedOrderId,
                     `${order.userId.firstName} ${order.userId.lastName}`, // Adjusted for userId
                     new Date(order.orderDate).toLocaleString(), // Adjusted for orderDate
                     order.orderItems.map(item => `${item.productId.name} - ${item.quantity} x - ₹${item.price}`).join('<br>'), // Adjusted for productId and item details
@@ -38,11 +38,25 @@ const fetchReport = () => {
     });
 };
 
+const spinner = document.getElementById('loader');
+
+// Function to show the loader
+const showLoader = () => {
+    spinner.style.display = 'flex';  // Show the loader
+};
+
+// Function to hide the loader
+const hideLoader = () => {
+    spinner.style.display = 'none';  // Hide the loader
+};
+
 const downloadReport = (format) => {
     const type = $('#type').val();
     const fromDate = $('#fromDate').val();
     const toDate = $('#toDate').val();
     const csrfToken = $('meta[name="csrf-token"]').attr('content');
+    // Show the spinner
+    showLoader();
 
     // If format is 'pdf', generate the PDF using jsPDF
     if (format === 'pdf') {
@@ -64,7 +78,7 @@ const downloadReport = (format) => {
 
                 // Prepare the table data for autoTable
                 const tableData = orders.map(order => ([
-                    order._id,
+                    order.generatedOrderId,
                     `${order.userId.firstName} ${order.userId.lastName}`,
                     new Date(order.orderDate).toLocaleString(),
                     order.orderItems.map(item => `${item.productId.name} - ${item.quantity} x ₹${item.price}`).join('\n'),
@@ -98,10 +112,12 @@ const downloadReport = (format) => {
 
                 // Save the PDF
                 doc.save(`sales_report_${fromDate}_to_${toDate}.pdf`);
+                hideLoader();
             },
             error: (error) => {
                 console.error(error);
                 alert('Failed to generate the PDF report');
+                hideLoader();
             }
         });
     } else {
@@ -113,10 +129,12 @@ const downloadReport = (format) => {
         form.append($('<input>').attr('type', 'hidden').attr('name', 'format').attr('value', format));
         form.append($('<input>').attr('type', 'hidden').attr('name', '_csrf').attr('value', csrfToken));
         form.appendTo('body').submit().remove();
+        hideLoader();
     }
 };
 
 document.addEventListener('DOMContentLoaded', function() {
+    const spinner = document.getElementById('loader');
     // Event listener for the button click
     document.getElementById('generateReportBtn').addEventListener('click', function() {
         const fromDate = new Date(document.getElementById('fromDate').value);

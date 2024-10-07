@@ -1,6 +1,9 @@
 const Product = require("../models/product");
 const Category = require("../models/category");
 const Banner = require("../models/bannerSchema");
+const {
+  calculateBestDiscountedPrice,
+} = require("../utils/discountPriceCalculation");
 
 // Fetches and renders the home page
 const getHome = async (req, res) => {
@@ -11,8 +14,31 @@ const getHome = async (req, res) => {
   };
 
   try {
-    const products = await Product.find({}).populate("category"); // Fetch all products with category
-    const banners = await Banner.find({ isActive: true }); // Fetch active banners only
+    const banners = await Banner.find({ isActive: true });
+
+    let products = await Product.find({ availability: true })
+        .populate("category") // Ensure category data is included
+        .populate("offer") // Ensure product offer data is included
+
+    // Ensure product is a Mongoose document before calling toObject
+    products = products.map((product) => {
+      if (product.toObject) {
+        product = product.toObject(); // Convert Mongoose document to a plain object
+      }
+      const {
+        discountedPrice,
+        discountPercentage,
+        fixedDiscount,
+        discountType,
+      } = calculateBestDiscountedPrice(product);
+      return {
+        ...product,
+        discountedPrice,
+        discountPercentage,
+        fixedDiscount,
+        discountType,
+      };
+    });
 
     res.render("home", {
       locals,

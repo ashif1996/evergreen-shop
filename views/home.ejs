@@ -76,19 +76,72 @@
         }
     }
 
-    /* Product Section */
+    .box-element {
+        box-shadow: hsl(0, 0%, 80%) 0 0 16px;
+        background-color: #fff;
+        border-radius: 4px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column; /* Stack items vertically */
+        height: 100%; /* Ensure full height for alignment */
+        position: relative; /* For positioning wishlist icon */
+        justify-content: space-between; /* Push content to top and bottom */
+    }
+
+    .thumbnail {
+        width: 100%;
+        height: 200px;
+        box-shadow: -1px -3px 5px -2px rgba(214, 214, 214, 1);
+    }
+
+    .product-image-container {
+        position: relative;
+    }
+
     .product-details {
-        text-align: center;
+        margin-bottom: 10px;
     }
 
-    .product-price .current-price {
-        font-weight: bold;
-        color: #28a745;
+    .product-extra {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start; /* Align items to the start */
+        height: 100%; /* Ensure it takes full height */
     }
 
-    .product-price .original-price {
+    .product-price {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; /* Ensure content is aligned to the left */
+    }
+
+    .price-details {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        font-size: 0.9em;
+    }
+
+    .original-price {
         text-decoration: line-through;
-        color: #888;
+        color: grey;
+        margin-right: 5px;
+    }
+
+    .discount-percentage {
+        color: gray;
+    }
+
+    .rating {
+        color: #FFD700;
+        font-size: 1.2em;
+        margin-bottom: 5px;
+    }
+
+    .results-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
     .btn {
         z-index: 10; /* Ensure it's higher than the carousel or other elements */
@@ -159,15 +212,28 @@
                                 <% } %>
                             </div>
                             <div class="product-price">
-                                <% if (product.discountPrice) { %>
-                                    <span class="current-price">₹<%= product.discountPrice %> / kg</span>
-                                    <span class="original-price">₹<%= product.price %> / kg</span>
+                                <% if (product.discountedPrice < product.price) { %>
+                                    <span class="current-price">₹<%= product.discountedPrice %>/kg</span>
+                                    <% if (product.discountType === 'fixed') { %>
+                                        <div class="price-details mt-2">
+                                            <span style="color: gray;">M.R.P: </span>
+                                            <span class="original-price">₹<%= product.price %>/kg</span>
+                                            <span class="discount-percentage">(₹<%= product.fixedDiscount %> off)</span>
+                                        </div>
+                                    <% } else if (product.discountType === 'percentage') { %>
+                                        <div class="price-details mt-2">
+                                            <span style="color: gray;">M.R.P: </span>
+                                            <span class="original-price">₹<%= product.price %>/kg</span>
+                                            <span class="discount-percentage">(<%= Math.ceil(product.discountPercentage) + '% off' %>)</span>
+                                        </div>
+                                    <% } %>
                                 <% } else { %>
-                                    <span class="current-price">₹<%= product.price %> / kg</span>
+                                    <span class="current-price">₹<%= product.price %>/kg</span>
+                                    <span class="mt-2" style="color: gray;">No offers available</span>
                                 <% } %>
-                            </div>
+                            </div>                                                                        
                             <% if (product.stock > 0) { %>
-                                <form action="/users/shoppingCart/add" method="POST" class="add-to-cart-form mt-3">
+                                <form action="/users/shoppingCart/add" method="POST" class="add-to-cart-form pt-3">
                                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <input type="hidden" name="productId" value="<%= product._id %>">
                                     <button type="submit" class="btn add-product-btn">
@@ -211,15 +277,28 @@
                                 <% } %>
                             </div>
                             <div class="product-price">
-                                <% if (product.discountPrice) { %>
-                                    <span class="current-price">₹<%= product.discountPrice %> / kg</span>
-                                    <span class="original-price">₹<%= product.price %> / kg</span>
+                                <% if (product.discountedPrice < product.price) { %>
+                                    <span class="current-price">₹<%= product.discountedPrice %>/kg</span>
+                                    <% if (product.discountType === 'fixed') { %>
+                                        <div class="price-details mt-2">
+                                            <span style="color: gray;">M.R.P: </span>
+                                            <span class="original-price">₹<%= product.price %>/kg</span>
+                                            <span class="discount-percentage">(₹<%= product.fixedDiscount %> off)</span>
+                                        </div>
+                                    <% } else if (product.discountType === 'percentage') { %>
+                                        <div class="price-details mt-2">
+                                            <span style="color: gray;">M.R.P: </span>
+                                            <span class="original-price">₹<%= product.price %>/kg</span>
+                                            <span class="discount-percentage">(<%= Math.ceil(product.discountPercentage) + '% off' %>)</span>
+                                        </div>
+                                    <% } %>
                                 <% } else { %>
-                                    <span class="current-price">₹<%= product.price %> / kg</span>
+                                    <span class="current-price">₹<%= product.price %>/kg</span>
+                                    <span class="mt-2" style="color: gray;">No offers available</span>
                                 <% } %>
-                            </div>
+                            </div>                                                                        
                             <% if (product.stock > 0) { %>
-                                <form action="/users/shoppingCart/add" method="POST" class="add-to-cart-form mt-3">
+                                <form action="/users/shoppingCart/add" method="POST" class="add-to-cart-form pt-3">
                                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <input type="hidden" name="productId" value="<%= product._id %>">
                                     <button type="submit" class="btn add-product-btn">
@@ -243,7 +322,7 @@
             </div>
         </div>
         <div class="row">
-            <% products.filter(product => product.category.name === 'Juice and Drinks').forEach(product => { %>
+            <% products.filter(product => product.category.name === 'Juice and Drinks').slice(0, 5).forEach(product => { %>
                 <div class="col-lg-3 col-md-4 col-sm-6 col-xl-2-4 mb-4">
                     <div class="box-element product">
                         <!-- Product details as before -->
@@ -263,15 +342,28 @@
                                 <% } %>
                             </div>
                             <div class="product-price">
-                                <% if (product.discountPrice) { %>
-                                    <span class="current-price">₹<%= product.discountPrice %> / kg</span>
-                                    <span class="original-price">₹<%= product.price %> / kg</span>
+                                <% if (product.discountedPrice < product.price) { %>
+                                    <span class="current-price">₹<%= product.discountedPrice %>/kg</span>
+                                    <% if (product.discountType === 'fixed') { %>
+                                        <div class="price-details mt-2">
+                                            <span style="color: gray;">M.R.P: </span>
+                                            <span class="original-price">₹<%= product.price %>/kg</span>
+                                            <span class="discount-percentage">(₹<%= product.fixedDiscount %> off)</span>
+                                        </div>
+                                    <% } else if (product.discountType === 'percentage') { %>
+                                        <div class="price-details mt-2">
+                                            <span style="color: gray;">M.R.P: </span>
+                                            <span class="original-price">₹<%= product.price %>/kg</span>
+                                            <span class="discount-percentage">(<%= Math.ceil(product.discountPercentage) + '% off' %>)</span>
+                                        </div>
+                                    <% } %>
                                 <% } else { %>
-                                    <span class="current-price">₹<%= product.price %> / kg</span>
+                                    <span class="current-price">₹<%= product.price %>/kg</span>
+                                    <span class="mt-2" style="color: gray;">No offers available</span>
                                 <% } %>
-                            </div>
+                            </div>                                                                        
                             <% if (product.stock > 0) { %>
-                                <form action="/users/shoppingCart/add" method="POST" class="add-to-cart-form mt-3">
+                                <form action="/users/shoppingCart/add" method="POST" class="add-to-cart-form pt-3">
                                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <input type="hidden" name="productId" value="<%= product._id %>">
                                     <button type="submit" class="btn add-product-btn">
@@ -295,7 +387,7 @@
             </div>
         </div>
         <div class="row">
-            <% products.filter(product => product.category.name === 'Nuts and Seeds').forEach(product => { %>
+            <% products.filter(product => product.category.name === 'Nuts and Seeds').slice(0, 5).forEach(product => { %>
                 <div class="col-lg-3 col-md-4 col-sm-6 col-xl-2-4 mb-4">
                     <div class="box-element product">
                         <!-- Product details as before -->
@@ -315,15 +407,28 @@
                                 <% } %>
                             </div>
                             <div class="product-price">
-                                <% if (product.discountPrice) { %>
-                                    <span class="current-price">₹<%= product.discountPrice %> / kg</span>
-                                    <span class="original-price">₹<%= product.price %> / kg</span>
+                                <% if (product.discountedPrice < product.price) { %>
+                                    <span class="current-price">₹<%= product.discountedPrice %>/kg</span>
+                                    <% if (product.discountType === 'fixed') { %>
+                                        <div class="price-details mt-2">
+                                            <span style="color: gray;">M.R.P: </span>
+                                            <span class="original-price">₹<%= product.price %>/kg</span>
+                                            <span class="discount-percentage">(₹<%= product.fixedDiscount %> off)</span>
+                                        </div>
+                                    <% } else if (product.discountType === 'percentage') { %>
+                                        <div class="price-details mt-2">
+                                            <span style="color: gray;">M.R.P: </span>
+                                            <span class="original-price">₹<%= product.price %>/kg</span>
+                                            <span class="discount-percentage">(<%= Math.ceil(product.discountPercentage) + '% off' %>)</span>
+                                        </div>
+                                    <% } %>
                                 <% } else { %>
-                                    <span class="current-price">₹<%= product.price %> / kg</span>
+                                    <span class="current-price">₹<%= product.price %>/kg</span>
+                                    <span class="mt-2" style="color: gray;">No offers available</span>
                                 <% } %>
-                            </div>
+                            </div>                                                                        
                             <% if (product.stock > 0) { %>
-                                <form action="/users/shoppingCart/add" method="POST" class="add-to-cart-form mt-3">
+                                <form action="/users/shoppingCart/add" method="POST" class="add-to-cart-form pt-3">
                                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <input type="hidden" name="productId" value="<%= product._id %>">
                                     <button type="submit" class="btn add-product-btn">
