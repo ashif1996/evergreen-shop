@@ -42,11 +42,13 @@ passport.use(
               email: profile.emails[0].value,
               firstName: profile.name.givenName,
               lastName: profile.name.familyName,
-              password: temporaryPassword,
-              referralCode: generateReferralCode()
+              password: temporaryPassword
             });
 
-            await user.save();
+            const savedUser = await user.save();
+            const generatedReferralCode = generateReferralCode(savedUser._id);
+            savedUser.referralCode = generatedReferralCode;
+            await savedUser.save();
           }
         }
 
