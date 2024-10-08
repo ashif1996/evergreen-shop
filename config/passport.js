@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const googleStrategy = require("passport-google-oauth20").Strategy;
 const facebookStrategy = require("passport-facebook");
 const User = require("../models/user");
+const { generateReferralCode } = require("../utils/referralUtils");
 
 // Function to generate a temporary 8-character alphanumeric password
 function generateTemporaryPassword() {
@@ -16,7 +17,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "https://theevergreen.shop/users/auth/google/callback",
+      callbackURL: "/users/auth/google/callback",
     },
     async (accessToken, refreshToken, profile, cb) => {
       try {
@@ -42,6 +43,7 @@ passport.use(
               firstName: profile.name.givenName,
               lastName: profile.name.familyName,
               password: temporaryPassword,
+              referralCode: generateReferralCode()
             });
 
             await user.save();
