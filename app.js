@@ -1,6 +1,12 @@
 // Import environment configuration
 require('dotenv').config();
 
+// Import custom modules
+const connectDB = require('./config/db');
+
+// Connect to MongoDB
+connectDB();
+
 // Import core Node.js modules
 const path = require('path');
 
@@ -28,14 +34,8 @@ const passport = require('./config/passport');
 const morgan = require('morgan');
 const createError = require('http-errors');
 
-// Import custom modules
-const connectDB = require('./config/db');
-
 // Initialize Express app
 const app = express();
-
-// Connect to MongoDB
-connectDB();
 
 const setCartAndWishlistCounts = require('./middlewares/setCartWishlistCounts');
 
@@ -131,7 +131,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
