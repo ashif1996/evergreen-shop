@@ -4,10 +4,10 @@ const nodemailer = require("nodemailer");
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.SEND_OTP_EMAIL, // Email used for sending OTPs
-    pass: process.env.SEND_OTP_EMAIL_PASS, // Password for the email
+    user: process.env.SEND_OTP_EMAIL,
+    pass: process.env.SEND_OTP_EMAIL_PASS,
   },
-  secure: true, // Use secure connection (SSL/TLS)
+  secure: true,
 });
 
 module.exports = transporter;

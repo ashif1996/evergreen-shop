@@ -9,7 +9,7 @@ const {
 
 // Handle sending OTP to the user's email
 const handleSendOtp = async (req, res) => {
-  const { email, redirectUrl } = req.body; // Extract email and redirect URL from request body
+  const { email, redirectUrl } = req.body;
 
   try {
     await cleanupExpiredOtps(); // Clean up expired OTPs
@@ -28,12 +28,12 @@ const handleSendOtp = async (req, res) => {
       otpSend: true,
     });
   } catch (error) {
-    console.log(error); // Log any errors
+    console.log(error);
     // Respond with failure message
     res.json({
       success: false,
       message: "Error sending OTP!",
-      originalUrl: req.originalUrl, // Include original URL in response
+      originalUrl: req.originalUrl,
       otpSend: false,
     });
   }
@@ -42,8 +42,8 @@ const handleSendOtp = async (req, res) => {
 // Render OTP verification page
 const getOtpVerification = (req, res) => {
   const locals = { title: "Verify OTP | EverGreen" };
-  const email = req.session.email; // Retrieve email from session
-  const otpSend = req.session.otpSend; // Retrieve OTP sent status from session
+  const email = req.session.email;
+  const otpSend = req.session.otpSend;
   console.log(otpSend);
 
   // Render the OTP verification page
@@ -58,8 +58,8 @@ const getOtpVerification = (req, res) => {
 
 // Verify the user's OTP
 const handleVerifyOtp = async (req, res) => {
-  const { otp, redirectUrl } = req.body; // Extract OTP and redirect URL
-  const email = req.session.email; // Get email from session
+  const { otp, redirectUrl } = req.body;
+  const email = req.session.email;
 
   try {
     const result = await verifyOtp(email, otp); // Verify the OTP
@@ -95,20 +95,20 @@ const handleVerifyOtp = async (req, res) => {
 
 // Render reset password page
 const getResetPassword = (req, res) => {
-  const locals = { title: "Reset Password | EverGreen" }; // Set page title
-  const email = req.session.email; // Get email from session
+  const locals = { title: "Reset Password | EverGreen" };
+  const email = req.session.email;
   res.render("users/reset-password", {
     locals,
     layout: "layouts/authLayout",
     email,
-    csrfToken: req.csrfToken(), // CSRF token for form protection
+    csrfToken: req.csrfToken(),
   });
 };
 
 // Handle password reset logic
 const handleResetPassword = async (req, res) => {
-  const { newPassword, confirmPassword, redirectUrl } = req.body; // Extract form data
-  const email = req.session.email; // Get email from session
+  const { newPassword, confirmPassword, redirectUrl } = req.body;
+  const email = req.session.email;
 
   // Check if passwords match
   if (newPassword !== confirmPassword) {
@@ -118,7 +118,7 @@ const handleResetPassword = async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ email }); // Find user by email
+    const user = await User.findOne({ email });
 
     // Check if user exists
     if (!user) {
@@ -127,14 +127,14 @@ const handleResetPassword = async (req, res) => {
         .json({ success: false, message: "User not found." });
     }
 
-    user.password = newPassword; // Update user's password
-    await user.save(); // Save changes
+    user.password = newPassword;
+    await user.save();
 
     res
       .status(200)
       .json({ success: true, message: "Password changed successfully." });
   } catch (error) {
-    console.error("Error resetting password:", error); // Log error
+    console.error("Error resetting password:", error);
     return res
       .status(500)
       .json({ success: false, message: "Error resetting password." });

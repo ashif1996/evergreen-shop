@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const startOtpTimer = () => {
-        let time = 60;
+        let time = 5 * 60;
         otpTimer = setInterval(() => {
             if (time <= 0) {
                 clearInterval(otpTimer);
@@ -38,17 +38,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const minutes = Math.floor(time / 60);
                 const seconds = time % 60;
                 document.querySelector('.timer').innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-
+    
                 if (time < 10) {
                     document.querySelector('.timer').style.color = 'red'; // Change color when less than 10 seconds
                 } else {
                     document.querySelector('.timer').style.color = 'black'; // Reset color for other times
                 }
-
+    
                 time--;
             }
         }, 1000);
-    };
+    };    
 
     const clearOtpTimer = () => {
         clearInterval(otpTimer);

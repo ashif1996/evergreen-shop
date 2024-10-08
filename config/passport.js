@@ -14,9 +14,9 @@ function generateTemporaryPassword() {
 passport.use(
   new googleStrategy(
     {
-      clientID: process.env.GOOGLE_CLIENT_ID, // Google client ID from environment variables
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET, // Google client secret
-      callbackURL: "/users/auth/google/callback", // Google OAuth callback URL
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: "/users/auth/google/callback",
     },
     async (accessToken, refreshToken, profile, cb) => {
       try {
@@ -48,9 +48,9 @@ passport.use(
           }
         }
 
-        cb(null, user); // Return user through the callback
+        cb(null, user);
       } catch (err) {
-        cb(err, null); // Handle error
+        cb(err, null);
       }
     }
   )
