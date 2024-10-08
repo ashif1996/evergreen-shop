@@ -16,7 +16,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/users/auth/google/callback",
+      callbackURL: "https://theevergreen.shop/users/auth/google/callback",
     },
     async (accessToken, refreshToken, profile, cb) => {
       try {
