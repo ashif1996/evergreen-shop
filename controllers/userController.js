@@ -720,8 +720,6 @@ const deleteCartItems = async (req, res) => {
 
 // Fetches the user's wishlist and handles pagination
 const getWishlist = async (req, res) => {
-  console.log("getWishlist function called");
-  console.log("User session data: ", req.session);
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
@@ -739,7 +737,6 @@ const getWishlist = async (req, res) => {
     }
 
     const userId = req.session.user._id;
-    console.log(`Fetching wishlist for user ID: ${userId}`);
     const user = await User.findById(userId);
 
     // Fetch the user's wishlist
@@ -753,9 +750,7 @@ const getWishlist = async (req, res) => {
         userId,
         items: [], // Start with an empty items array
       });
-      console.log('Creating new wishlist');
       await wishlist.save(); // Save the new wishlist
-      console.log('New wishlist saved');
     }
 
     // Only set the wishlist reference if it was newly created
@@ -784,7 +779,6 @@ const getWishlist = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching Wishlist: ", error);
-    console.log("Error message: ", error.message); // Log the error message for debugging
     
     // Handle error and render
     res.status(500).render("users/wishlist.ejs", {

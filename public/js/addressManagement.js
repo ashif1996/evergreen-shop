@@ -130,7 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addressForm) {
         addressForm.addEventListener('submit', (event) => {
             event.preventDefault(); // Prevent default form submission
-            showLoader();
 
             const isValid = validateAddressForm();
 
