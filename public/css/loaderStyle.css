@@ -13,7 +13,7 @@
 }
   
 .loader {
-    border: 12px solid #f3f3f3; /* Light grey */
+    border: 6px solid #f3f3f3; /* Light grey */
     border-top: 6px solid #85FF00; /* Lime */
     border-radius: 50%;
     width: 60px;

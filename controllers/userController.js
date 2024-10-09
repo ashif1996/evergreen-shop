@@ -720,6 +720,8 @@ const deleteCartItems = async (req, res) => {
 
 // Fetches the user's wishlist and handles pagination
 const getWishlist = async (req, res) => {
+  console.log("getWishlist function called");
+  console.log("User session data: ", req.session);
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
@@ -737,21 +739,33 @@ const getWishlist = async (req, res) => {
     }
 
     const userId = req.session.user._id;
-    const page = parseInt(req.query.page) || 1; // Get current page
-    const limit = 5; // Set items per page
+    console.log(`Fetching wishlist for user ID: ${userId}`);
+    const user = await User.findById(userId);
 
     // Fetch the user's wishlist
-    const wishlist = await Wishlist.findOne({ userId }).populate(
+    let wishlist = await Wishlist.findOne({ userId }).populate(
       "items.productId"
     );
 
     if (!wishlist) {
-      // Render error if wishlist not found
-      return res.status(404).render("users/wishlist.ejs", {
-        locals: { ...locals, wishlist: null, error: "Wishlist not found" },
-        layout: "layouts/userLayout",
+      // Create a new wishlist if not found
+      wishlist = new Wishlist({
+        userId,
+        items: [], // Start with an empty items array
       });
+      console.log('Creating new wishlist');
+      await wishlist.save(); // Save the new wishlist
+      console.log('New wishlist saved');
     }
+
+    // Only set the wishlist reference if it was newly created
+    if (!user.wishlist || user.wishlist.toString() !== wishlist._id.toString()) {
+      user.wishlist = wishlist._id;
+      await user.save(); // Save the user only if the wishlist reference changed
+    }
+
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = 5;
 
     // Get total number of items and calculate pagination details
     const totalItems = wishlist.items.length;
@@ -770,10 +784,12 @@ const getWishlist = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching Wishlist: ", error);
+    console.log("Error message: ", error.message); // Log the error message for debugging
+    
     // Handle error and render
     res.status(500).render("users/wishlist.ejs", {
-      locals: { ...locals, wishlist: null, error: "Internal Server Error" },
-      layout: "layouts/userLayout",
+        locals: { ...locals, wishlist: null, error: error.message || "Internal Server Error" },
+        layout: "layouts/userLayout",
     });
   }
 };
@@ -809,6 +825,7 @@ const addToWishlist = async (req, res) => {
         userId,
         items: [],
       });
+      await wishlist.save(); // Save the new wishlist immediately
     }
 
     // Check if product already exists in wishlist
@@ -818,16 +835,19 @@ const addToWishlist = async (req, res) => {
     if (existingItem) {
       return res.status(400).json({
         success: false,
-        message: `Product already exists in your wishlist.`,
+        message: "Product already exists in your wishlist.",
       });
-    } else {
-      wishlist.items.push({ productId }); // Add product to wishlist
     }
+
+    wishlist.items.push({ productId }); // Add product to wishlist
 
     await wishlist.save(); // Save updated wishlist
 
-    user.wishlist = wishlist._id; // Update user's wishlist reference
-    await user.save(); // Save user
+    // Only update user's wishlist reference if it was a new wishlist
+    if (!user.wishlist || user.wishlist.toString() !== wishlist._id.toString()) {
+      user.wishlist = wishlist._id; // Update user's wishlist reference
+      await user.save(); // Save user
+    }
 
     res
       .status(200)

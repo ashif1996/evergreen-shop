@@ -1,7 +1,21 @@
 document.getElementById('addMoneyForm').addEventListener('submit', async (event) => {
     event.preventDefault();
+    const spinner = document.getElementById('loader');
+
+    // Function to show the loader
+    const showLoader = () => {
+        spinner.style.display = 'flex';  // Show the loader
+    };
+
+    // Function to hide the loader
+    const hideLoader = () => {
+        spinner.style.display = 'none';  // Hide the loader
+    };
 
     try {
+        // Show spinner before starting the process
+        showLoader();
+
         const amount = document.querySelector('input[name="amount"]').value;
         const note = document.querySelector('input[name="note"]').value;
         const csrfToken = document.querySelector('input[name="_csrf"]').value;
@@ -28,6 +42,7 @@ document.getElementById('addMoneyForm').addEventListener('submit', async (event)
                 order_id: order.id,
                 "handler": async (response) => {
                     try {
+                        // Send request to verify the payment
                         const paymentVerificationResponse = await fetch('/users/wallet/money/add/verify', {
                             method: 'POST',
                             headers: {
@@ -44,6 +59,9 @@ document.getElementById('addMoneyForm').addEventListener('submit', async (event)
                         });
 
                         const data = await paymentVerificationResponse.json();
+
+                        // Hide spinner after verification
+                        hideLoader();
 
                         if (data.success) {
                             Swal.fire(
@@ -62,6 +80,7 @@ document.getElementById('addMoneyForm').addEventListener('submit', async (event)
                         }
                     } catch (error) {
                         console.error('Payment verification error:', error);
+                        hideLoader();  // Hide spinner on error
                         Swal.fire(
                             'Error',
                             'Something went wrong during payment verification. Please try again.',
@@ -78,6 +97,8 @@ document.getElementById('addMoneyForm').addEventListener('submit', async (event)
             var rzp1 = new Razorpay(options);
             rzp1.open();
         } else {
+            // Hide spinner if order creation fails
+            hideLoader();
             Swal.fire(
                 'Error',
                 'Failed to create payment order. Please try again.',
@@ -86,6 +107,7 @@ document.getElementById('addMoneyForm').addEventListener('submit', async (event)
         }
     } catch (error) {
         console.error('Order creation error:', error);
+        hideLoader();  // Hide spinner on error
         Swal.fire(
             'Error',
             'Something went wrong. Please try again.',

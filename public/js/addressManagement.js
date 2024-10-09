@@ -1,4 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const spinner = document.getElementById('loader');
+
+    // Function to show the loader
+    const showLoader = () => {
+        spinner.style.display = 'flex';  // Show the loader
+    };
+
+    // Function to hide the loader
+    const hideLoader = () => {
+        spinner.style.display = 'none';  // Hide the loader
+    };
     // Function to display error messages for specific form fields
     const displayErrors = (fieldId, message) => {
         const errorElement = document.getElementById(`${fieldId}Error`);
@@ -53,6 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to handle form submission with AJAX
     const handleFormSubmit = async (form, endpoint) => {
+        showLoader();
+
         const csrfToken = document.querySelector('input[name="_csrf"]').value;
         const formData = new FormData(form);
         const jsonData = JSON.stringify(Object.fromEntries(formData));
@@ -68,6 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await response.json();
+
+            hideLoader();
 
             // Handle successful form submission
             if (data.success) {
@@ -98,6 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         } catch (err) {
+            hideLoader();
+
             console.error("Error submitting form:", err);
             
             Swal.fire({
@@ -113,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addressForm) {
         addressForm.addEventListener('submit', (event) => {
             event.preventDefault(); // Prevent default form submission
+            showLoader();
 
             const isValid = validateAddressForm();
 
