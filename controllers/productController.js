@@ -192,12 +192,7 @@ const getProductDetails = async (req, res) => {
 
   try {
     const productId = req.params.id;
-    if (!isValidObjectId(productId)) {
-      return res.status(404).render('notFoundError.ejs', {
-          message: 'Invalid product ID.',
-          layout: 'layouts/errorMessagesLayout.ejs'
-      });
-    }
+    
 
     const product = await Product.findById(productId)
       .populate("category")
@@ -258,8 +253,12 @@ const getProductDetails = async (req, res) => {
       csrfToken: req.csrfToken(),
     });
   } catch (error) {
-    console.error("Error fetching product details: ", error);
-    res.status(500).send("Internal Server Error");
+    console.error('Error fetching product details:', err);
+    return res.status(500).render('internalError.ejs', {
+        title: '500 - Internal Server Error',
+        layout: 'layouts/errorMessagesLayout.ejs',
+        errorMessage: err.message,
+    });
   }
 };
 
