@@ -10,7 +10,7 @@ const getSalesReportPage = async (req, res) => {
     title: "Admin - Sales Report | EverGreen",
     message: {},
   };
-  res.status(200).render("admin/salesreport", {
+  res.status(200).render("admin/salesReport.ejs", {
     locals,
     layout: "layouts/adminLayout.ejs",
   });
