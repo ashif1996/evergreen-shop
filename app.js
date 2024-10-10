@@ -118,6 +118,11 @@ app.use('/orders', orderRoutes);
 app.use('/sales', salesRoutes);
 app.use('/error', errorRoutes);
 
+// Example route to trigger a 500 Internal Server Error
+app.get('/trigger-error', (req, res) => {
+    throw new Error('This is a test error!');
+});
+
 // 404 Handler - this will catch all unmatched routes
 app.use((req, res, next) => {
     res.status(404).render('notFoundError.ejs', {
