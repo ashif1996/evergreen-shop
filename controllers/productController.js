@@ -252,7 +252,7 @@ const getProductDetails = async (req, res) => {
       layout: "layouts/userLayout",
       csrfToken: req.csrfToken(),
     });
-  } catch (error) {
+  } catch (err) {
     console.error('Error fetching product details:', err);
     return res.status(500).render('internalError.ejs', {
         title: '500 - Internal Server Error',
