@@ -5,9 +5,15 @@
         color: #333;
         margin: 0;
         display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
+        flex-direction: column; /* Use column layout */
+        min-height: 100vh; /* Ensure full height of the viewport */
+    }
+
+    main {
+        flex-grow: 1; /* Allow main content to expand and fill space */
+        display: flex;
+        align-items: center; /* Center content vertically */
+        justify-content: center; /* Center content horizontally */
     }
 
     .error-container {
