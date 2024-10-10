@@ -1,5 +1,6 @@
 const Category = require("../models/category");
 const Order = require("../models/orderSchema");
+const mongoose = require('mongoose');
 const Product = require("../models/product");
 const {
   calculateBestDiscountedPrice,
@@ -174,6 +175,11 @@ const getProducts = async (req, res) => {
     req.flash("error_msg", "An error occurred while fetching products.");
     res.redirect("/");
   }
+};
+
+// Function to validate if an ID is a valid MongoDB ObjectID
+function isValidObjectId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
 };
 
 // Function to fetch and render the product details page
