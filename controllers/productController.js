@@ -191,9 +191,10 @@ const getProductDetails = async (req, res) => {
       .populate("ratings.userId");
 
     if (!product) {
-      const error = new Error('Product not found');
-      error.status = 500;
-      return next(error);
+      return res.status(404).render('notFoundError.ejs', {
+        message: 'Product not found.',
+        layout: 'layouts/errorMessagesLayout.ejs'
+      });
     }
 
     const { discountedPrice, discountPercentage, fixedDiscount, discountType } =

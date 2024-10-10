@@ -68,7 +68,12 @@
 
 <div class="container">
     <h1>404</h1>
-    <h2>Oops! Page Not Found</h2>
-    <p>Sorry, the page you are looking for doesn't exist.</p>
+    <% if (message) { %>
+        <h2>Oops! <%= message %></h2>
+        <p>Sorry, the product you are looking for doesn't exist.</p>
+    <% } else { %>
+        <h2>Oops! Page Not Found</h2>
+        <p>Sorry, the page you are looking for doesn't exist.</p>
+    <% } %>
     <a href="/">Go Back Home</a>
 </div>

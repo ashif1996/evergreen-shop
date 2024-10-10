@@ -126,8 +126,8 @@ app.get('/trigger-error', (req, res) => {
 // 404 Handler - this will catch all unmatched routes
 app.use((req, res, next) => {
     res.status(404).render('notFoundError.ejs', {
-        title: '404 - Page Not Found',
-        layout: 'layouts/errorMessagesLayout.ejs',
+        title: '404 - Not Found',
+        layout: 'layouts/errorMessagesLayout.ejs'
     });
 });
 
