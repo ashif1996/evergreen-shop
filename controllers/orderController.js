@@ -587,11 +587,15 @@ const getOrderDetails = async (req, res) => {
       csrfToken: req.csrfToken(),
       layout: "layouts/userLayout",
     });
-  } catch (error) {
-    console.error("Error fetching order details: ", error);
+  } catch (err) {
+    console.error("Error fetching order details: ", err);
     res
       .status(500)
-      .render("error", { message: "Failed to load order details." });
+      .render("internalError.ejs", {
+        title: '500 - Internal Server Error',
+        layout: 'layouts/errorMessagesLayout.ejs',
+        errorMessage: err.message,
+      });
   }
 };
 
