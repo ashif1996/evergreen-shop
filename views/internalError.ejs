@@ -1,0 +1,71 @@
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f4f4;
+        color: #333;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+    }
+
+    .error-container {
+        text-align: center;
+        background-color: #fff;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .error-container h1 {
+        font-size: 100px;
+        color: #FF6B6B;
+        margin: 0;
+    }
+
+    .error-container h2 {
+        font-size: 28px;
+        margin: 10px 0;
+        color: #333;
+    }
+
+    .error-container p {
+        font-size: 18px;
+        color: #666;
+    }
+
+    .error-container a {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #85FF00;
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+        border-radius: 5px;
+    }
+
+    .error-container a:hover {
+        background-color: #69d800;
+    }
+
+    .error-icon {
+        font-size: 120px;
+        color: #FF6B6B;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="error-container">
+    <div class="error-icon">🚨</div>
+    <h1>500</h1>
+    <h2>Oops! Something went wrong.</h2>
+    <p>We're experiencing some server issues right now. Please try again later.</p>
+    
+    <% if (errorMessage) { %>
+        <p><strong>Error Details:</strong> <%= errorMessage %></p>
+    <% } %>
+    
+    <a href="/">Go Back to Home</a>
+</div>

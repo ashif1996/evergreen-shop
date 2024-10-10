@@ -118,17 +118,21 @@ app.use('/orders', orderRoutes);
 app.use('/sales', salesRoutes);
 app.use('/error', errorRoutes);
 
-// Handle 404 errors
+// 404 Handler - this will catch all unmatched routes
 app.use((req, res, next) => {
-    next(createError(404));
-});
-
-// Global error handler
-app.use((err, req, res, next) => {
-    console.error(err.stack);
     res.status(404).render('notFoundError.ejs', {
         title: '404 - Page Not Found',
-        layout: "layouts/errorMessagesLayout.ejs",
+        layout: 'layouts/errorMessagesLayout.ejs',
+    });
+});
+
+// Global Error Handler - handles any internal server errors
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(err.status || 500).render('internalError.ejs', {
+        title: '500 - Internal Server Error',
+        layout: 'layouts/errorMessagesLayout.ejs',
+        errorMessage: err.message,
     });
 });
 
