@@ -182,11 +182,6 @@
                                 <input type="text" class="form-control" id="lastName" name="lastName" value="<%= locals.user.lastName %>">
                                 <span id="lastNameError" class="error-message"></span>
                             </div>
-                            <div class="form-group">
-                                <label for="email">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" value="<%= locals.user.email %>">
-                                <span id="emailError" class="error-message"></span>
-                            </div>
                             <button type="submit" class="btn user-btn">Save Changes</button>
                         </form>
                     </div>
@@ -203,11 +198,9 @@
         // Clear previous error messages
         document.getElementById('firstNameError').textContent = '';
         document.getElementById('lastNameError').textContent = '';
-        document.getElementById('emailError').textContent = '';
 
         const firstName = document.getElementById('firstName').value.trim();
         const lastName = document.getElementById('lastName').value.trim();
-        const email = document.getElementById('email').value.trim();
         const csrfToken = document.querySelector('input[name="_csrf"]').value;
         
         let isValid = true; // Track overall form validity
@@ -227,18 +220,6 @@
         } else if (!/^[A-Z][a-zA-Z '-]*$/.test(lastName)) {
             document.getElementById('lastNameError').textContent = 'Last name must start with a capital letter and contain only letters, spaces, or hyphens.';
             isValid = false;
-        }
-        
-        if (!email) {
-            document.getElementById('emailError').textContent = 'Email is required.';
-            isValid = false;
-        } else {
-            // Validation: Check for valid email format
-            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailPattern.test(email)) {
-            document.getElementById('emailError').textContent = 'Please enter a valid email address.';
-            isValid = false;
-            }
         }
 
         // If the form is valid, proceed with submission

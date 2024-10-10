@@ -247,31 +247,17 @@ const getEditProfile = (req, res) => {
 // Handles the editing of user profile
 const editProfile = async (req, res) => {
   const userId = req.session.user._id; // Get the user ID from the session
-  const { firstName, lastName, email } = req.body; // Destructure input from the request body
+  const { firstName, lastName } = req.body; // Destructure input from the request body
 
   try {
-    // Check if the new email is already used by another user
-    const existingUser = await User.findOne({ email: email });
-
-    if (existingUser && existingUser._id.toString() !== userId) {
-      // If the email exists and is not the current user's email
-      return res.json({
-        success: false,
-        message: "This email is already in use by another user.",
-      }); // Return JSON with an error message
-    }
-
-    // Update the user in the database
     await User.findByIdAndUpdate(userId, {
       firstName,
-      lastName,
-      email,
+      lastName
     });
 
     // Update the session user info
     req.session.user.firstName = firstName;
     req.session.user.lastName = lastName;
-    req.session.user.email = email;
 
     // Return JSON response indicating success
     return res.json({
