@@ -126,8 +126,10 @@ app.use((req, res, next) => {
 // Global error handler
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(err.status || 500);
-    res.send('Something went wrong!');
+    res.status(404).render('notFoundError.ejs', {
+        title: '404 - Page Not Found',
+        layout: "layouts/errorMessagesLayout.ejs",
+    });
 });
 
 // Start the server
