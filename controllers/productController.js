@@ -190,6 +190,12 @@ const getProductDetails = async (req, res) => {
       .populate("category")
       .populate("ratings.userId");
 
+    if (!product) {
+      const error = new Error('Product not found');
+      error.status = 500;
+      return next(error);
+    }
+
     const { discountedPrice, discountPercentage, fixedDiscount, discountType } =
       calculateBestDiscountedPrice(product);
     const mainProduct = {
