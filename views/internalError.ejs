@@ -28,6 +28,7 @@
         font-size: 100px;
         color: #FF6B6B;
         margin: 0;
+        animation: bounce 1s infinite; /* Add bounce animation */
     }
 
     .error-container h2 {
@@ -61,9 +62,19 @@
         color: #FF6B6B;
         margin-bottom: 20px;
     }
+
+    /* Bounce animation */
+    @keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-20px); /* Bounce height */
+        }
+    }
 </style>
 
-<div class="error-container">
+<div class="error-container mt-5">
     <div class="error-icon">🚨</div>
     <h1>500</h1>
     <h2>Oops! Something went wrong.</h2>
