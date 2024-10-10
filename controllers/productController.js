@@ -192,7 +192,12 @@ const getProductDetails = async (req, res) => {
 
   try {
     const productId = req.params.id;
-    
+    if (!isValidObjectId(productId)) {
+      return res.status(404).render('notFoundError.ejs', {
+          message: 'Invalid product ID.',
+          layout: 'layouts/errorMessagesLayout.ejs'
+      });
+    }
 
     const product = await Product.findById(productId)
       .populate("category")
