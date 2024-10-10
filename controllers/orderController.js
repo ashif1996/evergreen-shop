@@ -546,6 +546,9 @@ const getOrderDetails = async (req, res) => {
 
   try {
     const { orderId } = req.params;
+    if (!ObjectId.isValid(orderId)) {
+      return errorHandler(res, 400, "Invalid Order ID format.");
+    }
 
     // Find the order with the specific orderId
     const order = await Order.findById(orderId)
