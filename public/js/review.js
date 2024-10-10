@@ -150,16 +150,21 @@ document.addEventListener("DOMContentLoaded", function() {
                     icon: 'success',
                     title: 'Success',
                     text: result.message,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = `/products/product-details/${productId}`;
+                    }
                 });
-                // Optionally, clear the form inputs here
-                document.getElementById('reviewForm').reset();
-                clearErrors(); // Clear any error messages
             } else {
                 // Show error message with SweetAlert
                 await Swal.fire({
                     icon: 'error',
                     title: 'Error',
                     text: result.message,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = `/products/product-details/${productId}`;
+                    }
                 });
             }
         } catch (error) {
