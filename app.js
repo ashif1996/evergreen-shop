@@ -127,6 +127,7 @@ app.get('/trigger-error', (req, res) => {
 app.use((req, res, next) => {
     res.status(404).render('notFoundError.ejs', {
         title: '404 - Not Found',
+        message: undefined,
         layout: 'layouts/errorMessagesLayout.ejs'
     });
 });
