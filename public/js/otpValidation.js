@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const startOtpTimer = () => {
-        let time = 5 * 60;
+        let time = 2 * 60;
         otpTimer = setInterval(() => {
             if (time <= 0) {
                 clearInterval(otpTimer);

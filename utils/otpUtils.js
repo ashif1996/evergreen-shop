@@ -14,7 +14,7 @@ const storeOtp = async (email, otp) => {
   const otpDoc = new OTP({
     email,
     otp,
-    expiresAt: new Date(Date.now() + 5 * 60 * 1000), // Set expiration time
+    expiresAt: new Date(Date.now() + 2 * 60 * 1000), // Set expiration time
   });
 
   await otpDoc.save();
