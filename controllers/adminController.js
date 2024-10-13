@@ -1,62 +1,60 @@
+const fs = require("fs");
 const path = require("path");
-const fs = require('fs');
 const bcrypt = require("bcrypt");
 const Admin = require("../models/admin");
-const User = require("../models/user");
+const Banner = require("../models/bannerSchema");
 const Category = require("../models/category");
-const Product = require("../models/product");
 const Coupon = require("../models/couponSchema");
 const Order = require("../models/orderSchema");
-const Banner = require("../models/bannerSchema");
-const uploadDir = path.join(__dirname, '../public/images/products');
-const { getDateRange } = require("../utils/chartUtils");
+const Product = require("../models/product");
+const User = require("../models/user");
+const getDateRange = require("../utils/chartUtils");
+const HttpStatus = require("../utils/httpStatus");
+const errorHandler = require("../utils/errorHandlerUtils");
+const successHandler = require("../utils/successHandlerUtils");
 const topSelling = require("../utils/topSellingUtils");
-const { processRefund } = require("../utils/paymentServices/walletServices");
+const uploadDir = path.join(__dirname, "../public/images/products");
 
 // Render the admin login page
 const getAdminLogin = (req, res) => {
-  const locals = { title: "Admin Log in | EverGreen" }; // Local variables for the view
+  const locals = { title: "Admin Log in | EverGreen" };
 
   if (req.session && req.session.admin) {
-    res.redirect("/admin/dashboard"); // Redirect if already logged in
-  } else {
-    res.status(200).render("admin/login.ejs", {
-      locals, // Pass locals to the view
-      layout: "layouts/authLayout.ejs", // Use the authentication layout
-      csrfToken: req.csrfToken(), // CSRF token for security
-    });
+    return res.redirect("/admin/dashboard");
   }
+
+  return res.render("admin/login.ejs", {
+    locals,
+    layout: "layouts/authLayout.ejs",
+  });
 };
 
 // Handle admin login
 const adminLogin = async (req, res) => {
   const locals = { title: "Admin Log in | EverGreen", message: {} };
-  const { email, password } = req.body; // Extract email and password from request
+  const { email, password } = req.body;
 
   try {
-    const admin = await Admin.findOne({ email, isAdmin: true }); // Find admin by email
+    const admin = await Admin.findOne({ email, isAdmin: true });
 
     if (!admin) {
-      locals.message.error = "Admin not found. Try another account."; // Error message for non-existent admin
+      locals.message.error =
+        "Admin not found. Try again using another account.";
 
-      // Render login page with error
-      return res.status(404).render("admin/login.ejs", {
+      return res.status(HttpStatus.NOT_FOUND).render("admin/login.ejs", {
         locals,
         layout: "layouts/authLayout.ejs",
-        csrfToken: req.csrfToken(),
       });
     }
 
-    const validatePassword = await bcrypt.compare(password, admin.password); // Validate password
+    const validatePassword = await bcrypt.compare(password, admin.password);
 
     if (!validatePassword) {
-      locals.message.error = "Incorrect password. Try again."; // Error message for wrong password
+      locals.message.error = "Incorrect password. Try again.";
 
-      // Render login page with error
-      return res.status(400).render("admin/login.ejs", {
+      return res.status(HttpStatus.UNAUTHORIZED).render("admin/login.ejs", {
         locals,
         layout: "layouts/authLayout.ejs",
-        csrfToken: req.csrfToken(),
       });
     }
 
@@ -69,18 +67,10 @@ const adminLogin = async (req, res) => {
       isAdmin: admin.isAdmin,
     };
 
-    res.redirect("/admin/dashboard"); // Redirect to dashboard
+    return res.redirect("/admin/dashboard");
   } catch (err) {
-    console.error("Unexpected error: ", err); // Log error
-
-    locals.message.error = "An error occurred. Try again later."; // Error message for unexpected issues
-
-    // Render login page with error
-    return res.status(500).render("admin/login.ejs", {
-      locals,
-      layout: "layouts/authLayout.ejs",
-      csrfToken: req.csrfToken(),
-    });
+    console.error("Error occurred while login: ", err);
+    return next(err);
   }
 };
 
@@ -89,12 +79,11 @@ const getDashboard = async (req, res) => {
   const locals = { title: "Admin Dashboard | EverGreen", message: {} };
 
   try {
-    // Fetch essential data for the dashboard
-    const totalUsers = await User.countDocuments(); // Total users
-    const totalProducts = await Product.countDocuments(); // Total products
+    const totalUsers = await User.countDocuments();
+    const totalProducts = await Product.countDocuments();
     const totalOrders = await Order.countDocuments({
       orderStatus: "Delivered",
-    }); // Delivered orders count
+    });
     const totalRevenue = await Order.aggregate([
       { $match: { orderStatus: "Delivered" } },
       { $group: { _id: null, total: { $sum: "$totalPrice" } } },
@@ -110,18 +99,11 @@ const getDashboard = async (req, res) => {
       totalUsers,
       totalProducts,
       totalOrders,
-      totalRevenue: totalRevenue.length > 0 ? totalRevenue[0].total : 0, // Default to 0 if no data
+      totalRevenue: totalRevenue.length > 0 ? totalRevenue[0].total : 0,
     });
-  } catch (error) {
-    console.error("Error fetching dashboard data:", error);
-
-    // Handle AJAX requests with a JSON response
-    if (req.xhr) {
-      return res.status(500).json({ error: "Server error" });
-    }
-
-    // Handle standard HTML error response
-    return res.status(500).send("Server error");
+  } catch (err) {
+    console.error("Error fetching dashboard data:", err);
+    return next(err);
   }
 };
 
@@ -130,29 +112,29 @@ const getProductOrderAnalysis = async (dateRange, filterDate) => {
   const { startDate, endDate } = getDateRange(dateRange, filterDate);
 
   const orders = await Order.aggregate([
-    { $match: { createdAt: { $gte: startDate, $lt: endDate } } }, // Filter by date range
-    { $unwind: "$orderItems" }, // Flatten orderItems array
+    { $match: { createdAt: { $gte: startDate, $lt: endDate } } },
+    { $unwind: "$orderItems" },
     {
       $lookup: {
         from: "products",
-        localField: "orderItems.productId", // Match productId in orderItems
+        localField: "orderItems.productId",
         foreignField: "_id",
         as: "productDetails",
       },
     },
-    { $unwind: "$productDetails" }, // Flatten productDetails array
+    { $unwind: "$productDetails" },
     {
       $group: {
-        _id: "$productDetails.name", // Group by product name
-        totalQuantity: { $sum: "$orderItems.quantity" }, // Sum quantities
+        _id: "$productDetails.name",
+        totalQuantity: { $sum: "$orderItems.quantity" },
       },
     },
-    { $sort: { totalQuantity: -1 } }, // Sort by quantity (desc)
-    { $limit: 10 }, // Limit to top 10 products
+    { $sort: { totalQuantity: -1 } },
+    { $limit: 10 },
   ]);
 
-  const labels = orders.map((order) => order._id); // Extract product names
-  const data = orders.map((order) => order.totalQuantity); // Extract quantities
+  const labels = orders.map((order) => order._id);
+  const data = orders.map((order) => order.totalQuantity);
 
   return { labels, orders: data };
 };
@@ -162,38 +144,38 @@ const getCategoryOrderAnalysis = async (dateRange, filterDate) => {
   const { startDate, endDate } = getDateRange(dateRange, filterDate);
 
   const orders = await Order.aggregate([
-    { $match: { createdAt: { $gte: startDate, $lt: endDate } } }, // Filter by date range
-    { $unwind: "$orderItems" }, // Flatten orderItems array
+    { $match: { createdAt: { $gte: startDate, $lt: endDate } } },
+    { $unwind: "$orderItems" },
     {
       $lookup: {
         from: "products",
-        localField: "orderItems.productId", // Match productId
+        localField: "orderItems.productId",
         foreignField: "_id",
         as: "productDetails",
       },
     },
-    { $unwind: "$productDetails" }, // Flatten productDetails array
+    { $unwind: "$productDetails" },
     {
       $lookup: {
         from: "categories",
-        localField: "productDetails.category", // Match category
+        localField: "productDetails.category",
         foreignField: "_id",
         as: "categoryDetails",
       },
     },
-    { $unwind: "$categoryDetails" }, // Flatten categoryDetails array
+    { $unwind: "$categoryDetails" },
     {
       $group: {
-        _id: "$categoryDetails.name", // Group by category
-        totalQuantity: { $sum: "$orderItems.quantity" }, // Sum quantities
+        _id: "$categoryDetails.name",
+        totalQuantity: { $sum: "$orderItems.quantity" },
       },
     },
-    { $sort: { totalQuantity: -1 } }, // Sort by quantity (desc)
-    { $limit: 10 }, // Top 10 categories
+    { $sort: { totalQuantity: -1 } },
+    { $limit: 10 },
   ]);
 
-  const labels = orders.map((order) => order._id); // Extract category names
-  const data = orders.map((order) => order.totalQuantity); // Extract quantities
+  const labels = orders.map((order) => order._id);
+  const data = orders.map((order) => order.totalQuantity);
 
   return { labels, orders: data };
 };
@@ -209,16 +191,16 @@ const getChart = async (req, res) => {
   try {
     let data;
     if (filterType === "products") {
-      data = await getProductOrderAnalysis(dateRange, filterDate); // Get product data
+      data = await getProductOrderAnalysis(dateRange, filterDate);
     } else {
-      data = await getCategoryOrderAnalysis(dateRange, filterDate); // Get category data
+      data = await getCategoryOrderAnalysis(dateRange, filterDate);
     }
 
     console.log("Sending data:", data);
-    res.json(data);
-  } catch (error) {
-    console.error("Error processing request:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    return res.json(data);
+  } catch (err) {
+    console.error("Error processing request:", err);
+    return next(err);
   }
 };
 
@@ -227,24 +209,20 @@ const getCategories = async (req, res) => {
   const locals = { title: "Admin Categories | EverGreen", message: {} };
 
   try {
-    const categories = await Category.find().lean(); // Get categories
+    const categories = await Category.find().lean().sort({ createdAt: -1 });
+    if (categories.length === 0) {
+      locals.message.error =
+        "No categories available. Please add categories to list them.";
+    }
 
-    res.status(200).render("admin/categories.ejs", {
+    return res.render("admin/categories.ejs", {
+      locals,
       categories,
       layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
     });
   } catch (err) {
     console.error("Error fetching categories:", err);
-
-    locals.message.error = "Error fetching categories. Please try again later.";
-
-    res.status(500).render("admin/categories.ejs", {
-      locals,
-      categories: [],
-      layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
-    });
+    return next(err);
   }
 };
 
@@ -253,7 +231,6 @@ const addCategory = async (req, res) => {
   const { categoryId, categoryName, status, description } = req.body;
 
   try {
-    // Update category if categoryId is provided
     if (categoryId) {
       await Category.findByIdAndUpdate(categoryId, {
         name: categoryName,
@@ -261,21 +238,21 @@ const addCategory = async (req, res) => {
         description,
       });
 
-      return res.status(200).json({
-        success: true,
-        message: `${categoryName} category updated successfully.`,
-      });
+      return successHandler(
+        res,
+        HttpStatus.OK,
+        `${categoryName} category updated successfully.`
+      );
     } else {
-      // Check if category exists (case-insensitive)
       const existingCategory = await Category.findOne({
         name: { $regex: new RegExp(`^${categoryName}$`, "i") },
       });
-
       if (existingCategory) {
-        return res.status(409).json({
-          success: false,
-          message: `${categoryName} category already exists.`,
-        });
+        return errorHandler(
+          res,
+          HttpStatus.CONFLICT,
+          `${categoryName} category already exists.`
+        );
       }
 
       // Create and save new category
@@ -286,19 +263,15 @@ const addCategory = async (req, res) => {
       });
       await newCategory.save();
 
-      return res.status(200).json({
-        success: true,
-        message: `${newCategory.name} category added successfully.`,
-      });
+      return successHandler(
+        res,
+        HttpStatus.CREATED,
+        `${newCategory.name} category added successfully.`
+      );
     }
   } catch (err) {
     console.error("Error creating category:", err);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Error creating category. Please try again later.",
-      });
+    return next(err);
   }
 };
 
@@ -308,32 +281,28 @@ const toggleCategoryListing = async (req, res) => {
 
   try {
     const category = await Category.findById(categoryId);
-
     if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: `Category not found. Please try again.`,
-      });
+      return errorHandler(
+        res,
+        HttpStatus.NOT_FOUND,
+        `Category not found. Please try again.`
+      );
     }
 
-    // Toggle listing status and save
     category.isListed = !category.isListed;
-    category.status = category.isListed ? 'active' : 'inactive';
+    category.status = category.isListed ? "active" : "inactive";
     await category.save();
 
-    return res.status(200).json({
-      success: true,
-      message: `${category.name} ${
+    return successHandler(
+      res,
+      HttpStatus.OK,
+      `${category.name} ${
         category.isListed ? "listed" : "unlisted"
-      } successfully`,
-    });
+      } successfully`
+    );
   } catch (err) {
     console.error("Error toggling category listing: ", err);
-
-    return res.status(500).json({
-      success: false,
-      message: `Error toggling category listing. Please try again later.`,
-    });
+    return next(err);
   }
 };
 
@@ -342,27 +311,19 @@ const getUsers = async (req, res) => {
   const locals = { title: "Admin - Users List | EverGreen", message: {} };
 
   try {
-    const users = await User.find().lean(); // Fetch users
+    const users = await User.find().lean().sort({ createdAt: -1 });
+    if (users.length === 0) {
+      locals.message.error = "The user list is empty. Please check back later.";
+    }
 
-    // Render Users page
-    res.status(200).render("admin/users.ejs", {
+    return res.render("admin/users.ejs", {
       locals,
       users,
       layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
     });
   } catch (err) {
     console.error("Error fetching users: ", err);
-
-    locals.message.error = "Error fetching users. Please try again later.";
-
-    // Render Users page with error
-    res.status(500).render("admin/users.ejs", {
-      locals,
-      users: [],
-      layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
-    });
+    return next(err);
   }
 };
 
@@ -370,20 +331,15 @@ const getUsers = async (req, res) => {
 const blockUser = async (req, res) => {
   const locals = { title: "Admin - Users List | EverGreen", message: {} };
   const userId = req.params.userId;
-  let users = [];
 
   try {
-    const user = await User.findById(userId); // Find user by ID
-    users = await User.find().lean(); // Fetch users
-
-    // If user not found, show error
+    const user = await User.findById(userId);
     if (!user) {
       locals.message.error = "User not found!";
-      return res.status(404).render("admin/users.ejs", {
+      return res.status(HttpStatus.NOT_FOUND).render("admin/users.ejs", {
         locals,
-        users,
+        users: await User.find().lean(),
         layout: "layouts/adminLayout.ejs",
-        csrfToken: req.csrfToken(),
       });
     }
 
@@ -393,24 +349,14 @@ const blockUser = async (req, res) => {
 
     locals.message.success = `${user.firstName} ${user.lastName} has been blocked successfully`;
 
-    // Fetch updated users list
-    users = await User.find();
-    res.status(200).render("admin/users.ejs", {
+    return res.render("admin/users.ejs", {
       locals,
-      users,
+      users: await User.find().lean(),
       layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
     });
   } catch (err) {
     console.error("Error blocking the user:", err);
-
-    locals.message.error = "Error blocking the user. Please try again later.";
-    res.status(500).render("admin/users.ejs", {
-      locals,
-      users,
-      layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
-    });
+    return next(err);
   }
 };
 
@@ -418,20 +364,15 @@ const blockUser = async (req, res) => {
 const unblockUser = async (req, res) => {
   const locals = { title: "Admin - Users List | EverGreen", message: {} };
   const userId = req.params.userId;
-  let users = [];
 
   try {
-    const user = await User.findById(userId); // Find user by ID
-    users = await User.find(); // Fetch users
-
-    // If user not found, show error
+    const user = await User.findById(userId);
     if (!user) {
       locals.message.error = "User not found!";
-      return res.status(404).render("admin/users.ejs", {
+      return res.status(HttpStatus.NOT_FOUND).render("admin/users.ejs", {
         locals,
-        users,
+        users: await User.find(),
         layout: "layouts/adminLayout.ejs",
-        csrfToken: req.csrfToken(),
       });
     }
 
@@ -441,24 +382,14 @@ const unblockUser = async (req, res) => {
 
     locals.message.success = `${user.firstName} ${user.lastName} has been unblocked successfully`;
 
-    // Fetch updated users list
-    users = await User.find();
-    res.status(200).render("admin/users.ejs", {
+    return res.render("admin/users.ejs", {
       locals,
-      users,
+      users: await User.find(),
       layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
     });
   } catch (err) {
     console.error("Error unblocking the user:", err);
-
-    locals.message.error = "Error unblocking the user. Please try again later.";
-    res.status(500).render("admin/users.ejs", {
-      locals,
-      users,
-      layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
-    });
+    return next(err);
   }
 };
 
@@ -467,11 +398,18 @@ const getProducts = async (req, res) => {
   const locals = { title: "Admin - Products List | EverGreen", message: {} };
 
   try {
-    const products = await Product.find().lean(); // Get products
-    const categories = await Category.find().lean(); // Get categories
+    const categories = await Category.find().lean();
+    const products = await Product.find().lean().sort({ createdAt: -1 });
 
-    // Render the Products page
-    res.status(200).render("admin/products.ejs", {
+    if (categories.length === 0) {
+      locals.message.error =
+        "No categories available. Please add categories to list products.";
+    }
+    if (products.length === 0) {
+      locals.message.error = "No products available. Please try adding some.";
+    }
+
+    return res.render("admin/products.ejs", {
       locals,
       products,
       categories,
@@ -479,18 +417,7 @@ const getProducts = async (req, res) => {
     });
   } catch (err) {
     console.error(`Error fetching categories or products:`, err);
-
-    locals.message.error =
-      "Error fetching categories or products. Please try again later.";
-
-    // Render the Products page with error message and empty arrays
-    res.status(500).render("admin/products.ejs", {
-      locals,
-      products: [],
-      categories: [],
-      layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
-    });
+    return next(err);
   }
 };
 
@@ -499,34 +426,25 @@ const getAddProduct = async (req, res) => {
   const locals = { title: "Admin - Products List | EverGreen", message: {} };
 
   try {
-    const categories = await Category.find({ isListed: true }); // Get listed categories
+    const categories = await Category.find({ isListed: true });
+    if (categories.length === 0) {
+      locals.message.error =
+        "Error fetching categories. Please try again later.";
+    }
 
-    // Render the add product page
-    res.status(200).render("admin/addProduct.ejs", {
+    return res.render("admin/addProduct.ejs", {
       locals,
       categories,
       layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
     });
   } catch (err) {
     console.error("Error fetching categories:", err);
-
-    locals.message.error = "Error fetching categories. Please try again later.";
-
-    // Render the add product page with error message and empty categories
-    res.status(500).render("admin/addProduct.ejs", {
-      locals,
-      categories: [],
-      layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
-    });
+    return next(err);
   }
 };
 
 // Add a new product to the database
 const addProduct = async (req, res) => {
-  const locals = { title: "Admin - Products List | EverGreen", message: {} };
-
   try {
     const {
       name,
@@ -539,6 +457,7 @@ const addProduct = async (req, res) => {
       featured,
       redirectUrl,
     } = req.body;
+
     let images = req.files;
 
     // Ensure images is an array
@@ -546,16 +465,13 @@ const addProduct = async (req, res) => {
       images = [images];
     }
 
-    // Get image file paths
     const imagePaths = images.map((file) => file.filename);
 
-    // Check for existing product
     const existingProduct = await Product.findOne({
       name: { $regex: new RegExp(`^${name}$`, "i") },
     });
-
     if (existingProduct) {
-      return res.status(400).json({
+      return res.status(HttpStatus.CONFLICT).json({
         success: false,
         message: `${name} already exists.`,
         originalUrl: req.originalUrl,
@@ -577,106 +493,100 @@ const addProduct = async (req, res) => {
 
     await newProduct.save();
 
-    res.status(200).json({
+    return res.status(HttpStatus.CREATED).json({
       success: true,
       product: newProduct,
       message: `${newProduct.name} added successfully`,
       redirectUrl,
     });
-  } catch (error) {
-    console.error("Error adding the product: ", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Error adding the product. Please try again later.",
-    });
+  } catch (err) {
+    console.error("Error adding the product: ", err);
+    return next(err);
   }
 };
 
 // Fetch product details for editing
 const getEditProduct = async (req, res) => {
   const locals = { title: "Admin - Edit Products | EverGreen", message: {} };
+
   try {
-    // Get listed categories and product ID
     const categories = await Category.find({ isListed: true });
     const productId = req.params.id;
     const product = await Product.findById(productId);
-
-    // Check if product exists
     if (!product) {
-      return res.status(404).json({
+      return res.status(HttpStatus.NOT_FOUND).json({
         success: false,
         message: "Product not found!",
         originalUrl: req.originalUrl,
       });
     }
 
-    // Render the edit product page
-    res.status(200).render("admin/editProduct.ejs", {
+    return res.render("admin/editProduct.ejs", {
       locals,
       categories,
       product,
       layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
     });
   } catch (err) {
     console.error("Error fetching the product: ", err);
-
-    res.status(500).json({
-      success: false,
-      message: "Error fetching the product. Please try again later.",
-    });
+    return next(err);
   }
 };
 
 // Update product details
 const editProduct = async (req, res) => {
   try {
-      const productId = req.params.id;
-      const { removeImage, redirectUrl } = req.body; // Get images to remove
-      let newImages = req.files; // Get new images from the upload
+    const productId = req.params.id;
+    const { removeImage, redirectUrl } = req.body;
+    let newImages = req.files;
 
-      // Find the existing product
-      const product = await Product.findById(productId);
-      if (!product) {
-          return res.status(404).json({ success: false, message: "Product not found" });
-      }
+    const product = await Product.findById(productId);
+    if (!product) {
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Product not found");
+    }
 
-      // Handle image removal
-      if (removeImage) {
-          removeImage.forEach(image => {
-              const imagePath = path.join(uploadDir, image);
-              if (fs.existsSync(imagePath)) {
-                  fs.unlinkSync(imagePath); // Delete image from the filesystem
-              }
-          });
-          // Update the product images array by filtering out removed images
-          product.images = product.images.filter(image => !removeImage.includes(image));
-      }
+    // Handle image removal
+    if (removeImage) {
+      removeImage.forEach((image) => {
+        const imagePath = path.join(uploadDir, image);
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+        }
+      });
+      product.images = product.images.filter(
+        (image) => !removeImage.includes(image)
+      );
+    }
 
-      // Handle new image uploads
-      if (newImages && newImages.length > 0) {
-          newImages.forEach(file => {
-              product.images.push(file.filename); // Add new images
-          });
-      }
+    // Handle new image uploads
+    if (newImages && newImages.length > 0) {
+      newImages.forEach((file) => {
+        product.images.push(file.filename);
+      });
+    }
 
-      // Update other product fields as needed
-      product.name = req.body.name; // Update name, description, etc.
-      product.description = req.body.description;
-      product.price = req.body.price;
-      product.discountPrice = req.body.discountPrice;
-      product.category = req.body.category;
-      product.stock = req.body.stock;
-      product.availability = req.body.availability === "true";
-      product.featured = req.body.featured === "on";
+    product.name = req.body.name;
+    product.description = req.body.description;
+    product.price = req.body.price;
+    product.discountPrice = req.body.discountPrice;
+    product.category = req.body.category;
+    product.stock = req.body.stock;
+    product.availability = req.body.availability === "true";
+    product.featured = req.body.featured === "on";
 
-      // Save the updated product
-      const updatedProduct = await product.save();
-      res.status(200).json({ success: true, updatedProduct, message: "Product updated successfully!", redirectUrl });
+    const updatedProduct = await product.save();
+
+    return res
+      .status(HttpStatus.OK)
+      .json({
+        success: true,
+        updatedProduct,
+        message: "Product updated successfully!",
+        redirectUrl,
+      });
   } catch (err) {
-      console.error("Error updating the product:", err);
-      res.status(500).json({ success: false, message: "Error updating the product!" });
+    console.error("Error updating the product:", err);
+    return next(err);
   }
 };
 
@@ -684,52 +594,32 @@ const editProduct = async (req, res) => {
 const listProduct = async (req, res) => {
   const locals = { title: "Admin - Products List | EverGreen", message: {} };
   const productId = req.params.productId;
-  let products = [];
 
   try {
     const product = await Product.findById(productId);
-    products = await Product.find();
-
-    // Check if product exists
     if (!product) {
       locals.message.error = "Product not found! Please try again.";
 
-      // Render products page with error message
-      return res.status(404).render("admin/products.ejs", {
+      return res.status(HttpStatus.NOT_FOUND).render("admin/products.ejs", {
         locals,
-        products,
+        products: await Product.find(),
         layout: "layouts/adminLayout.ejs",
-        csrfToken: req.csrfToken(),
       });
     }
 
-    // Update product availability
     product.availability = true;
     await product.save();
 
     locals.message.success = `${product.name} listed successfully`;
 
-    // Fetch and render updated product list
-    products = await Product.find();
-    return res.status(200).render("admin/products.ejs", {
+    return res.render("admin/products.ejs", {
       locals,
-      products,
+      products: await Product.find(),
       layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
     });
   } catch (err) {
-    console.error("Error listing the product:", err);
-
-    locals.message.error =
-      "Error listing the product. Please try again later or contact support.";
-
-    // Render products page with error message
-    return res.status(500).render("admin/products.ejs", {
-      locals,
-      products,
-      layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
-    });
+    console.error("Error listing the product: ", err);
+    return next(err);
   }
 };
 
@@ -737,60 +627,42 @@ const listProduct = async (req, res) => {
 const unlistProduct = async (req, res) => {
   const locals = { title: "Admin - Products List | EverGreen", message: {} };
   const productId = req.params.productId;
-  let products = [];
 
   try {
     const product = await Product.findById(productId);
-    products = await Product.find();
-
-    // Check if product exists
     if (!product) {
       locals.message.error = "Product not found! Please try again.";
 
-      // Render products page with error message
-      return res.status(404).render("admin/products.ejs", {
+      return res.status(HttpStatus.NOT_FOUND).render("admin/products.ejs", {
         locals,
-        products,
+        products: await Product.find(),
         layout: "layouts/adminLayout.ejs",
-        csrfToken: req.csrfToken(),
       });
     }
 
-    // Update product availability
     product.availability = false;
     await product.save();
 
     locals.message.success = `${product.name} unlisted successfully`;
 
-    // Fetch and render updated product list
-    products = await Product.find();
-    return res.status(200).render("admin/products.ejs", {
+    return res.render("admin/products.ejs", {
       locals,
-      products,
+      products: await Product.find(),
       layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
     });
   } catch (err) {
-    console.error("Error unlisting the product:", err);
-
-    locals.message.error =
-      "Error unlisting the product. Please try again later or contact support.";
-
-    // Render products page with error message
-    return res.status(500).render("admin/products.ejs", {
-      locals,
-      products,
-      layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
-    });
+    console.error("Error unlisting the product: ", err);
+    return next(err);
   }
 };
 
 // Render the add coupon page
 const getAddCoupon = (req, res) => {
-  res.render("admin/addCoupon.ejs", {
+  const locals = { title: "Admin - Add Coupon | EverGreen" };
+
+  return res.render("admin/addCoupon.ejs", {
+    locals,
     layout: "layouts/adminLayout",
-    csrfToken: req.csrfToken(),
   });
 };
 
@@ -818,48 +690,53 @@ const addCoupon = async (req, res) => {
 
     await newCoupon.save();
 
-    // Send JSON response for client-side handling
-    res
-      .status(200)
-      .json({ success: true, message: "Coupon added successfully" });
-  } catch (error) {
-    console.error(error);
-    // Send JSON response for client-side handling
-    res.status(400).json({ success: false, message: error.message });
+    return successHandler(
+      res,
+      HttpStatus.CREATED,
+      `${newCoupon.code} added successfully`
+    );
+  } catch (err) {
+    console.error("Error adding the coupon: ", err);
+    return next(err);
   }
 };
 
 // Retrieves and displays all coupons
 const getCoupons = async (req, res) => {
-  try {
-    const coupons = await Coupon.find({});
+  const locals = { title: "Admin - Coupons | EverGreen" };
 
-    res.render("admin/coupons.ejs", {
+  try {
+    const coupons = await Coupon.find().sort({ createdAt: -1 });
+
+    return res.render("admin/coupons.ejs", {
+      locals,
       coupons,
       layout: "layouts/adminLayout",
-      csrfToken: req.csrfToken(),
     });
-  } catch (error) {
-    console.error(error);
-    req.flash("error_msg", error.message); // Flash error message
-    res.redirect("/admin/dashboard"); // Redirect on error
+  } catch (err) {
+    console.error("Error fetching coupons: ", err);
+    return next(err);
   }
 };
 
 // Retrieves and displays a coupon for editing
 const getEditCoupon = async (req, res) => {
+  const locals = { title: "Admin - Edit Coupon | EverGreen" };
+
   try {
     const coupon = await Coupon.findById(req.params.id);
+    if (!coupon) {
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Coupon not found.");
+    }
 
-    res.render("admin/editCoupon.ejs", {
+    return res.render("admin/editCoupon.ejs", {
+      locals,
       coupon,
       layout: "layouts/adminLayout",
-      csrfToken: req.csrfToken(),
     });
-  } catch (error) {
-    console.error(error);
-    req.flash("error_msg", error.message); // Flash error message
-    res.redirect("/admin/coupons"); // Redirect on error
+  } catch (err) {
+    console.error("Error fetching the edit coupon page: ", err);
+    return next(err);
   }
 };
 
@@ -886,17 +763,17 @@ const editCoupon = async (req, res) => {
         expirationDate,
         isActive: isActive ? true : false,
       },
-      { new: true } // Return the updated document
+      { new: true }
     );
 
-    res.status(200).json({
+    return res.status(HttpStatus.OK).json({
       success: true,
-      message: "Coupon updated successfully",
+      message: `${updatedCoupon.code} updated successfully`,
       coupon: updatedCoupon,
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: error.message }); // Handle error
+  } catch (err) {
+    console.error("Error updating the coupon: ", err);
+    return next(err);
   }
 };
 
@@ -904,19 +781,23 @@ const editCoupon = async (req, res) => {
 const toggleCouponStatus = async (req, res) => {
   try {
     const coupon = await Coupon.findById(req.params.id);
-    coupon.isActive = !coupon.isActive; // Toggle the status
-    await coupon.save(); // Save changes to the database
+    if (!coupon) {
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Coupon not found.");
+    }
 
-    res.status(200).json({
+    coupon.isActive = !coupon.isActive;
+    await coupon.save();
+
+    return res.status(HttpStatus.OK).json({
       success: true,
       message: `Coupon ${
         coupon.isActive ? "activated" : "deactivated"
       } successfully`,
       coupon,
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: error.message }); // Handle error
+  } catch (err) {
+    console.error("Error toggling the status of the coupon: ", err);
+    return next(err);
   }
 };
 
@@ -925,151 +806,139 @@ const getOrders = async (req, res) => {
   const locals = { title: "Admin - Orders List | EverGreen", message: {} };
 
   try {
-    const orders = await Order.find().populate("userId").populate("couponId"); // Retrieve orders with user and coupon details
+    const orders = await Order.find()
+      .populate("userId")
+      .populate("couponId")
+      .sort({ createdAt: -1 });
 
-    res.render("admin/orders.ejs", {
+    return res.render("admin/orders.ejs", {
       locals,
       orders,
       layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
     });
-  } catch (error) {
-    console.error("Error fetching orders:", error); // Log error
-    res.status(500).send("Server Error"); // Handle error
+  } catch (err) {
+    console.error("Error fetching orders: ", err);
+    return next(err);
   }
 };
 
-// Updates the status of an order
+// Update the status of an order
 const updateOrderStatus = async (req, res) => {
-  const { orderStatus } = req.body; // Extract order status from request body
-  const { id } = req.params; // Extract order ID from request parameters
+  const { orderStatus } = req.body;
+  const { id } = req.params;
 
   try {
-    const order = await Order.findById(id); // Find the order by ID
-
+    const order = await Order.findById(id);
     if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found." }); // Handle order not found
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
     }
 
-    order.orderStatus = orderStatus; // Update order status
-    // Set payment status to 'Success' for COD orders when delivered
+    order.orderStatus = orderStatus;
+
     if (order.paymentMethod === "COD" && order.orderStatus === "Delivered") {
       order.orderPaymentStatus = "Success";
     }
-    await order.save(); // Save the updated order
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: `Order status changed to ${orderStatus}.`,
-      }); // Respond with success
-  } catch (error) {
-    console.error("Error changing order status: ", error); // Log error
-    res.status(500).json({ success: false, message: error.message }); // Handle error
+    await order.save();
+
+    return successHandler(
+      res,
+      HttpStatus.OK,
+      `Order status changed to ${orderStatus}.`
+    );
+  } catch (err) {
+    console.error("Error changing order status: ", err);
+    return next(err);
   }
 };
 
 // Fetches and displays order details
 const getOrderDetails = async (req, res) => {
   const locals = {
-    title: "Admin Order Details | EverGreen", // Page title
+    title: "Admin Order Details | EverGreen",
   };
 
   try {
-    const { orderId } = req.params; // Extract order ID from request parameters
-    const order = await Order.findById(orderId) // Find order by ID
-      .populate("orderItems.productId") // Populate product details
-      .populate("couponId") // Populate coupon details
-      .populate("shippingAddress"); // Populate shipping address
+    const { orderId } = req.params;
+    const order = await Order.findById(orderId)
+      .populate("orderItems.productId")
+      .populate("couponId")
+      .populate("shippingAddress");
 
-    // Check if order was found
     if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found." }); // Handle order not found
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
     }
 
-    // Render order details page
-    res.status(200).render("admin/orderDetails.ejs", {
+    return res.render("admin/orderDetails.ejs", {
       locals,
       order,
       layout: "layouts/adminLayout",
     });
-  } catch (error) {
-    console.error("Error fetching order details: ", error); // Log error
-    res
-      .status(500)
-      .render("error", { message: "Failed to load order details." }); // Handle error
+  } catch (err) {
+    console.error("Error fetching order details: ", err);
+    return next(err);
   }
 };
 
-// Updates the status of an item in an order
+// Update the status of an item in an order
 const updateItemStatus = async (req, res) => {
-  const { orderId, itemId } = req.params; // Extract order and item IDs from parameters
-  const { itemStatus } = req.body; // Get new item status from request body
+  const { orderId, itemId } = req.params;
+  const { itemStatus } = req.body;
 
   try {
     const order = await Order.findById(orderId).populate(
       "orderItems.productId"
-    ); // Find order by ID
+    );
     if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found!" }); // Handle order not found
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
     }
 
-    const item = order.orderItems.id(itemId); // Find item by ID
+    const item = order.orderItems.id(itemId);
     if (!item) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Item not found!" }); // Handle item not found
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Item not found.");
     }
 
-    item.itemStatus = itemStatus; // Update item status
-    await order.save(); // Save the updated order
+    item.itemStatus = itemStatus;
+    await order.save();
 
-    // Respond with success message and updated item
-    res.status(200).json({
+    return res.status(HttpStatus.OK).json({
       success: true,
       message: `${item.productId.name} status has been updated to ${itemStatus}`,
       updatedItem: item,
     });
-  } catch (error) {
-    console.error("Error updating item status:", error); // Log error
-    res
-      .status(500)
-      .json({ message: "An error occurred while updating item status" }); // Handle error
+  } catch (err) {
+    console.error("Error updating item status: ", err);
+    return next(err);
   }
 };
 
 // Fetches and renders the banner page for admin
 const getBanner = async (req, res) => {
   const locals = {
-    title: "Admin Banner Page | EverGreen", // Set page title
+    title: "Admin Banner Page | EverGreen",
   };
 
   try {
-    const banners = await Banner.find({}); // Retrieve all banners
-    res.render("admin/banners.ejs", {
+    const banners = await Banner.find().sort({ createdAt: -1 });
+
+    return res.render("admin/banners.ejs", {
       locals,
       banners,
-      layout: "layouts/adminLayout", // Render with admin layout
-      csrfToken: req.csrfToken(), // Include CSRF token
+      layout: "layouts/adminLayout",
     });
-  } catch (error) {
-    console.error(error); // Log error
-    res.redirect("/admin/dashboard"); // Redirect to dashboard on error
+  } catch (err) {
+    console.error("Error fetching banners: ", err);
+    return next(err);
   }
 };
 
 // Renders the add banner page for admin
 const getAddBanner = (req, res) => {
-  res.render("admin/addBanner.ejs", {
-    layout: "layouts/adminLayout", // Use admin layout
-    csrfToken: req.csrfToken(), // Include CSRF token
+  const locals = { title: "Admin Add Banner Page | EverGreen" };
+
+  return res.render("admin/addBanner.ejs", {
+    locals,
+    layout: "layouts/adminLayout",
   });
 };
 
@@ -1078,64 +947,65 @@ const addBanner = async (req, res) => {
   try {
     const { title, description, isActive } = req.body;
     const image = req.file;
-
-    // Check for uploaded image
     if (!image) {
-      return res
-        .status(400)
-        .json({ success: false, message: "No image uploaded." });
+      return errorHandler(
+        res,
+        HttpStatus.BAD_REQUEST,
+        "Image is required for upload."
+      );
     }
 
-    const imageUrl = image.filename; // Get the image filename
+    const imageUrl = image.filename;
 
     const newBanner = new Banner({
       title,
       imageUrl,
       description,
-      isActive: isActive === "on", // Set active status based on checkbox
+      isActive: isActive === "on",
     });
 
-    await newBanner.save(); // Save the new banner
-    res.json({ success: true, banner: newBanner }); // Respond with success
-  } catch (error) {
-    console.error("Error adding banner:", error);
-    res.status(500).send("Server Error"); // Handle server errors
+    await newBanner.save();
+
+    return res
+      .status(HttpStatus.CREATED)
+      .json({
+        success: true,
+        message: "Banner added successfully.",
+        banner: newBanner,
+      });
+  } catch (err) {
+    console.error("Error adding banner: ", err);
+    return next(err);
   }
 };
 
 // Updates an existing banner in the database
 const updateBanner = async (req, res) => {
   try {
-    const { id } = req.params; // Get banner ID from request parameters
-    const { title, description, isActive } = req.body; // Extract fields from request body
-    const image = req.file; // Get uploaded image
+    const { id } = req.params;
+    const { title, description, isActive } = req.body;
+    const image = req.file;
 
-    const updateData = { title, description, isActive }; // Prepare update data
+    const updateData = { title, description, isActive };
     if (image) {
-      updateData.imageUrl = image.filename; // Update imageUrl if a new image is uploaded
+      updateData.imageUrl = image.filename;
     }
 
     const updatedBanner = await Banner.findByIdAndUpdate(id, updateData, {
-      new: true, // Return the updated document
+      new: true,
     });
-
     if (!updatedBanner) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Banner not found." }); // Handle banner not found
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Banner not found.");
     }
 
-    res.json({
-      // Respond with success
+    return res.status(HttpStatus.OK).json({
       success: true,
       message: "Banner updated successfully.",
       banner: updatedBanner,
     });
-  } catch (error) {
-    console.error("Error updating banner:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Server error while updating banner." }); // Handle server errors
+  } catch (err) {
+    console.error("Error updating banner: ", err);
+    return next(err);
   }
 };
 
@@ -1146,31 +1016,26 @@ const deleteBanner = async (req, res) => {
     const deletedBanner = await Banner.findByIdAndDelete(id);
 
     if (!deletedBanner) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Banner not found." });
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Banner not found.");
     }
 
-    // Optionally, remove the banner image from the file system
     if (deletedBanner.imageUrl) {
       fs.unlink(path.join("public", deletedBanner.imageUrl), (err) => {
-        if (err) console.error("Error deleting banner image:", err);
+        if (err) console.error("Error deleting banner image: ", err);
       });
     }
 
-    res.json({ success: true, message: "Banner deleted successfully." });
-  } catch (error) {
-    console.error("Error deleting banner:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Server error while deleting banner." });
+    return successHandler(res, HttpStatus.OK, "Banner deleted successfully.");
+  } catch (err) {
+    console.error("Error deleting banner: ", err);
+    return next(err);
   }
 };
 
 // Renders the add category offers page
 const getAddCategoryOffers = async (req, res) => {
+  const locals = { title: "Admin Add Category offers Page | EverGreen" };
   const offerTypes = [
-    // List of offer types
     "Seasonal",
     "Flash Sale",
     "Weekend Special",
@@ -1179,23 +1044,20 @@ const getAddCategoryOffers = async (req, res) => {
   ];
 
   try {
-    const categories = await Category.find({ isListed: true }); // Fetch listed categories
+    const categories = await Category.find({ isListed: true });
     if (!categories) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Categories not found." }); // Handle no categories found
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Categories not found.");
     }
 
-    res.status(200).render("admin/addCategoryOffer.ejs", {
-      // Render the page with categories and offer types
+    return res.render("admin/addCategoryOffer.ejs", {
+      locals,
       categories,
       offerTypes,
       layout: "layouts/adminLayout",
-      csrfToken: req.csrfToken(),
     });
-  } catch (error) {
-    console.error("An internal error occurred: ", error);
-    res.status(500).json({ message: "An internal error occurred" }); // Handle internal server error
+  } catch (err) {
+    console.error("Error fetching add category offers page: ", err);
+    return next(err);
   }
 };
 
@@ -1212,14 +1074,11 @@ const addCategoryOffers = async (req, res) => {
   } = req.body;
 
   try {
-    const categoryToUpdate = await Category.findOne({ name: category }); // Find the category by name
+    const categoryToUpdate = await Category.findOne({ name: category });
     if (!categoryToUpdate) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Category not found" }); // Handle category not found
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Category not found.");
     }
 
-    // Set offer details
     categoryToUpdate.offer = {
       type: offerType,
       fixedDiscount: fixedDiscount ? parseFloat(fixedDiscount) : 0,
@@ -1235,21 +1094,22 @@ const addCategoryOffers = async (req, res) => {
         : null,
     };
 
-    await categoryToUpdate.save(); // Save updated category
+    await categoryToUpdate.save();
 
-    res.status(200).json({
-      // Respond with success message
-      success: true,
-      message: `${categoryToUpdate.offer.type} offer added to ${categoryToUpdate.name}.`,
-    });
-  } catch (error) {
-    console.error("An internal error occurred: ", error);
-    res.status(500).json({ message: "An internal error occurred" }); // Handle internal server error
+    return successHandler(
+      res,
+      HttpStatus.CREATED,
+      `${categoryToUpdate.offer.type} offer added to ${categoryToUpdate.name}.`
+    );
+  } catch (err) {
+    console.error("Error adding category offer: ", err);
+    return next(err);
   }
 };
 
 // Retrieves products for adding offers
 const getAddProductOffers = async (req, res) => {
+  const locals = { title: "Admin Add Product offers Page | EverGreen" };
   const offerTypes = [
     "Seasonal",
     "Flash Sale",
@@ -1259,31 +1119,26 @@ const getAddProductOffers = async (req, res) => {
   ];
 
   try {
-    // Find available products with listed categories
     const products = await Product.find({ availability: true }).populate({
       path: "category",
       match: { isListed: true },
     });
 
-    // Filter products to only those with a valid category
     const filteredProducts = products.filter((product) => product.category);
 
-    if (!filteredProducts.length) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Products not found." }); // Handle no products found
+    if (filteredProducts.length === 0) {
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Products not found.");
     }
 
-    // Render the add product offer page with available products and offer types
-    res.status(200).render("admin/addProductOffer.ejs", {
+    return res.render("admin/addProductOffer.ejs", {
+      locals,
       products: filteredProducts,
       offerTypes: offerTypes,
       layout: "layouts/adminLayout",
-      csrfToken: req.csrfToken(),
     });
-  } catch (error) {
-    console.error("An internal error occurred: ", error);
-    res.status(500).json({ message: "An internal error occurred" }); // Handle internal server error
+  } catch (err) {
+    console.error("Error fetching add products offers page: ", err);
+    return next(err);
   }
 };
 
@@ -1300,15 +1155,11 @@ const addProductOffers = async (req, res) => {
   } = req.body;
 
   try {
-    // Find the product to update
     const productToUpdate = await Product.findOne({ _id: product });
     if (!productToUpdate) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Product not found" }); // Handle product not found
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Product not found.");
     }
 
-    // Set offer details on the product
     productToUpdate.offer = {
       type: offerType,
       fixedDiscount: fixedDiscount ? parseFloat(fixedDiscount) : 0,
@@ -1324,154 +1175,150 @@ const addProductOffers = async (req, res) => {
         : null,
     };
 
-    await productToUpdate.save(); // Save the updated product
+    await productToUpdate.save();
 
-    res.status(200).json({
-      success: true,
-      message: `${productToUpdate.offer.type} offer added to ${productToUpdate.name}.`, // Success message
-    });
-  } catch (error) {
-    console.error("An internal error occurred: ", error);
-    res.status(500).json({ message: "An internal error occurred" }); // Handle internal server error
+    return successHandler(
+      res,
+      HttpStatus.CREATED,
+      `${productToUpdate.offer.type} offer added to ${productToUpdate.name}.`
+    );
+  } catch (err) {
+    console.error("Error adding products offer: ", err);
+    return next(err);
   }
 };
 
 // Fetches categories and products with active offers
 const getOffers = async (req, res) => {
+  const locals = { title: "Admin Offers Page | EverGreen" };
+
   try {
-    // Find categories with offers
     const categories = await Category.find({
-      offer: { $exists: true, $ne: null }, // Ensure 'offer' field exists and is not null
+      offer: { $exists: true, $ne: null },
       $or: [
         { "offer.fixedDiscount": { $gt: 0 } },
         { "offer.percentageDiscount": { $gt: 0 } },
       ],
     });
 
-    // Handle case where no categories found
-    if (!categories.length) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Categories with offer not found." });
+    if (categories.length === 0) {
+      return errorHandler(
+        res,
+        HttpStatus.NOT_FOUND,
+        "Categories with offer not found."
+      );
     }
 
-    // Find products with offers
     const products = await Product.find({
-      offer: { $exists: true, $ne: null }, // Ensure 'offer' field exists and is not null
+      offer: { $exists: true, $ne: null },
       $or: [
         { "offer.fixedDiscount": { $gt: 0 } },
         { "offer.percentageDiscount": { $gt: 0 } },
       ],
     });
 
-    // Handle case where no products found
-    if (!products.length) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Products with offer not found." });
+    if (products.length === 0) {
+      return errorHandler(
+        res,
+        HttpStatus.NOT_FOUND,
+        "Products with offer not found."
+      );
     }
 
-    // Render offers page with found categories and products
-    res.status(200).render("admin/offers.ejs", {
+    return res.render("admin/offers.ejs", {
+      locals,
       categories,
       products,
       layout: "layouts/adminLayout.ejs",
-      csrfToken: req.csrfToken(),
     });
-  } catch (error) {
-    console.error("An internal error occurred: ", error);
-    res.status(500).json({ message: "An internal error occurred" }); // Handle internal server error
+  } catch (err) {
+    console.error("Error fetching offers page: ", err);
+    return next(err);
   }
 };
 
 // Fetches categories with active offers
 const getCategoryOffers = async (req, res) => {
+  const locals = { title: "Admin Category Offers Page | EverGreen" };
+
   try {
-    // Find categories with offers
     const categories = await Category.find({
-      offer: { $exists: true, $ne: null }, // Ensure 'offer' field exists and is not null
+      offer: { $exists: true, $ne: null },
       $or: [
         { "offer.fixedDiscount": { $gt: 0 } },
         { "offer.percentageDiscount": { $gt: 0 } },
       ],
     });
 
-    // Handle case where no categories found
-    if (!categories.length) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Categories with offer not found." });
+    if (categories.length === 0) {
+      return errorHandler(
+        res,
+        HttpStatus.NOT_FOUND,
+        "Categories with offer not found."
+      );
     }
 
-    // Render category offers page with found categories
-    res.status(200).render("admin/categoryOffers.ejs", {
+    return res.render("admin/categoryOffers.ejs", {
+      locals,
       categories,
       layout: "layouts/adminLayout",
-      csrfToken: req.csrfToken(),
     });
-  } catch (error) {
-    console.error("An internal error occurred: ", error);
-    res.status(500).json({ message: "An internal error occurred" }); // Handle internal server error
+  } catch (err) {
+    console.error("Error fetching category offers: ", err);
+    return next(err);
   }
 };
 
 // Fetches products with active offers
 const getProductOffers = async (req, res) => {
+  const locals = { title: "Admin Category Offers Page | EverGreen" };
+
   try {
-    // Find products with offers
     const products = await Product.find({
-      offer: { $exists: true, $ne: null }, // Ensure 'offer' field exists and is not null
+      offer: { $exists: true, $ne: null },
       $or: [
         { "offer.fixedDiscount": { $gt: 0 } },
         { "offer.percentageDiscount": { $gt: 0 } },
       ],
     });
 
-    // Handle case where no products found
-    if (!products.length) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Products with offer not found." });
+    if (products.length === 0) {
+      return errorHandler(
+        res,
+        HttpStatus.NOT_FOUND,
+        "Products with offers not found."
+      );
     }
 
-    // Render product offers page with found products
-    res.render("admin/productOffers.ejs", {
+    return res.render("admin/productOffers.ejs", {
+      locals,
       products,
       layout: "layouts/adminLayout",
-      csrfToken: req.csrfToken(),
     });
-  } catch (error) {
-    console.error("An internal error occurred: ", error);
-    res.status(500).json({ message: "An internal error occurred" }); // Handle internal server error
+  } catch (err) {
+    console.error("Error fetching product offers: ", err);
+    return next(err);
   }
 };
 
 // Updates the return status of an order item and processes refunds if applicable
 const updateItemReturnStatus = async (req, res) => {
   try {
-    const { orderId, orderItemId, returnStatus, returnRejectReason } = req.body; // Get details from request
-
-    // Find the order by ID
+    const { orderId, orderItemId, returnStatus, returnRejectReason } = req.body;
     const order = await Order.findById(orderId)
-      .populate("orderItems.productId") // Populate the product details for refund description
+      .populate("orderItems.productId")
       .populate("userId")
       .exec();
 
     if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found" });
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
     }
 
-    // Find the specific order item
     const orderItem = order.orderItems.id(orderItemId);
     if (!orderItem) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order item not found" });
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Order item not found.");
     }
 
-    // Update return status and reject reason if provided
     orderItem.returnStatus = returnStatus;
     if (returnRejectReason) {
       orderItem.returnRejectReason = returnRejectReason;
@@ -1479,51 +1326,37 @@ const updateItemReturnStatus = async (req, res) => {
       orderItem.itemRefundRejectReason = returnRejectReason;
     }
 
-    // If the return is approved, process the refund
     if (returnStatus === "Approved") {
-      orderItem.itemStatus = "Returned"; // Mark the item as returned
+      orderItem.itemStatus = "Returned";
 
-      // Find the user to update the wallet balance
       const user = await User.findById(order.userId);
       if (!user) {
-        return res
-          .status(404)
-          .json({ success: false, message: "User not found" });
+        return errorHandler(res, HttpStatus.NOT_FOUND, "User not found.");
       }
 
-      // Update the user's wallet balance and add a transaction
       user.wallet.balance += orderItem.itemTotal;
       user.wallet.transactions.push({
         amount: orderItem.itemTotal,
-        description: `Refund for ${orderItem.productId.name}`, // Include product name in description
+        description: `Refund for ${orderItem.productId.name}`,
         type: "credit",
       });
-
-      // Mark the refund status as completed
       orderItem.itemRefundStatus = "Completed";
 
-      await user.save(); // Save updated user wallet information
-      await order.save(); // Save the updated order with the return status and refund details
+      await user.save();
+      await order.save();
 
-      // Send response with refund information
-      return res.json({
-        success: true,
-        message: `Return status updated to ${orderItem.returnStatus} and Rs.${orderItem.itemTotal} refunded to ${user.firstName}'s wallet.`,
-      });
+      return successHandler(
+        res,
+        HttpStatus.CREATED,
+        `Return status updated to ${orderItem.returnStatus} and Rs.${orderItem.itemTotal} refunded to ${user.firstName}'s wallet.`
+      );
     }
-
-    await order.save();
-
-    res.json({
-      success: true,
-      message: `Return status updated to ${orderItem.returnStatus}.`,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Error updating return status or processing refund",
-    });
+  } catch (err) {
+    console.error(
+      "Error updating the return status of the item and processing refund: ",
+      err
+    );
+    return next(err);
   }
 };
 
@@ -1531,41 +1364,34 @@ const updateItemReturnStatus = async (req, res) => {
 const updateItemExchangeStatus = async (req, res) => {
   try {
     const { orderId, orderItemId, exchangeStatus, exchangeRejectReason } =
-      req.body; // Get details from request
+      req.body;
 
-    // Find the order by ID
     const order = await Order.findById(orderId);
     if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found" });
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
     }
 
-    // Find the specific order item
     const orderItem = order.orderItems.id(orderItemId);
     if (!orderItem) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order item not found" });
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Order item not found.");
     }
 
-    // Update exchange status and reject reason if provided
     orderItem.exchangeStatus = exchangeStatus;
+
     if (exchangeRejectReason) {
       orderItem.exchangeRejectReason = exchangeRejectReason;
     }
 
-    await order.save(); // Save the updated order
+    await order.save();
 
-    res.json({
-      success: true,
-      message: "Exchange status updated successfully",
-    });
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ success: false, message: "Error updating exchange status" });
+    return successHandler(
+      res,
+      HttpStatus.CREATED,
+      "Exchange status updated successfully"
+    );
+  } catch (err) {
+    console.error("Error updating the exchange status of the item: ", err);
+    return next(err);
   }
 };
 
@@ -1573,46 +1399,46 @@ const updateItemExchangeStatus = async (req, res) => {
 const updateItemRefundStatus = async (req, res) => {
   try {
     const { orderId, orderItemId, itemRefundStatus, itemRefundRejectReason } =
-      req.body; // Get details from request
+      req.body;
 
-    // Find the order by ID
     const order = await Order.findById(orderId);
     if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found" });
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
     }
 
-    // Find the specific order item
     const orderItem = order.orderItems.id(orderItemId);
     if (!orderItem) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order item not found" });
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Order item not found.");
     }
 
-    // Update refund status and reject reason if provided
     orderItem.itemRefundStatus = itemRefundStatus;
+
     if (itemRefundRejectReason) {
       orderItem.itemRefundRejectReason = itemRefundRejectReason;
     }
 
-    await order.save(); // Save the updated order
+    await order.save();
 
-    res.json({ success: true, message: "Refund status updated successfully" });
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ success: false, message: "Error updating refund status" });
+    return successHandler(
+      res,
+      HttpStatus.CREATED,
+      "Refund status updated successfully"
+    );
+  } catch (err) {
+    console.error("Error updating the refund status of the item: ", err);
+    return next(err);
   }
 };
 
 // Handles admin logout
 const adminLogout = (req, res) => {
-  req.flash("success_msg", "You have successfully logged out"); // Set success message
-  req.session.destroy(); // Destroy the session
-  res.redirect("/admin/login"); // Redirect to login page
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Error destroying the session:", err);
+      return next(err);
+    }
+    return res.redirect("/admin/login");
+  });
 };
 
 module.exports = {
@@ -1658,5 +1484,5 @@ module.exports = {
   getOffers,
   getCategoryOffers,
   getProductOffers,
-  adminLogout,
+  adminLogout
 };

@@ -123,7 +123,7 @@ app.get('/trigger-error', (req, res) => {
     throw new Error('This is a test error!');
 });
 
-// 404 Handler - this will catch all unmatched routes
+// 404 Handler
 app.use((req, res, next) => {
     res.status(404).render('notFoundError.ejs', {
         title: '404 - Not Found',
@@ -132,13 +132,13 @@ app.use((req, res, next) => {
     });
 });
 
-// Global Error Handler - handles any internal server errors
+// Global Error Handler
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(err.status || 500).render('internalError.ejs', {
         title: '500 - Internal Server Error',
         layout: 'layouts/errorMessagesLayout.ejs',
-        errorMessage: err.message,
+        errorMessage: "An unexpected error occurred. Please try again later."
     });
 });
 

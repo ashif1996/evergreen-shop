@@ -32,6 +32,4 @@ function getDateRange(dateRange, filterDate) {
   return { startDate, endDate };
 }
 
-module.exports = {
-  getDateRange,
-};
+module.exports = getDateRange;

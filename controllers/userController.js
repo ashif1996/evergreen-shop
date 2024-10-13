@@ -2,7 +2,6 @@ const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const Product = require("../models/product");
 const Cart = require("../models/cartSchema");
-const Coupon = require("../models/couponSchema");
 const Address = require("../models/addressSchema");
 const Wishlist = require("../models/wishlistSchema");
 const {
@@ -938,14 +937,12 @@ const getReferrals = async (req, res) => {
 
 // Logs out the user and redirects to the login page
 const userLogout = (req, res) => {
-  console.log("User logout route hit");
-  req.flash("success_msg", "You have successfully logged out"); // Flash success message
   req.session.destroy((err) => {
     if (err) {
-      console.error("Error destroying session:", err);
-      return res.status(500).send("Internal Server Error"); // Handle session destruction error
+      console.error("Error destroying the session:", err);
+      return next(err);
     }
-    res.redirect("/users/login"); // Redirect to login page after logout
+    return res.redirect("/users/login");
   });
 };
 

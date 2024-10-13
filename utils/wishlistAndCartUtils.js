@@ -3,7 +3,6 @@ const User = require("../models/user");
 // Function to get cart and wishlist items count
 const getUserCartAndWishlistCount = async (userId) => {
   try {
-    // Fetch user and populate cart and wishlist
     const user = await User.findById(userId)
       .populate({
         path: "cart",
