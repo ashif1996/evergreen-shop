@@ -708,7 +708,7 @@ const getWishlist = async (req, res) => {
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
-    isLoggedIn: req.session.user ? true : false,
+    isLoggedIn: req.session.user ? true : false
   };
 
   try {

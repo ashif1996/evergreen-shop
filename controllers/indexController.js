@@ -10,6 +10,7 @@ const getHome = async (req, res) => {
   const locals = {
     title: "EverGreen Home | Always Fresh",
     user: req.session.user,
+    isLoggedIn: req.session.user ? true : false
   };
 
   try {
@@ -92,6 +93,7 @@ const searchProducts = async (req, res) => {
   const locals = {
     title: "EverGreen Search | Always Fresh",
     user: req.session.user,
+    isLoggedIn: req.session.user ? true : false
   };
 
   try {
