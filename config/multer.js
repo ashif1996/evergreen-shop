@@ -28,22 +28,22 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Create Multer instance for single file uploads (e.g., banners)
+// Create Multer instance for single file uploads
 const uploadSingle = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 1024 * 1024 * 5, // 5 MB
+    fileSize: 1024 * 1024 * 5
   },
-}).single("imageUrl"); // Use for single file uploads
+}).single("imageUrl");
 
-// Create Multer instance for multiple files uploads (e.g., products)
+// Create Multer instance for multiple files uploads
 const uploadMultiple = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 1024 * 1024 * 5, // 5 MB
+    fileSize: 1024 * 1024 * 5
   },
-}).array("images", 4); // Use for multiple files uploads
+}).array("images", 4);
 
 module.exports = { uploadSingle, uploadMultiple };

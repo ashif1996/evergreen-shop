@@ -21,21 +21,16 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, cb) => {
       try {
-        // Check if user with Google ID exists
         let user = await User.findOne({ googleId: profile.id });
-
-        // If user doesn't exist, check if email is registered in the database
         if (!user) {
           const existingUser = await User.findOne({
             email: profile.emails[0].value,
           });
 
-          // If email exists, link Google account to this user
           if (existingUser) {
             existingUser.googleId = profile.id;
             user = await existingUser.save();
           } else {
-            // If no user exists, create a new user with a temporary password
             const temporaryPassword = generateTemporaryPassword();
             user = new User({
               googleId: profile.id,
@@ -59,6 +54,21 @@ passport.use(
     }
   )
 );
+
+// Serialize user for session
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+// Deserialize user from session by fetching from database
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (err) {
+    done(null, err);
+  }
+});
 
 /* Facebook OAuth strategy (commented out, can be enabled when needed) 
 passport.use(new facebookStrategy({
@@ -100,20 +110,5 @@ passport.use(new facebookStrategy({
     }
 }));
 */
-
-// Serialize user for session
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-// Deserialize user from session by fetching from database
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findById(id);
-    done(null, user); // Return user
-  } catch (err) {
-    done(null, err); // Handle error
-  }
-});
 
 module.exports = passport;

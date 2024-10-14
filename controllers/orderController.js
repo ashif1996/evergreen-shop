@@ -22,7 +22,9 @@ const {
   generateOrderId,
   finalizeOrder,
 } = require("../utils/orderUpdationUtils");
-const { errorHandler } = require("../utils/errorHandlerUtils");
+const HttpStatus = require("../utils/httpStatus");
+const errorHandler = require("../utils/errorHandlerUtils");
+const successHandler = require("../utils/successHandlerUtils");
 const { processRefund } = require("../utils/paymentServices/walletServices");
 
 // Fetch checkout details for the user
@@ -43,9 +45,8 @@ const getCheckout = async (req, res) => {
       .populate("addresses");
 
     const cart = user.cart;
-    // Check if cart exists and has items
     if (!cart || !cart.subTotal) {
-      return errorHandler(res, 400, "Cart is empty or not found.");
+      return errorHandler(res, HttpStatus.BAD_REQUEST, "Cart is empty or not found.");
     }
 
     // Retrieve coupon details from session

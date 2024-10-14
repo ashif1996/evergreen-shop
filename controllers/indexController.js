@@ -1,6 +1,6 @@
-const Product = require("../models/product");
-const Category = require("../models/category");
 const Banner = require("../models/bannerSchema");
+const Category = require("../models/category");
+const Product = require("../models/product");
 const {
   calculateBestDiscountedPrice,
 } = require("../utils/discountPriceCalculation");
@@ -8,23 +8,21 @@ const {
 // Fetches and renders the home page
 const getHome = async (req, res) => {
   const locals = {
-    title: "EverGreen | Always Fresh", // Page title
-    user: req.session.user, // Current user from session
-    isLoggedIn: req.session.user ? true : false, // Check if user is logged in
+    title: "EverGreen Home | Always Fresh",
+    user: req.session.user,
   };
 
   try {
     const banners = await Banner.find({ isActive: true });
-
     let products = await Product.find({ availability: true })
-        .populate("category") // Ensure category data is included
-        .populate("offer") // Ensure product offer data is included
+      .populate("category")
+      .populate("offer");
 
-    // Ensure product is a Mongoose document before calling toObject
     products = products.map((product) => {
       if (product.toObject) {
-        product = product.toObject(); // Convert Mongoose document to a plain object
+        product = product.toObject();
       }
+
       const {
         discountedPrice,
         discountPercentage,
@@ -40,30 +38,26 @@ const getHome = async (req, res) => {
       };
     });
 
-    res.render("home", {
+    return res.render("home.ejs", {
       locals,
       products,
-      banners, // Pass banners to the view
-      layout: "layouts/userLayout", // Use user layout
+      banners,
+      layout: "layouts/userLayout",
     });
   } catch (err) {
-    console.error(err); // Log error
-    res.status(500).send("Server Error"); // Send server error response
+    console.error("An unexpected error occurred while fetching home: ", err);
+    return next(err);
   }
 };
 
 // Escapes special regex characters in a string
-const escapeRegex = (string) => {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-};
+const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // Sanitizes input by removing special characters
-const sanitizeInput = (string) => {
-  return string.replace(/[^a-zA-Z0-9\s]/g, "");
-};
+const sanitizeInput = (string) => string.replace(/[^a-zA-Z0-9\s]/g, "");
 
 // Prepares the search term by sanitizing and escaping it
-const prepareSearchTerm = async (searchTerm) => {
+const prepareSearchTerm = (searchTerm) => {
   const sanitized = sanitizeInput(searchTerm);
   return escapeRegex(sanitized);
 };
@@ -71,23 +65,24 @@ const prepareSearchTerm = async (searchTerm) => {
 // Searches for a category by name and returns corresponding products
 const searchByCategory = async (searchTerm) => {
   const category = await Category.findOne({
-    name: { $regex: searchTerm, $options: "i" }, // Case-insensitive match
+    name: { $regex: searchTerm, $options: "i" },
   });
 
   if (category) {
-    return Product.find({ category: category._id }); // Return products of found category
+    return await Product.find({ category: category._id });
   }
-  return []; // Return empty array if no category found
+
+  return [];
 };
 
 // Searches products by name or description using escaped search terms
 const searchByProduct = async (searchTerm) => {
-  const terms = searchTerm.split(" ").map((term) => escapeRegex(term)); // Split and escape terms
+  const terms = searchTerm.split(" ").map((term) => escapeRegex(term));
 
-  return Product.find({
+  return await Product.find({
     $or: [
-      { name: { $regex: terms.join("|"), $options: "i" } }, // Match terms in name
-      { description: { $regex: terms.join("|"), $options: "i" } }, // Match terms in description
+      { name: { $regex: terms.join("|"), $options: "i" } },
+      { description: { $regex: terms.join("|"), $options: "i" } },
     ],
   });
 };
@@ -95,38 +90,32 @@ const searchByProduct = async (searchTerm) => {
 // Main function to handle product search based on search term
 const searchProducts = async (req, res) => {
   const locals = {
-    title: "EverGreen | Always Fresh",
+    title: "EverGreen Search | Always Fresh",
     user: req.session.user,
-    isLoggedIn: req.session.user ? true : false,
   };
-  let searchTerm = req.query.searchTerm || ""; // Get search term from query
 
   try {
+    let searchTerm = req.query.searchTerm || "";
     if (typeof searchTerm !== "string") {
-      searchTerm = String(searchTerm); // Convert to string if necessary
+      searchTerm = String(searchTerm);
     }
 
-    searchTerm = await prepareSearchTerm(searchTerm); // Prepare the search term
-    console.log("Search Term:", searchTerm);
+    searchTerm = await prepareSearchTerm(searchTerm);
 
-    // Search products by category first
     let products = await searchByCategory(searchTerm);
-
-    // If no products found in category, search by product name/description
     if (products.length === 0) {
       products = await searchByProduct(searchTerm);
     }
 
-    // Render the search results page with products
-    res.render("searchResults", {
+    return res.render("searchResults.ejs", {
       locals,
       products,
       searchTerm,
       layout: "layouts/userLayout",
     });
-  } catch (error) {
-    console.error(error); // Log error
-    res.status(500).send("Server Error");
+  } catch (err) {
+    console.error("An error occurred while searching products: ", err);
+    return next(err);
   }
 };
 
