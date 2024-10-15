@@ -326,7 +326,7 @@ const getShoppingCart = async (req, res, next) => {
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
-    isLoggedIn: req.session.user ? true : false
+    isLoggedIn: !!req.session.user
   };
 
   try {
@@ -342,11 +342,11 @@ const getShoppingCart = async (req, res, next) => {
     });
 
     if (!cart) {
-      return res.status(HttpStatus.NO_CONTENT).render("users/cart.ejs", {
-        locals,
-        cart: { items: [] },
-        layout: "layouts/userLayout"
+      cart = new Cart({
+        userId,
+        items: []
       });
+      await cart.save();
     }
 
     cart.items.forEach(async (item) => {
@@ -546,18 +546,13 @@ const getWishlist = async (req, res) => {
     const userId = req.session.user._id;
     const user = await User.findById(userId);
 
-    // Fetch the user's wishlist
-    let wishlist = await Wishlist.findOne({ userId }).populate(
-      "items.productId"
-    );
-
+    let wishlist = await Wishlist.findOne({ userId }).populate("items.productId");
     if (!wishlist) {
-      // Create a new wishlist if not found
       wishlist = new Wishlist({
         userId,
-        items: [], // Start with an empty items array
+        items: []
       });
-      await wishlist.save(); // Save the new wishlist
+      await wishlist.save();
     }
 
     // Only set the wishlist reference if it was newly created
