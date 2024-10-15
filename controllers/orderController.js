@@ -502,7 +502,7 @@ const getOrderDetails = async (req, res) => {
     "Cancelled",
     "Failed",
     "Returned",
-    "Exchanged",
+    "Exchanged"
   ];
 
   try {

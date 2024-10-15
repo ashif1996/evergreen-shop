@@ -66,7 +66,7 @@ const prepareSearchTerm = (searchTerm) => {
 // Searches for a category by name and returns corresponding products
 const searchByCategory = async (searchTerm) => {
   const category = await Category.findOne({
-    name: { $regex: searchTerm, $options: "i" },
+    name: { $regex: searchTerm, $options: "i" }
   });
 
   if (category) {
@@ -83,8 +83,8 @@ const searchByProduct = async (searchTerm) => {
   return await Product.find({
     $or: [
       { name: { $regex: terms.join("|"), $options: "i" } },
-      { description: { $regex: terms.join("|"), $options: "i" } },
-    ],
+      { description: { $regex: terms.join("|"), $options: "i" } }
+    ]
   });
 };
 
@@ -113,7 +113,7 @@ const searchProducts = async (req, res) => {
       locals,
       products,
       searchTerm,
-      layout: "layouts/userLayout",
+      layout: "layouts/userLayout"
     });
   } catch (err) {
     console.error("An error occurred while searching products: ", err);
@@ -123,5 +123,5 @@ const searchProducts = async (req, res) => {
 
 module.exports = {
   getHome,
-  searchProducts,
+  searchProducts
 };

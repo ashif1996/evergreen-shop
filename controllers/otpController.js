@@ -4,37 +4,38 @@ const {
   storeOtp,
   sendOtp,
   verifyOtp,
-  cleanupExpiredOtps,
+  cleanupExpiredOtps
 } = require("../utils/otpUtils");
+const errorHandler = require("../utils/errorHandlerUtils");
+const successHandler = require("../utils/successHandlerUtils");
+const HttpStatus = require("../utils/httpStatus");
 
 // Handle sending OTP to the user's email
 const handleSendOtp = async (req, res) => {
   const { email, redirectUrl } = req.body;
 
   try {
-    await cleanupExpiredOtps(); // Clean up expired OTPs
-    const otp = generateOtp(); // Generate a new OTP
-    console.log(otp); // Log the generated OTP for debugging
-    await storeOtp(email, otp); // Store the OTP in the database
-    await sendOtp(email, otp); // Send the OTP to the user's email
-    req.session.otpSend = true; // Set session flag indicating OTP has been sent
-    req.session.email = email; // Store email in session
+    await cleanupExpiredOtps();
+    const otp = generateOtp();
+    console.log(otp);
+    await storeOtp(email, otp);
+    await sendOtp(email, otp);
+    req.session.otpSend = true;
+    req.session.email = email;
 
-    // Respond with success message
-    res.json({
+    return res.status(HttpStatus.OK).json({
       success: true,
       message: "OTP sent successfully.",
       redirectUrl,
-      otpSend: true,
+      otpSend: true
     });
-  } catch (error) {
-    console.log(error);
-    // Respond with failure message
-    res.json({
+  } catch (err) {
+    console.log("An error occurred when handling OTP: ", err);
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Error sending OTP!",
       originalUrl: req.originalUrl,
-      otpSend: false,
+      otpSend: false
     });
   }
 };
@@ -46,13 +47,11 @@ const getOtpVerification = (req, res) => {
   const otpSend = req.session.otpSend;
   console.log(otpSend);
 
-  // Render the OTP verification page
-  res.render("users/otp-verification", {
+  return res.render("users/otp-verification", {
     locals,
     layout: "layouts/authLayout",
     email,
-    otpSend,
-    csrfToken: req.csrfToken(),
+    otpSend
   });
 };
 
@@ -62,34 +61,30 @@ const handleVerifyOtp = async (req, res) => {
   const email = req.session.email;
 
   try {
-    const result = await verifyOtp(email, otp); // Verify the OTP
-
+    const result = await verifyOtp(email, otp);
     if (result.isVerified) {
-      req.session.otpSend = false; // Mark OTP as used
-      res
-        .status(200)
-        .json({
-          success: true,
-          message: "OTP verified successfully",
-          redirectUrl,
-        });
+      req.session.otpSend = false;
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: "OTP verified successfully.",
+        redirectUrl
+      });
     } else {
-      // Handle OTP verification failure
       const message =
         result.reason === "expired"
           ? "The OTP has expired."
           : "The OTP is invalid.";
-      res.status(400).json({ success: false, message });
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, message });
     }
   } catch (err) {
-    console.error("Error verifying OTP:", err); // Log errors
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "An error occurred while verifying OTP.",
-        redirectUrl,
-      });
+    console.error("Error verifying OTP: ", err);
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "An error occurred while verifying OTP.",
+      redirectUrl
+    });
   }
 };
 
@@ -97,47 +92,36 @@ const handleVerifyOtp = async (req, res) => {
 const getResetPassword = (req, res) => {
   const locals = { title: "Reset Password | EverGreen" };
   const email = req.session.email;
-  res.render("users/reset-password", {
+
+  return res.render("users/reset-password", {
     locals,
     layout: "layouts/authLayout",
-    email,
-    csrfToken: req.csrfToken(),
+    email
   });
 };
 
 // Handle password reset logic
 const handleResetPassword = async (req, res) => {
-  const { newPassword, confirmPassword, redirectUrl } = req.body;
+  const { newPassword, confirmPassword } = req.body;
   const email = req.session.email;
 
-  // Check if passwords match
   if (newPassword !== confirmPassword) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Passwords do not match." });
+    return errorHandler(res, HttpStatus.BAD_REQUEST, "Passwords do not match.");
   }
 
   try {
     const user = await User.findOne({ email });
-
-    // Check if user exists
     if (!user) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User not found." });
+      return errorHandler(res, HttpStatus.NOT_FOUND, "User not found.");
     }
 
     user.password = newPassword;
     await user.save();
 
-    res
-      .status(200)
-      .json({ success: true, message: "Password changed successfully." });
-  } catch (error) {
-    console.error("Error resetting password:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Error resetting password." });
+    return successHandler(res, HttpStatus.OK, "Password changed successfully.");
+  } catch (err) {
+    console.error("Error resetting the password: ", err);
+    return next(err);
   }
 };
 
@@ -149,5 +133,5 @@ module.exports = {
   getOtpVerification,
   handleVerifyOtp,
   getResetPassword,
-  handleResetPassword,
+  handleResetPassword
 };

@@ -1,97 +1,96 @@
-const Order = require("../models/orderSchema");
-const moment = require("moment");
+const stream = require("stream");
 const ExcelJS = require("exceljs");
 const PDFDocument = require("pdfkit");
-const stream = require("stream");
+const moment = require("moment");
+const HttpStatus = require("../utils/httpStatus");
+const Order = require("../models/orderSchema");
 
 // Function to render the sales report page
 const getSalesReportPage = async (req, res) => {
   const locals = {
     title: "Admin - Sales Report | EverGreen",
-    message: {},
+    message: {}
   };
-  res.status(200).render("admin/salesReport.ejs", {
+
+  return res.render("admin/salesReport.ejs", {
     locals,
-    layout: "layouts/adminLayout.ejs",
+    layout: "layouts/adminLayout.ejs"
   });
 };
 
 // Calculate report details from an array of orders
 const calculateReportDetails = (orders) => {
-  const totalOrders = orders.length; // Total number of orders
-  const totalAmount = orders.reduce((sum, order) => sum + order.totalPrice, 0); // Sum of total prices
+  const totalOrders = orders.length;
+  const totalAmount = orders.reduce((sum, order) => sum + order.totalPrice, 0);
   const totalDiscount = orders.reduce(
     (sum, order) => sum + order.couponDiscount,
     0
-  ); // Sum of discounts
+  );
 
-  return { totalOrders, totalAmount, totalDiscount }; // Return report details
+  return { totalOrders, totalAmount, totalDiscount };
 };
 
 // Generate sales report based on order status and date range
 const generateSalesReport = async (req, res) => {
   try {
-    const { type, fromDate, toDate } = req.query; // Extract query parameters
+    const { type, fromDate, toDate } = req.query;
 
-    let filter = { orderStatus: "Delivered" }; // Initialize filter for delivered orders
-    const today = moment(); // Get current date
+    let filter = { orderStatus: "Delivered" };
+    const today = moment();
 
     // Set date range based on report type
     if (type && type !== "custom") {
       if (type === "daily") {
         filter.orderDate = {
-          $gte: today.startOf("day").toDate(), // Start of the day
-          $lte: today.endOf("day").toDate(), // End of the day
+          $gte: today.startOf("day").toDate(),
+          $lte: today.endOf("day").toDate()
         };
       } else if (type === "weekly") {
         filter.orderDate = {
-          $gte: today.startOf("week").toDate(), // Start of the week
-          $lte: today.endOf("week").toDate(), // End of the week
+          $gte: today.startOf("week").toDate(),
+          $lte: today.endOf("week").toDate()
         };
       } else if (type === "monthly") {
         filter.orderDate = {
-          $gte: today.startOf("month").toDate(), // Start of the month
-          $lte: today.endOf("month").toDate(), // End of the month
+          $gte: today.startOf("month").toDate(),
+          $lte: today.endOf("month").toDate()
         };
       } else if (type === "yearly") {
         filter.orderDate = {
-          $gte: today.startOf("year").toDate(), // Start of the year
-          $lte: today.endOf("year").toDate(), // End of the year
+          $gte: today.startOf("year").toDate(),
+          $lte: today.endOf("year").toDate()
         };
       }
     } else if (fromDate && toDate) {
-      // Custom date range filter
       filter.orderDate = { $gte: new Date(fromDate), $lte: new Date(toDate) };
     }
 
-    // Fetch orders with populated fields
     const orders = await Order.find(filter)
       .populate({
         path: "orderItems.productId",
-        select: "name", // Select only product name
+        select: "name"
       })
-      .populate("userId", "firstName lastName") // Select user's first and last name
-      .populate("shippingAddress") // Populate shipping address
-      .lean(); // Convert to plain JavaScript objects
+      .populate("userId", "firstName lastName")
+      .populate("shippingAddress")
+      .lean();
 
-    const reportDetails = calculateReportDetails(orders); // Calculate report details
+    const reportDetails = calculateReportDetails(orders);
 
-    res.json({ orders, reportDetails }); // Send response with orders and report details
-  } catch (error) {
-    console.error(error); // Log error
-    res.status(500).send("Server Error"); // Send server error response
+    res.status(HttpStatus.OK).json({ orders, reportDetails });
+  } catch (err) {
+    console.error("Error generating sales report: ", err);
+    return next(err);
   }
 };
 
 // Generate HTML content for the sales report
 const generateHTMLContent = (orders, reportDetails, fromDate, toDate) => {
-  // Format date range for report
   const formattedFromDate = fromDate
-    ? moment(fromDate).format("YYYY-MM-DD") // Format fromDate
-    : "N/A"; // Default if no fromDate
+    ? moment(fromDate).format("YYYY-MM-DD")
+    : "N/A";
   const formattedToDate = toDate
-    ? moment(toDate).format("YYYY-MM-DD") // Format toDate
-    : "N/A"; // Default if no toDate
+    ? moment(toDate).format("YYYY-MM-DD")
+    : "N/A";
 
   // Create report header
   const header = `
@@ -173,8 +172,6 @@ const generateHTMLContent = (orders, reportDetails, fromDate, toDate) => {
 // Function to handle the download of sales report
 const downloadSalesReport = async (req, res) => {
   const { type, fromDate, toDate, format } = req.body;
-
-  // Initialize filter for delivered orders
   let filter = { orderStatus: "Delivered" };
 
   // Set date range based on report type
@@ -183,40 +180,36 @@ const downloadSalesReport = async (req, res) => {
     if (type === "daily") {
       filter.orderDate = {
         $gte: today.startOf("day").toDate(),
-        $lte: today.endOf("day").toDate(),
+        $lte: today.endOf("day").toDate()
       };
     } else if (type === "weekly") {
       filter.orderDate = {
         $gte: today.startOf("week").toDate(),
-        $lte: today.endOf("week").toDate(),
+        $lte: today.endOf("week").toDate()
       };
     } else if (type === "monthly") {
       filter.orderDate = {
         $gte: today.startOf("month").toDate(),
-        $lte: today.endOf("month").toDate(),
+        $lte: today.endOf("month").toDate()
       };
     } else if (type === "yearly") {
       filter.orderDate = {
         $gte: today.startOf("year").toDate(),
-        $lte: today.endOf("year").toDate(),
+        $lte: today.endOf("year").toDate()
       };
     }
   } else if (fromDate && toDate) {
-    // Filter for custom date range
     filter.orderDate = { $gte: new Date(fromDate), $lte: new Date(toDate) };
   }
 
-  // Fetch orders with populated user and product data
   const orders = await Order.find(filter)
     .populate("userId", "firstName lastName")
     .populate({ path: "orderItems.productId", select: "name" })
     .populate("shippingAddress")
     .lean();
 
-  // Calculate report details
   const reportDetails = calculateReportDetails(orders);
 
-  // Format dates for report
   const formattedFromDate = fromDate
     ? moment(fromDate).format("YYYY-MM-DD")
     : "N/A";
@@ -366,7 +359,6 @@ const downloadSalesReport = async (req, res) => {
 
     doc.end();
   }
-  // Handle invalid format
   else {
     res.status(400).send("Invalid format");
   }
@@ -375,5 +367,5 @@ const downloadSalesReport = async (req, res) => {
 module.exports = {
   getSalesReportPage,
   generateSalesReport,
-  downloadSalesReport,
+  downloadSalesReport
 };

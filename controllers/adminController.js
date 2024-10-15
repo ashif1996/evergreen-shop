@@ -497,7 +497,7 @@ const addProduct = async (req, res) => {
       success: true,
       product: newProduct,
       message: `${newProduct.name} added successfully`,
-      redirectUrl,
+      redirectUrl
     });
   } catch (err) {
     console.error("Error adding the product: ", err);
