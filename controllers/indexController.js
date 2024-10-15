@@ -6,7 +6,7 @@ const {
 } = require("../utils/discountPriceCalculation");
 
 // Fetches and renders the home page
-const getHome = async (req, res) => {
+const getHome = async (req, res, next) => {
   const locals = {
     title: "EverGreen Home | Always Fresh",
     user: req.session.user,
@@ -89,7 +89,7 @@ const searchByProduct = async (searchTerm) => {
 };
 
 // Main function to handle product search based on search term
-const searchProducts = async (req, res) => {
+const searchProducts = async (req, res, next) => {
   const locals = {
     title: "EverGreen Search | Always Fresh",
     user: req.session.user,
