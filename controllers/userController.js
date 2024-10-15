@@ -543,15 +543,6 @@ const getWishlist = async (req, res) => {
   };
 
   try {
-    // Check if user is logged in
-    if (!locals.isLoggedIn) {
-      const errorMessage =
-        "You must be logged in to access this page. Return back to login page.";
-      return res.redirect(
-        `/error?statusCode=401&errorMessage=${encodeURIComponent(errorMessage)}`
-      );
-    }
-
     const userId = req.session.user._id;
     const user = await User.findById(userId);
 
