@@ -164,15 +164,14 @@
                 <input type="hidden" name="categoryId" value="<%= locals.selectedCategory %>">
                 <select name="sort" class="form-select w-auto border pt-1" onchange="this.form.submit()">
                     <option value="0">Sort by: </option>
-                    <option value="popularity" <%= locals.sort === 'popularity' ? 'selected' : '' %>>Popularity</option>
-                    <option value="priceLowToHigh" <%= locals.sort === 'priceLowToHigh' ? 'selected' : '' %>>Price: Low to High</option>
-                    <option value="priceHighToLow" <%= locals.sort === 'priceHighToLow' ? 'selected' : '' %>>Price: High to Low</option>
-                    <option value="discountPrice" <%= locals.sort === 'discountPrice' ? 'selected' : '' %>>Discount Price</option>
+                    <option value="aToZ" <%= locals.sort === 'aToZ' ? 'selected' : '' %>>A - Z</option>
+                    <option value="zToA" <%= locals.sort === 'zToA' ? 'selected' : '' %>>Z - A</option>
                     <option value="averageRating" <%= locals.sort === 'averageRating' ? 'selected' : '' %>>Average Rating</option>
                     <option value="featured" <%= locals.sort === 'featured' ? 'selected' : '' %>>Featured</option>
                     <option value="newArrivals" <%= locals.sort === 'newArrivals' ? 'selected' : '' %>>New Arrivals</option>
-                    <option value="aToZ" <%= locals.sort === 'aToZ' ? 'selected' : '' %>>A - Z</option>
-                    <option value="zToA" <%= locals.sort === 'zToA' ? 'selected' : '' %>>Z - A</option>
+                    <option value="popularity" <%= locals.sort === 'popularity' ? 'selected' : '' %>>Popularity</option>
+                    <option value="priceLowToHigh" <%= locals.sort === 'priceLowToHigh' ? 'selected' : '' %>>Price: Low to High</option>
+                    <option value="priceHighToLow" <%= locals.sort === 'priceHighToLow' ? 'selected' : '' %>>Price: High to Low</option>
                 </select>
             </form>
         </div>

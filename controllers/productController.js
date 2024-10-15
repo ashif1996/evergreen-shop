@@ -3,8 +3,11 @@ const Order = require("../models/orderSchema");
 const mongoose = require('mongoose');
 const Product = require("../models/product");
 const {
-  calculateBestDiscountedPrice,
+  calculateBestDiscountedPrice
 } = require("../utils/discountPriceCalculation");
+const errorHandler = require("../utils/errorHandlerUtils");
+const successHandler = require("../utils/successHandlerUtils");
+const HttpStatus = require("../utils/httpStatus");
 
 // Function to get products with offer calculations
 const getProducts = async (req, res) => {
@@ -13,25 +16,22 @@ const getProducts = async (req, res) => {
     isLoggedIn: req.session.user ? true : false,
     user: req.session.user,
     selectedCategory: req.query.categoryId || "0",
-    sort: req.query.sort || "",
+    sort: req.query.sort || ""
   };
 
   const page = parseInt(req.query.page || 1);
   const limit = parseInt(req.query.limit || 10);
 
-  // Retrieve categories that are listed
-  const listedCategories = await Category.find({ isListed: true }).select(
-    "_id"
-  );
+  const listedCategories = await Category.find({ isListed: true }).select("_id");
   const listedCategoryIds = listedCategories.map((category) => category._id);
 
   let filter = {
     availability: true,
-    category: { $in: listedCategoryIds },
+    category: { $in: listedCategoryIds }
   };
 
   if (locals.selectedCategory !== "0") {
-    filter.category = locals.selectedCategory; // Ensure that the selected category is considered
+    filter.category = locals.selectedCategory;
   }
 
   let sortOption = {};
@@ -44,64 +44,23 @@ const getProducts = async (req, res) => {
     );
 
     switch (locals.sort) {
+      case "aToZ":
+        sortOption = { name: 1 };
+        break;
+      case "zToA":
+        sortOption = { name: -1 };
+        break;
       case "averageRating":
         products = await Product.aggregate([
           { $match: filter },
           { $addFields: { averageRating: { $avg: "$ratings.rating" } } },
           { $sort: { averageRating: -1 } },
           { $skip: (page - 1) * limit },
-          { $limit: limit },
+          { $limit: limit }
         ]);
-        break;
-      case "priceLowToHigh":
-        sortOption = { price: 1 };
-        break;
-      case "priceHighToLow":
-        sortOption = { price: -1 };
         break;
       case "newArrivals":
         sortOption = { createdAt: -1 };
-        break;
-      case "discountPrice":
-        products = await Product.aggregate([
-          { $match: filter },
-          {
-            $addFields: {
-              discountedPrice: {
-                $subtract: ["$price", { $ifNull: ["$offer.fixedDiscount", 0] }],
-              },
-            },
-          },
-          {
-            $addFields: {
-              discountedPrice: {
-                $subtract: [
-                  "$discountedPrice",
-                  {
-                    $multiply: [
-                      "$price",
-                      {
-                        $divide: [
-                          { $ifNull: ["$offer.percentageDiscount", 0] },
-                          100,
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-          },
-          { $sort: { discountedPrice: 1 } },
-          { $skip: (page - 1) * limit },
-          { $limit: limit },
-        ]);
-        break;
-      case "aToZ":
-        sortOption = { name: 1 };
-        break;
-      case "zToA":
-        sortOption = { name: -1 };
         break;
       case "popularity":
         products = await Product.aggregate([
@@ -111,89 +70,90 @@ const getProducts = async (req, res) => {
               popularityScore: {
                 $add: [
                   { $multiply: ["$purchaseCount", 0.7] },
-                  { $avg: "$ratings.rating" },
+                  { $avg: "$ratings.rating" }
                 ],
               },
             },
           },
           { $sort: { popularityScore: -1 } },
           { $skip: (page - 1) * limit },
-          { $limit: limit },
+          { $limit: limit }
         ]);
+        break;
+      case "priceLowToHigh":
+        sortOption = { price: 1 };
+        break;
+      case "priceHighToLow":
+        sortOption = { price: -1 };
         break;
       case "featured":
         sortOption = { featured: -1 };
         break;
       default:
         sortOption = {};
-    }
+    }    
 
-    if (!products.length) {
+    if (products.length === 0) {
       products = await Product.find(filter)
-        .populate("category") // Ensure category data is included
-        .populate("offer") // Ensure product offer data is included
+        .populate("category")
+        .populate("offer")
         .sort(sortOption)
         .skip((page - 1) * limit)
         .limit(limit);
     }
 
-    // Ensure product is a Mongoose document before calling toObject
     products = products.map((product) => {
       if (product.toObject) {
-        product = product.toObject(); // Convert Mongoose document to a plain object
+        product = product.toObject();
       }
       const {
         discountedPrice,
         discountPercentage,
         fixedDiscount,
-        discountType,
+        discountType
       } = calculateBestDiscountedPrice(product);
       return {
         ...product,
         discountedPrice,
         discountPercentage,
         fixedDiscount,
-        discountType,
+        discountType
       };
     });
 
     totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / limit);
 
-    res.render("users/products/products.ejs", {
+    return res.render("users/products/products.ejs", {
       locals,
       categories,
       products,
       totalProducts,
       currentPage: page,
       totalPages,
-      csrfToken: req.csrfToken(),
-      layout: "layouts/userLayout",
+      layout: "layouts/userLayout"
     });
   } catch (err) {
-    console.error(err);
-    req.flash("error_msg", "An error occurred while fetching products.");
-    res.redirect("/");
+    console.error("An error occurred while fetching the products page: ", err);
+    return next(err);
   }
 };
 
 // Function to validate if an ID is a valid MongoDB ObjectID
-function isValidObjectId(id) {
-  return mongoose.Types.ObjectId.isValid(id);
-};
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 // Function to fetch and render the product details page
 const getProductDetails = async (req, res) => {
   const locals = {
-    title: "Products Page",
+    title: "Product Details | EverGreen",
     isLoggedIn: req.session.user ? true : false,
-    user: req.session.user,
+    user: req.session.user
   };
 
   try {
     const productId = req.params.id;
     if (!isValidObjectId(productId)) {
-      return res.status(404).render('notFoundError.ejs', {
+      return res.status(HttpStatus.BAD_REQUEST).render('notFoundError.ejs', {
           message: 'Invalid product ID.',
           layout: 'layouts/errorMessagesLayout.ejs'
       });
@@ -217,85 +177,81 @@ const getProductDetails = async (req, res) => {
       discountedPrice,
       discountPercentage,
       fixedDiscount,
-      discountType,
+      discountType
     };
 
-    // Get the average rating
     const averageRating = product.averageRating;
     const hasRatings = product.ratings.length > 0;
-
     const relatedCategory = product.category._id;
 
-    // Fetch related products and populate category offers
     let relatedProducts = await Product.find({ category: relatedCategory })
-      .populate("category") // Ensure category is populated
-      .populate("category.offer"); // Ensure category offer is populated
+      .limit(5)
+      .populate("category")
+      .populate("category.offer");
 
     relatedProducts = relatedProducts.map((relatedProduct) => {
       const {
         discountedPrice,
         discountPercentage,
         fixedDiscount,
-        discountType,
+        discountType
       } = calculateBestDiscountedPrice(relatedProduct);
       return {
         ...relatedProduct.toObject(),
         discountedPrice,
         discountPercentage,
         fixedDiscount,
-        discountType,
+        discountType
       };
     });
 
-    res.render("users/products/productDetails.ejs", {
+    return res.render("users/products/productDetails.ejs", {
       locals,
       product: mainProduct,
       productId,
       averageRating,
       hasRatings,
       relatedProducts,
-      layout: "layouts/userLayout",
-      csrfToken: req.csrfToken(),
+      layout: "layouts/userLayout"
     });
   } catch (err) {
-    console.error('Error fetching product details:', err);
-    return res.status(500).render('internalError.ejs', {
-        title: '500 - Internal Server Error',
-        layout: 'layouts/errorMessagesLayout.ejs',
-        errorMessage: err.message,
-    });
+    console.error('Error fetching product details: ', err);
+    return next(err);
   }
 };
 
 // Function to check if a user is eligible for product review
 const isUserEligibleForReview = async (userId, productId) => {
   try {
-    // Find if the user has any orders with the product that is delivered
     const order = await Order.findOne({
       userId: userId,
       "orderItems.productId": productId,
-      "orderItems.itemStatus": "Delivered",
+      "orderItems.itemStatus": "Delivered"
     })
       .populate({
         path: "orderItems.productId",
-        select: "name images", // Retrieve the product name and images array
+        select: "name images"
       })
-      .select("_id orderItems.productId"); // Only retrieve the necessary fields
+      .select("_id orderItems.productId");
 
-    // If an order is found with the delivered product, user is eligible
     if (order) {
-      const product = order.orderItems.find((item) =>
+      const productItem = order.orderItems.find(item => 
         item.productId._id.equals(productId)
-      )?.productId;
-      const productName = product?.name;
-      const productImage = product?.images?.[0]; // Get the first image from the array
-      return { eligible: true, productName, productImage };
-    } else {
-      return { eligible: false, productName: null, productImage: null };
+      );
+    
+      if (productItem) {
+        return {
+          eligible: true,
+          productName: productItem.productId.name,
+          productImage: productItem.productId.images?.[0] || null
+        };
+      }
     }
-  } catch (error) {
-    console.error("Error checking review eligibility:", error);
-    return { eligible: false, productName: null, productImage: null };
+    
+    return { eligible: false, productName: null, productImage: null };      
+  } catch (err) {
+    console.error("An error occurred checking review eligibility: ", err);
+    return next(err);
   }
 };
 
@@ -304,7 +260,7 @@ const getRateProduct = async (req, res) => {
   const locals = {
     title: "Products Page",
     isLoggedIn: req.session.user ? true : false,
-    user: req.session.user,
+    user: req.session.user
   };
 
   const userId = req.session.user._id;
@@ -319,73 +275,58 @@ const getRateProduct = async (req, res) => {
       );
     }
 
-    // Check if the user is eligible to review the product
     const { eligible, productName, productImage } =
       await isUserEligibleForReview(userId, productId);
 
     if (!eligible) {
-      return res.status(200).json({
-        eligible: false,
-        message: "You are not eligible to review this product.",
-      });
+      return errorHandler(res, HttpStatus.FORBIDDEN, "You are not eligible to review this product.");
     }
 
-    res.status(200).render("users/products/rateProduct.ejs", {
+    return res.render("users/products/rateProduct.ejs", {
       locals,
       layout: "layouts/userLayout",
       productId,
       productName,
-      productImage,
-      csrfToken: req.csrfToken(),
+      productImage
     });
-  } catch (error) {
-    console.error("An internal server error occurred: ", error);
-    res.status(500).send("An internal server error occurred");
+  } catch (err) {
+    console.error("Error fetching product rating page: ", err);
+    return next(err);
   }
 };
 
 // Function to handle the rating of a product
 const rateProduct = async (req, res) => {
-  const userId = req.session.user._id; // Get the logged-in user ID
-  const productId = req.params.id; // Get the product ID from the route parameters
-  const { rating, comment } = req.body; // Extract the rating and comment from the request body
+  const userId = req.session.user._id;
+  const productId = req.params.id;
+  const { rating, comment } = req.body;
 
   try {
-    // Find the product by ID
     const product = await Product.findById(productId);
-
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Product not found");
     }
 
-    // Check if the user has already rated this product
     const existingRating = product.ratings.find(
       (rating) => rating.userId.toString() === userId
     );
-
     if (existingRating) {
-      // If the user has already rated, update the existing rating and review
       existingRating.rating = rating;
       existingRating.review = comment;
     } else {
-      // If no existing rating, push a new rating
       product.ratings.push({
         userId,
         rating,
-        review: comment,
+        review: comment
       });
     }
 
-    // Save the updated product with the new/updated rating
     await product.save();
 
-    // Respond with a success message
-    res.status(201).json({ message: "Review submitted successfully!" });
-  } catch (error) {
-    console.error("Error saving review: ", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred while submitting your review." });
+    return successHandler(res, HttpStatus.CREATED, "Review submitted successfully.");
+  } catch (err) {
+    console.error("Error submitting the review: ", err);
+    return next(err);
   }
 };
 
@@ -393,5 +334,5 @@ module.exports = {
   getProducts,
   getProductDetails,
   getRateProduct,
-  rateProduct,
+  rateProduct
 };

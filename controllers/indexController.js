@@ -43,7 +43,7 @@ const getHome = async (req, res) => {
       locals,
       products,
       banners,
-      layout: "layouts/userLayout",
+      layout: "layouts/userLayout"
     });
   } catch (err) {
     console.error("An unexpected error occurred while fetching home: ", err);
