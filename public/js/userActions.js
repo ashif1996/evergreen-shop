@@ -174,7 +174,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (data.success) {
                 updateUI(null, null, data.subTotal, data.totalPrice);
-                location.reload();
+                if (data.success) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Success!",
+                        text: data.message,
+                        background: "#d4edda",
+                        confirmButtonColor: "#28a745",
+                        confirmButtonText: "Ok"
+                    }).then(() => {
+                        window.location.href = '/users/shoppingCart';
+                    });
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: data.message,
+                        background: "#f8d7da",
+                        confirmButtonColor: "#d33"
+                    }).then(() => {
+                        window.location.href = '/users/shoppingCart';
+                    });
+                }
             } else {
                 console.error('Failed to delete cart item:', data.message);
             }
