@@ -2,7 +2,7 @@ const calculateBestDiscountedPrice = (product) => {
   let bestDiscountPrice = product.price;
   let bestDiscountPercentage = 0;
   let bestFixedDiscount = 0;
-  let discountType = ""; // 'fixed' or 'percentage'
+  let discountType = "";
 
   // Calculate discount for product-specific offers
   if (product.offer && product.offer.isActive) {
@@ -61,10 +61,10 @@ const calculateBestDiscountedPrice = (product) => {
     discountedPrice: bestDiscountPrice,
     discountPercentage: bestDiscountPercentage,
     fixedDiscount: bestFixedDiscount,
-    discountType: discountType,
+    discountType: discountType
   };
 };
 
 module.exports = {
-  calculateBestDiscountedPrice,
+  calculateBestDiscountedPrice
 };

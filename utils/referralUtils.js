@@ -17,10 +17,10 @@ const validateReferralCode = async (referralCode) => {
     return {
       success: true,
       message: "Referral code verified successfully.",
-      referrer,
+      referrer
     };
-  } catch (error) {
-    console.error("Server error:", error);
+  } catch (err) {
+    console.error("Server error: ", err);
     return { success: false, message: "An internal server error occurred." };
   }
 };

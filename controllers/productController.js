@@ -1,10 +1,8 @@
+const mongoose = require('mongoose');
 const Category = require("../models/category");
 const Order = require("../models/orderSchema");
-const mongoose = require('mongoose');
 const Product = require("../models/product");
-const {
-  calculateBestDiscountedPrice
-} = require("../utils/discountPriceCalculation");
+const { calculateBestDiscountedPrice } = require("../utils/discountPriceCalculation");
 const errorHandler = require("../utils/errorHandlerUtils");
 const successHandler = require("../utils/successHandlerUtils");
 const HttpStatus = require("../utils/httpStatus");

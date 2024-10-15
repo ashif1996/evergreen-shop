@@ -1,25 +1,28 @@
 const bcrypt = require("bcrypt");
-const User = require("../models/user");
-const Product = require("../models/product");
-const Cart = require("../models/cartSchema");
 const Address = require("../models/addressSchema");
+const Cart = require("../models/cartSchema");
+const Product = require("../models/product");
+const User = require("../models/user");
 const Wishlist = require("../models/wishlistSchema");
 const {
   calculateBestDiscountedPrice,
 } = require("../utils/discountPriceCalculation");
 const {
+  creditReferralReward,
   generateReferralCode,
   validateReferralCode,
-  creditReferralReward,
 } = require("../utils/referralUtils");
+const errorHandler = require("../utils/errorHandlerUtils");
+const successHandler = require("../utils/successHandlerUtils");
+const HttpStatus = require("../utils/httpStatus");
 
 // Renders the signup page for users
 const getUserSignup = (req, res) => {
-  const locals = { title: "Sign up for EverGreen" };
-  res.render("users/signup", {
+  const locals = { title: "Sign up | EverGreen" };
+
+  return res.render("users/signup", {
     locals,
-    layout: "layouts/authLayout",
-    csrfToken: req.csrfToken(),
+    layout: "layouts/authLayout"
   });
 };
 
@@ -30,24 +33,19 @@ const userSignup = async (req, res) => {
   try {
     let referrer = null;
 
-    // Validate referral code if provided
     if (referralCode) {
       const validationResult = await validateReferralCode(referralCode);
 
       if (!validationResult.success) {
-        console.error(validationResult.message);
-        return res.redirect("/users/signup"); // Redirect on failure
+        return res.redirect("/users/signup");
       }
 
-      referrer = validationResult.referrer; // Assign referrer
+      referrer = validationResult.referrer;
     }
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      console.error("User already exists");
-      req.flash("error_msg", "User already exists");
-      return res.redirect("/users/signup");
+      return errorHandler(res, HttpStatus.BAD_REQUEST, "User already exists.");
     }
 
     // Create new user
@@ -56,104 +54,84 @@ const userSignup = async (req, res) => {
       lastName,
       email,
       password,
-      referredBy: referrer ? referrer._id : null,
+      referredBy: referrer ? referrer._id : null
     });
 
-    const savedUser = await newUser.save();
-    const generatedReferralCode = generateReferralCode(savedUser._id);
-    savedUser.referralCode = generatedReferralCode;
-    await savedUser.save();
+    const user = await newUser.save();
+    const generatedReferralCode = generateReferralCode(user._id);
+    user.referralCode = generatedReferralCode;
+    await user.save();
 
-    // Credit reward to referrer if applicable
     if (referrer) {
-      console.log("Calling creditReferralReward function...");
-      await creditReferralReward(referrer._id, savedUser);
+      await creditReferralReward(referrer._id, user);
     }
 
-    // Respond with success message
-    res
-      .status(201)
-      .json({ success: true, message: "You have registered successfully." });
-  } catch (error) {
-    console.error("Error creating user:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Server error during signup." });
+    return successHandler(res, HttpStatus.CREATED, "You have registered successfully.");
+  } catch (err) {
+    console.error("Error registering the user: ", err);
+    return next(err);
   }
 };
 
 // Renders the login page or redirects if the user is already logged in
 const getUserLogin = (req, res) => {
-  const locals = { title: "Log in to EverGreen" };
+  const locals = { title: "Login | EverGreen" };
+
   if (req.session && req.session.user) {
-    res.redirect("/"); // Redirect if user is already logged in
+    return res.redirect("/");
   } else {
-    res.render("users/login", {
+    return res.render("users/login", {
       locals,
-      layout: "layouts/authLayout.ejs",
-      csrfToken: req.csrfToken(),
+      layout: "layouts/authLayout.ejs"
     });
   }
 };
 
 // Handles user login process
 const userLogin = async (req, res) => {
-  const locals = { title: "Log in to EverGreen", message: {} };
+  const locals = { title: "Login | EverGreen", message: {} };
   const { email, password } = req.body;
 
   try {
-    // Find user by email, ensuring they are not an admin
     const user = await User.findOne({ email, isAdmin: false });
-
-    // Handle user not found
     if (!user) {
       locals.message.error = "User not found. Try again using another account.";
-      return res.status(404).render("users/login.ejs", {
+      return res.status(HttpStatus.NOT_FOUND).render("users/login.ejs", {
         locals,
-        layout: "layouts/authLayout.ejs",
-        csrfToken: req.csrfToken(),
+        layout: "layouts/authLayout.ejs"
       });
     }
 
-    // Check if user is blocked
     if (user.status === false) {
       locals.message.error =
         "You are blocked by the Admin. Try using another account.";
-      return res.status(404).render("users/login.ejs", {
+      return res.status(HttpStatus.BAD_REQUEST).render("users/login.ejs", {
         locals,
-        layout: "layouts/authLayout.ejs",
-        csrfToken: req.csrfToken(),
+        layout: "layouts/authLayout.ejs"
       });
     }
 
-    // Validate password
     const validatePassword = await bcrypt.compare(password, user.password);
     if (!validatePassword) {
       locals.message.error = "Password does not match. Please try again.";
-      return res.status(400).render("users/login.ejs", {
+      return res.status(HttpStatus.BAD_REQUEST).render("users/login.ejs", {
         locals,
-        layout: "layouts/authLayout.ejs",
-        csrfToken: req.csrfToken(),
+        layout: "layouts/authLayout.ejs"
       });
     }
 
-    // Store user information in the session
     req.session.user = {
       _id: user._id,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      status: user.status,
+      status: user.status
     };
 
-    res.redirect("/"); // Redirect to home after successful login
-  } catch (error) {
-    locals.message.error = "An unexpected error occurred"; // Handle unexpected errors
-    return res.status(500).render("users/login.ejs", {
-      locals,
-      layout: "layouts/authLayout.ejs",
-      csrfToken: req.csrfToken(),
-    });
+    return res.redirect("/");
+  } catch (err) {
+    console.error("An error occurred during login: ", err);
+    return next(err);
   }
 };
 

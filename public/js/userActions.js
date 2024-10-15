@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Selecting all buttons for adding products to the cart
     const addToCartButtons = document.querySelectorAll('.add-to-cart-form');
     const incrementButtons = document.querySelectorAll('.inc-btn');
     const decrementButtons = document.querySelectorAll('.dec-btn');

@@ -216,6 +216,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             title: 'Registration Failed',
                             text: result.message,
                             confirmButtonText: 'OK'
+                        }).then(() => {
+                            window.location.href = '/users/signup'; // Redirect to login page
                         });
                     }
                 } catch (error) {
