@@ -1,8 +1,22 @@
 <style>
+    .empty-cart-box {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 5px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        display: inline-block;
+        margin-top: 20px;
+    }
+
+    .empty-cart-box h3 {
+        color: #721c24;
+        font-weight: bold;
+    }
     .product-price {
         display: flex;
         flex-direction: column;
-        align-items: flex-start; /* Ensure content is aligned to the left */
+        align-items: flex-start;
     }
 
     .price-details {
@@ -119,8 +133,10 @@
                 </div>
             <% } else { %>
                 <div class="text-center py-5">
-                    <h3 class="mb-3">Your cart is empty. Start adding items!</h3>
-                </div>
+                    <div class="empty-cart-box">
+                        <h3 class="mb-3">Your cart is empty. Start adding items!</h3>
+                    </div>
+                </div>                
             <% } %>
         </div>
     </section>
