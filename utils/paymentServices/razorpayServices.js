@@ -7,21 +7,24 @@ const Cart = require("../../models/cartSchema");
 const Order = require("../../models/orderSchema");
 const Product = require("../../models/product");
 const { finalizeOrder } = require("../orderUpdationUtils");
+const errorHandler = require("../errorHandlerUtils");
+const successHandler = require("../successHandlerUtils");
+const HttpStatus = require("../httpStatus");
 
 // Load Razorpay credentials from environment variables
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
+  key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 
 // Create Razorpay Order
-const createRazorpayOrder = async (orderDetails) => {
+const createRazorpayOrder = async (orderDetails, next) => {
   try {
     const razorpayOrder = await razorpay.orders.create(orderDetails);
     return razorpayOrder;
-  } catch (error) {
-    console.error("Error creating Razorpay order:", error);
-    throw new Error("Failed to create Razorpay order");
+  } catch (err) {
+    console.error("Error creating Razorpay order: ", err);
+    return next(err);
   }
 };
 
@@ -32,8 +35,6 @@ const verifyRazorpayPaymentSignature = (
   razorpaySignature
 ) => {
   const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET);
-
-  // Create the string to compare with the received signature
   const data = `${razorpayOrderId}|${razorpayPaymentId}`;
   hmac.update(data);
   const generatedSignature = hmac.digest("hex");
@@ -48,17 +49,12 @@ const confirmRazorpayPayment = async (
   userId,
   couponId
 ) => {
-  // Find the order using the Razorpay order ID
   const order = await Order.findOne({ razorpayOrderId });
-
   if (!order) {
-    throw new Error("Order not found");
+    throw new Error("Order not found.");
   }
 
-  // Extract order items from the order object
   const orderItems = order.orderItems;
-
-  // Update order payment status and details
   order.orderPaymentStatus = "Success";
   order.orderStatus = "Pending";
   order.orderItems.forEach((item) => (item.itemStatus = "Pending"));
@@ -70,15 +66,12 @@ const confirmRazorpayPayment = async (
 };
 
 // Handle Razorpay Payment Failure
-const handleRazorpayPaymentFailure = async (req, res) => {
+const handleRazorpayPaymentFailure = async (req, res, next) => {
   try {
     const { orderId } = req.body;
     const order = await Order.findOne({ razorpayOrderId: orderId });
-
     if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found." });
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
     }
 
     order.orderStatus = "Failed";
@@ -89,16 +82,10 @@ const handleRazorpayPaymentFailure = async (req, res) => {
     );
     await order.save();
 
-    return res.status(402).json({
-      success: true,
-      message:
-        "Order payment failed. You can retry the payment from your order details page.",
-    });
-  } catch (error) {
-    console.error("Error handling payment failure:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "An internal server error occurred." });
+    return successHandler(res, HttpStatus.PAYMENT_REQUIRED, "Order payment failed. You can retry the payment from your order details page.");
+  } catch (err) {
+    console.error("Error handling payment failure: ", err);
+    return next(err);
   }
 };
 

@@ -8,7 +8,7 @@ const HttpStatus = require("../httpStatus");
 
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
+  key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 
 // Fetch user's wallet and transaction history
@@ -21,7 +21,6 @@ const getWallet = async (req, res, next) => {
 
   try {
     const userId = req.session.user._id;
-
     const user = await User.findById(userId).select("wallet");
     if (!user) {
       return errorHandler(res, HttpStatus.NOT_FOUND, "User not found.");
@@ -63,7 +62,7 @@ const getAddWalletMoney = async (req, res, next) => {
 };
 
 // Initiate a Razorpay payment order
-const initiatePayment = async (req, res) => {
+const initiatePayment = async (req, res, next) => {
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
@@ -88,7 +87,7 @@ const initiatePayment = async (req, res) => {
 
     const order = await razorpayInstance.orders.create(options);
 
-    res.json({
+    return res.status(HttpStatus.CREATED).json({
       key_id: process.env.RAZORPAY_KEY_ID,
       amount: order.amount,
       currency: order.currency,
@@ -97,12 +96,12 @@ const initiatePayment = async (req, res) => {
     });
   } catch (err) {
     console.error("Error initiating payment: ", err);
-    throw new Error("Error initiating payment");
+    return next(err);
   }
 };
 
 // Verify the Razorpay payment signature and update the wallet
-const verifyPayment = async (req, res) => {
+const verifyPayment = async (req, res, next) => {
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
@@ -127,7 +126,6 @@ const verifyPayment = async (req, res) => {
       try {
         const userId = req.session.user._id;
         const user = await User.findById(userId);
-
         if (!user) {
           return errorHandler(res, HttpStatus.NOT_FOUND, "User not found.");
         }
@@ -152,12 +150,12 @@ const verifyPayment = async (req, res) => {
     }
   } catch (err) {
     console.error("Error verifying payment: ", err);
-    throw new Error("Error verifying payment");
+    return next(err);
   }
 };
 
 // Function to process refund to wallet
-const processRefund = async (orderId, itemId = null) => {
+const processRefund = async (orderId, itemId = null, next) => {
   try {
     const order = await Order.findById(orderId);
     if (!order) {
@@ -226,7 +224,7 @@ const processRefund = async (orderId, itemId = null) => {
     };
   } catch (err) {
     console.error("Error processing refund: ", err);
-    throw new Error("Error processing refund");
+    return next(err);
   }
 };
 
