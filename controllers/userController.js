@@ -162,7 +162,7 @@ const getUserProfile = async (req, res, next) => {
   const locals = {
     title: "User Profile | EverGreen",
     user: null,
-    isLoggedIn: req.session.user ? true : false
+    isLoggedIn: !!req.session.user
   };
 
   const userId = req.session.user._id;
@@ -194,7 +194,7 @@ const getEditProfile = (req, res) => {
   const locals = {
     title: "Edit User Profile | EverGreen",
     user: req.session.user,
-    isLoggedIn: req.session.user ? true : false
+    isLoggedIn: !!req.session.user
   };
 
   return res.render("users/editProfile.ejs", {
@@ -230,7 +230,7 @@ const getAddressManagement = async (req, res, next) => {
     title: "Address Management | EverGreen",
     user: req.session.user,
     addresses: [],
-    isLoggedIn: req.session.user ? true : false
+    isLoggedIn: !!req.session.user
   };
 
   try {
@@ -349,6 +349,12 @@ const getShoppingCart = async (req, res, next) => {
       await cart.save();
     }
 
+    // Only set the cart reference if it was newly created
+    if (!user.cart || user.cart.toString() !== cart._id.toString()) {
+      user.cart = cart._id;
+      await user.save();
+    }
+
     cart.items.forEach(async (item) => {
       const product = item.productId;
       const discountDetails = calculateBestDiscountedPrice(product);
@@ -400,6 +406,9 @@ const addProduct = async (req, res, next) => {
         shippingCharge: 30,
         totalPrice: 30
       });
+      await cart.save()
+      user.cart = cart._id;
+      await user.save();
     }
 
     const existingItem = cart.items.find((item) =>
@@ -409,7 +418,6 @@ const addProduct = async (req, res, next) => {
       if (existingItem.quantity + 0.5 > product.stock) {
         return errorHandler(res, HttpStatus.BAD_REQUEST, "Not enough stock available.");
       }
-
       existingItem.quantity += 0.5;
       existingItem.itemTotal = discountedPrice ? discountedPrice * existingItem.quantity : existingItem.price * existingItem.quantity;
     } else {
@@ -430,8 +438,6 @@ const addProduct = async (req, res, next) => {
     const itemCount = cart.items.reduce((acc, item) => acc + item.quantity, 0);
 
     await cart.save();
-    user.cart = cart._id;
-    await user.save();
 
     return res.status(HttpStatus.OK).json({
       success: true,
@@ -508,9 +514,7 @@ const deleteCartItems = async (req, res, next) => {
         return errorHandler(res, HttpStatus.NOT_FOUND, "Product not found.");
       }
 
-      const itemIndex = cart.items.findIndex((item) =>
-        item.productId.equals(productId)
-      );
+      const itemIndex = cart.items.findIndex((item) => item.productId.equals(productId));
       if (itemIndex === -1) {
         return errorHandler(res, HttpStatus.NOT_FOUND, "Product not found in cart.");
       }
@@ -535,11 +539,11 @@ const deleteCartItems = async (req, res, next) => {
 };
 
 // Fetches the user's wishlist and handles pagination
-const getWishlist = async (req, res) => {
+const getWishlist = async (req, res, next) => {
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
-    isLoggedIn: req.session.user ? true : false
+    isLoggedIn: !!req.session.user
   };
 
   try {
@@ -558,205 +562,142 @@ const getWishlist = async (req, res) => {
     // Only set the wishlist reference if it was newly created
     if (!user.wishlist || user.wishlist.toString() !== wishlist._id.toString()) {
       user.wishlist = wishlist._id;
-      await user.save(); // Save the user only if the wishlist reference changed
+      await user.save();
     }
 
     const page = parseInt(req.query.page, 10) || 1;
     const limit = 5;
-
-    // Get total number of items and calculate pagination details
     const totalItems = wishlist.items.length;
     const totalPages = Math.ceil(totalItems / limit);
-    const paginatedItems = wishlist.items.slice(
-      (page - 1) * limit,
-      page * limit
-    ); // Paginate items
+    const paginatedItems = wishlist.items.slice((page - 1) * limit, page * limit);
 
-    res.status(200).render("users/wishlist.ejs", {
+    return res.render("users/wishlist.ejs", {
       locals,
-      wishlist: { ...wishlist.toObject(), items: paginatedItems }, // Return paginated items
+      wishlist: { ...wishlist, items: paginatedItems },
       currentPage: page,
       totalPages,
-      layout: "layouts/userLayout",
+      layout: "layouts/userLayout"
     });
   } catch (error) {
     console.error("Error fetching Wishlist: ", error);
-    
-    // Handle error and render
-    res.status(500).render("users/wishlist.ejs", {
-        locals: { ...locals, wishlist: null, error: error.message || "Internal Server Error" },
-        layout: "layouts/userLayout",
-    });
+    return next(err);
   }
 };
 
 // Adds a product to the user's wishlist
-const addToWishlist = async (req, res) => {
+const addToWishlist = async (req, res, next) => {
   try {
-    const userId = req.session.user._id; // Get user ID from session
-    const user = await User.findById(userId); // Find user
+    const userId = req.session.user._id;
+    const user = await User.findById(userId);
 
     if (!user) {
-      // Return error if user not found
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+      return errorHandler(res, HttpStatus.NOT_FOUND, "User not found.");
     }
 
-    const { productId } = req.body; // Get product ID from request
+    const { productId } = req.body;
 
-    // Find the product
     const product = await Product.findById(productId);
     if (!product) {
-      // Return error if product not found
-      return res
-        .status(404)
-        .json({ success: false, message: "Product not found" });
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Product not found.");
     }
 
-    let wishlist = await Wishlist.findOne({ userId }); // Find user's wishlist
+    let wishlist = await Wishlist.findOne({ userId });
     if (!wishlist) {
-      // Create a new wishlist if not found
       wishlist = new Wishlist({
         userId,
         items: [],
       });
-      await wishlist.save(); // Save the new wishlist immediately
+      await wishlist.save();
+      user.wishlist = wishlist._id;
+      await user.save();
     }
 
-    // Check if product already exists in wishlist
     const existingItem = wishlist.items.find((item) =>
       item.productId.equals(productId)
     );
     if (existingItem) {
-      return res.status(400).json({
-        success: false,
-        message: "Product already exists in your wishlist.",
-      });
+      return errorHandler(res, HttpStatus.BAD_REQUEST, "Product already exists in your wishlist.");
     }
 
-    wishlist.items.push({ productId }); // Add product to wishlist
+    wishlist.items.push({ productId });
+    await wishlist.save();
 
-    await wishlist.save(); // Save updated wishlist
-
-    // Only update user's wishlist reference if it was a new wishlist
-    if (!user.wishlist || user.wishlist.toString() !== wishlist._id.toString()) {
-      user.wishlist = wishlist._id; // Update user's wishlist reference
-      await user.save(); // Save user
-    }
-
-    res
-      .status(200)
-      .json({ success: true, message: `Product added to your wishlist.` });
-  } catch (error) {
-    console.error("Error adding product to wishlist: ", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    return successHandler(res, HttpStatus.OK, `Product added to your wishlist.`);
+  } catch (err) {
+    console.error("Error adding product to wishlist: ", err);
+    return next(err);
   }
 };
 
 // Deletes a product from the user's wishlist
-const deleteWishlistItems = async (req, res) => {
+const deleteWishlistItems = async (req, res, next) => {
   try {
-    const userId = req.session.user._id; // Get user ID from session
-    const { productId } = req.body; // Get product ID from request
+    const userId = req.session.user._id;
+    const { productId } = req.body;
 
-    const wishlist = await Wishlist.findOne({ userId }); // Find user's wishlist
-
+    const wishlist = await Wishlist.findOne({ userId });
     if (!wishlist) {
-      // Return error if wishlist not found
-      return res
-        .status(404)
-        .json({ success: false, message: "Wishlist not found." });
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Wishlist not found.");
     }
 
-    const item = wishlist.items.find((item) =>
-      item.productId.equals(productId)
-    ); // Find item in wishlist
-
+    const item = wishlist.items.find((item) => item.productId.equals(productId));
     if (item) {
-      const product = await Product.findById(productId); // Find product
-
+      const product = await Product.findById(productId);
       if (!product) {
-        // Return error if product not found
-        return res
-          .status(404)
-          .json({ success: false, message: "Product not found." });
+        return errorHandler(res, HttpStatus.NOT_FOUND, "Product not found.");
       }
 
-      const itemIndex = wishlist.items.findIndex((item) =>
-        item.productId.equals(productId)
-      ); // Get index of item
-
+      const itemIndex = wishlist.items.findIndex((item) => item.productId.equals(productId));
       if (itemIndex === -1) {
-        // Return error if item not found in wishlist
-        return res
-          .status(404)
-          .json({ success: false, message: "Product not found in wishlist" });
+        return errorHandler(res, HttpStatus.NOT_FOUND, "Product not found in wishlist.");
       }
 
-      wishlist.items.splice(itemIndex, 1); // Remove item from wishlist
-      await wishlist.save(); // Save updated wishlist
+      wishlist.items.splice(itemIndex, 1);
+      await wishlist.save();
 
-      res.status(200).json({
-        success: true,
-        message: `${product.name} is removed from the wishlist.`,
-      });
+      return successHandler(res, HttpStatus.OK, `${product.name} is removed from the wishlist.`);
     }
-  } catch (error) {
-    console.error("Error deleting wishlist item:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+  } catch (err) {
+    console.error("Error deleting wishlist item: ", err);
+    return next(err);
   }
 };
 
 // Fetches the referrals of the logged-in user
-const getReferrals = async (req, res) => {
+const getReferrals = async (req, res, next) => {
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
-    isLoggedIn: req.session.user ? true : false, // Check if user is logged in
+    isLoggedIn: !!req.session.user
   };
 
   try {
-    // Redirect to error page if user is not logged in
-    if (!locals.isLoggedIn) {
-      const errorMessage =
-        "You must be logged in to access this page. Return back to login page.";
-      return res.redirect(
-        `/error?statusCode=401&errorMessage=${encodeURIComponent(errorMessage)}`
-      );
-    }
-
-    const userId = req.session.user._id; // Get user ID from session
-
-    // Find the logged-in user by their ID
+    const userId = req.session.user._id;
     const user = await User.findById(userId);
     if (!user) {
-      // Return error if user not found
-      return res.status(404).send("User not found");
+      return errorHandler(res, HttpStatus.NOT_FOUND, "User not found.");
     }
 
-    // Find users who were referred by this user
     const referrals = await User.find({ referredBy: user._id });
 
-    // Render the referral page with user data and referrals list
-    res.render("users/referrals.ejs", {
+    return res.render("users/referrals.ejs", {
       locals,
       user: user,
       referrals: referrals,
       layout: "layouts/userLayout",
-      formatDate: (date) => new Date(date).toLocaleDateString(), // Date formatting helper
+      formatDate: (date) => new Date(date).toLocaleDateString()
     });
-  } catch (error) {
-    console.error("Error fetching referral data:", error);
-    res.status(500).send("Server error"); // Handle server error
+  } catch (err) {
+    console.error("Error fetching referral data: ", err);
+    return next(err);
   }
 };
 
 // Logs out the user and redirects to the login page
-const userLogout = (req, res) => {
+const userLogout = (req, res, next) => {
   req.session.destroy((err) => {
     if (err) {
-      console.error("Error destroying the session:", err);
+      console.error("Error destroying the session: ", err);
       return next(err);
     }
     return res.redirect("/users/login");
@@ -784,5 +725,5 @@ module.exports = {
   addToWishlist,
   deleteWishlistItems,
   getReferrals,
-  userLogout,
+  userLogout
 };
