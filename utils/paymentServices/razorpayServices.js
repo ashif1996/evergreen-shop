@@ -1,15 +1,12 @@
-const crypto = require("crypto");
-const mongoose = require("mongoose");
 const Razorpay = require("razorpay");
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
+const crypto = require("crypto");
+const User = require("../../models/user");
 const Cart = require("../../models/cartSchema");
 const Order = require("../../models/orderSchema");
 const Product = require("../../models/product");
-const User = require("../../models/user");
 const { finalizeOrder } = require("../orderUpdationUtils");
-const errorHandler = require("../errorHandlerUtils");
-const successHandler = require("../successHandlerUtils");
-const HttpStatus = require("../httpStatus");
-const ObjectId = mongoose.Types.ObjectId;
 
 // Load Razorpay credentials from environment variables
 const razorpay = new Razorpay({
@@ -17,13 +14,13 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// Function to create Razorpay Order
+// Create Razorpay Order
 const createRazorpayOrder = async (orderDetails) => {
   try {
     const razorpayOrder = await razorpay.orders.create(orderDetails);
     return razorpayOrder;
-  } catch (err) {
-    console.error("Error creating Razorpay order: ", err);
+  } catch (error) {
+    console.error("Error creating Razorpay order:", error);
     throw new Error("Failed to create Razorpay order");
   }
 };
@@ -51,12 +48,17 @@ const confirmRazorpayPayment = async (
   userId,
   couponId
 ) => {
+  // Find the order using the Razorpay order ID
   const order = await Order.findOne({ razorpayOrderId });
+
   if (!order) {
-    throw new Error("Order not found.");
+    throw new Error("Order not found");
   }
 
+  // Extract order items from the order object
   const orderItems = order.orderItems;
+
+  // Update order payment status and details
   order.orderPaymentStatus = "Success";
   order.orderStatus = "Pending";
   order.orderItems.forEach((item) => (item.itemStatus = "Pending"));
@@ -72,8 +74,11 @@ const handleRazorpayPaymentFailure = async (req, res) => {
   try {
     const { orderId } = req.body;
     const order = await Order.findOne({ razorpayOrderId: orderId });
+
     if (!order) {
-      return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found." });
     }
 
     order.orderStatus = "Failed";
@@ -84,10 +89,16 @@ const handleRazorpayPaymentFailure = async (req, res) => {
     );
     await order.save();
 
-    return successHandler(res, HttpStatus.BAD_REQUEST, "Order payment failed. You can retry the payment from your order details page.");
-  } catch (err) {
-    console.error("Error handling payment failure: ", err);
-    throw new Error("Error handling payment failure");
+    return res.status(402).json({
+      success: true,
+      message:
+        "Order payment failed. You can retry the payment from your order details page.",
+    });
+  } catch (error) {
+    console.error("Error handling payment failure:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "An internal server error occurred." });
   }
 };
 
