@@ -333,7 +333,7 @@ const getShoppingCart = async (req, res, next) => {
     const userId = req.session.user._id;
     const user = await User.findById(userId);
 
-    const cart = await Cart.findOne({ userId }).populate({
+    let cart = await Cart.findOne({ userId }).populate({
       path: "items.productId",
       populate: {
         path: "category",
