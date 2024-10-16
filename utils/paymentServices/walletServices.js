@@ -63,7 +63,7 @@ const getAddWalletMoney = async (req, res, next) => {
 };
 
 // Initiate a Razorpay payment order
-const initiatePayment = async (req, res, next) => {
+const initiatePayment = async (req, res) => {
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
@@ -97,12 +97,12 @@ const initiatePayment = async (req, res, next) => {
     });
   } catch (err) {
     console.error("Error initiating payment: ", err);
-    return next(err);
+    throw new Error("Error initiating payment");
   }
 };
 
 // Verify the Razorpay payment signature and update the wallet
-const verifyPayment = async (req, res, next) => {
+const verifyPayment = async (req, res) => {
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
@@ -152,12 +152,12 @@ const verifyPayment = async (req, res, next) => {
     }
   } catch (err) {
     console.error("Error verifying payment: ", err);
-    return next(err);
+    throw new Error("Error verifying payment");
   }
 };
 
 // Function to process refund to wallet
-const processRefund = async (orderId, itemId = null, next) => {
+const processRefund = async (orderId, itemId = null) => {
   try {
     const order = await Order.findById(orderId);
     if (!order) {
@@ -226,7 +226,7 @@ const processRefund = async (orderId, itemId = null, next) => {
     };
   } catch (err) {
     console.error("Error processing refund: ", err);
-    return next(err);
+    throw new Error("Error processing refund");
   }
 };
 

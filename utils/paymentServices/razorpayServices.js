@@ -68,7 +68,7 @@ const confirmRazorpayPayment = async (
 };
 
 // Handle Razorpay Payment Failure
-const handleRazorpayPaymentFailure = async (req, res, next) => {
+const handleRazorpayPaymentFailure = async (req, res) => {
   try {
     const { orderId } = req.body;
     const order = await Order.findOne({ razorpayOrderId: orderId });
@@ -87,7 +87,7 @@ const handleRazorpayPaymentFailure = async (req, res, next) => {
     return successHandler(res, HttpStatus.BAD_REQUEST, "Order payment failed. You can retry the payment from your order details page.");
   } catch (err) {
     console.error("Error handling payment failure: ", err);
-    return next(err);
+    throw new Error("Error handling payment failure");
   }
 };
 

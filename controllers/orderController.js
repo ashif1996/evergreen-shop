@@ -182,7 +182,7 @@ const removeCoupon = async (req, res) => {
 };
 
 // Create a new order for the user
-const createOrder = async (req, res) => {
+const createOrder = async (req, res, next) => {
   const userId = req.session.user._id;
 
   try {
@@ -382,7 +382,7 @@ const verifyRazorpayPayment = async (req, res) => {
 };
 
 //Function to retry Razorpay payment
-const retryPayment = async (req, res) => {
+const retryPayment = async (req, res, next) => {
   try {
     const { orderId } = req.params;
 
