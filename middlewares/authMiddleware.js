@@ -111,5 +111,5 @@ module.exports = {
   isUser,
   isLoggedIn,
   isAdmin,
-  isAdminLoggedIn,
+  isAdminLoggedIn
 };

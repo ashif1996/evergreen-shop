@@ -4,30 +4,30 @@ const { body } = require("express-validator");
 const signupValidationRules = [
   body("firstName")
     .notEmpty()
-    .withMessage("First name is required.") // Required and must be letters
+    .withMessage("First name is required.")
     .isAlpha()
     .withMessage("Please enter a valid first name. Only letters are allowed."),
   body("lastName")
     .notEmpty()
-    .withMessage("Last name is required.") // Required and must be letters
+    .withMessage("Last name is required.")
     .isAlpha()
     .withMessage("Please enter a valid last name. Only letters are allowed."),
   body("email")
     .notEmpty()
-    .withMessage("Email is required.") // Required and must be a valid email
+    .withMessage("Email is required.")
     .isEmail()
     .withMessage("Please enter a valid email address."),
   body("password")
     .notEmpty()
-    .withMessage("Password is required.") // Required and must be at least 8 characters
+    .withMessage("Password is required.")
     .isLength({ min: 8 })
     .withMessage("Password must be at least 8 characters long."),
   body("confirmPassword")
     .notEmpty()
-    .withMessage("Please confirm your password.") // Required and must match password
+    .withMessage("Please confirm your password.")
     .custom((value, { req }) => {
       if (value !== req.body.password) {
-        throw new Error("Passwords do not match."); // Passwords must match
+        throw new Error("Passwords do not match.");
       }
       return true;
     }),
@@ -37,17 +37,17 @@ const signupValidationRules = [
 const loginValidationRules = [
   body("email")
     .notEmpty()
-    .withMessage("Email is required.") // Required and must be a valid email
+    .withMessage("Email is required.")
     .isEmail()
     .withMessage("Please enter a valid email address."),
-  body("password").notEmpty().withMessage("Password is required."), // Required
+  body("password").notEmpty().withMessage("Password is required."),
 ];
 
 // Validation rules for OTP email
 const otpEmailValidationRules = [
   body("email")
     .notEmpty()
-    .withMessage("Email is required.") // Required and must be a valid email
+    .withMessage("Email is required.")
     .isEmail()
     .withMessage("Please enter a valid email address."),
 ];
@@ -56,26 +56,26 @@ const otpEmailValidationRules = [
 const otpValidationRules = [
   body("otp")
     .notEmpty()
-    .withMessage("Please enter the OTP.") // Required and must be numeric
+    .withMessage("Please enter the OTP.")
     .isNumeric()
     .withMessage("OTP must be numeric.")
     .isLength({ min: 6, max: 6 })
-    .withMessage("OTP must be 6 digits long."), // Must be exactly 6 digits
+    .withMessage("OTP must be 6 digits long."),
 ];
 
 // Validation rules for password reset
 const resetPasswordValidationRules = [
   body("newPassword")
     .notEmpty()
-    .withMessage("Password is required.") // Required and must be at least 8 characters
+    .withMessage("Password is required.")
     .isLength({ min: 8 })
     .withMessage("Password must be at least 8 characters long."),
   body("confirmPassword")
     .notEmpty()
-    .withMessage("Please confirm your password.") // Required and must match new password
+    .withMessage("Please confirm your password.")
     .custom((value, { req }) => {
       if (value !== req.body.newPassword) {
-        throw new Error("Passwords do not match."); // Passwords must match
+        throw new Error("Passwords do not match.");
       }
       return true;
     }),
@@ -86,5 +86,5 @@ module.exports = {
   loginValidationRules,
   otpEmailValidationRules,
   otpValidationRules,
-  resetPasswordValidationRules, // Export all validation rules
+  resetPasswordValidationRules
 };

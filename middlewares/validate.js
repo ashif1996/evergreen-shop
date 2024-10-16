@@ -1,21 +1,20 @@
 const { validationResult } = require("express-validator");
 
 const validate = (req, res, next) => {
-  const errors = validationResult(req); // Check for validation errors
+  const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const errorMessages = errors.array().map((error) => error.msg); // Extract error messages
-    console.error("Validation errors:", errorMessages); // Log errors
-    req.flash("error_msg", errorMessages.join(" ")); // Flash error message
+    const errorMessages = errors.array().map((error) => error.msg);
+    console.error("Validation errors:", errorMessages);
+    req.flash("error_msg", errorMessages.join(" "));
     return res
-      .status(400)
       .json({
         success: false,
         errors: errorMessages,
-        originalUrl: req.originalUrl,
-      }); // Respond with errors
+        originalUrl: req.originalUrl
+      });
   }
 
-  next(); // Proceed to next middleware
+  next();
 };
 
 module.exports = validate;
