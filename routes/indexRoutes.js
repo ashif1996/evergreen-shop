@@ -1,13 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { checkLoginStatus } = require('../middlewares/checkLoginStatus'); // Middleware to check login status
+const { checkLoginStatus } = require('../middlewares/checkLoginStatus');
 
-const indexController = require('../controllers/indexController'); // Import index controller
+const indexController = require('../controllers/indexController');
 
-// Home route with login status check
+// Home routes
 router.get('/', checkLoginStatus, indexController.getHome);
-
-// Search route for products
 router.get('/search', indexController.searchProducts);
 
-module.exports = router; // Export the router
+module.exports = router;

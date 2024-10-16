@@ -3,12 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to show the loader
     const showLoader = () => {
-        spinner.style.display = 'flex';  // Show the loader
+        spinner.style.display = 'flex';
     };
 
     // Function to hide the loader
     const hideLoader = () => {
-        spinner.style.display = 'none';  // Hide the loader
+        spinner.style.display = 'none';
     };
     // Function to display error messages for specific form fields
     const displayErrors = (fieldId, message) => {
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const zipCode = document.getElementById('zipCode').value.trim();
 
         let isValid = true;
-        clearErrors(); // Clear previous errors
+        clearErrors();
 
         // Validate address
         if (address === '') {
@@ -95,11 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     confirmButtonText: "Ok"
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.location.reload(); // Reload page to reflect changes
+                        window.location.reload();
                     }
                 });
             } else {
-                // Handle error in form submission
                 Swal.fire({
                     icon: "error",
                     title: "Oops...",
@@ -108,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     confirmButtonColor: "#d33"
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.location.reload(); // Reload page to reflect changes
+                        window.location.reload();
                     }
                 });
             }
@@ -129,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addressForm = document.getElementById('address-form');
     if (addressForm) {
         addressForm.addEventListener('submit', (event) => {
-            event.preventDefault(); // Prevent default form submission
+            event.preventDefault();
 
             const isValid = validateAddressForm();
 
@@ -179,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     confirmButtonColor: "#28a745",
                     confirmButtonText: "Ok"
                 }).then(() => {
-                    window.location.reload(); // Reload page to reflect changes
+                    window.location.reload();
                 });
             } else {
                 Swal.fire({

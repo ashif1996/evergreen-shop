@@ -73,4 +73,4 @@ router.post('/products/offers/add', isAdmin, isAdminLoggedIn, adminController.ad
 router.get('/categories/offers/all', isAdmin, isAdminLoggedIn, adminController.getCategoryOffers);
 router.get('/products/offers/all', isAdmin, isAdminLoggedIn, adminController.getProductOffers);
 
-module.exports = router; // Export router
+module.exports = router;
