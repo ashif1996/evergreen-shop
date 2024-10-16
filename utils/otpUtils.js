@@ -14,14 +14,14 @@ const storeOtp = async (email, otp) => {
   const otpDoc = new OTP({
     email,
     otp,
-    expiresAt: new Date(Date.now() + 2 * 60 * 1000), // Set expiration time
+    expiresAt: new Date(Date.now() + 2 * 60 * 1000)
   });
 
   await otpDoc.save();
 };
 
 // Send the OTP to the user's email
-const sendOtp = async (email, otp) => {
+const sendOtp = async (email, otp, next) => {
   const mailOptions = {
     from: process.env.SEND_OTP_EMAIL,
     to: email,
@@ -32,9 +32,9 @@ const sendOtp = async (email, otp) => {
   try {
     await transporter.sendMail(mailOptions);
     console.log("OTP email sent successfully.");
-  } catch (error) {
-    console.error("Error sending OTP email:", error);
-    throw error;
+  } catch (err) {
+    console.error("Error sending OTP email: ", err);
+    return next(err);
   }
 };
 
@@ -43,7 +43,6 @@ const verifyOtp = async (email, userOtp) => {
   const latestOtpDoc = await OTP.findOne({ email })
     .sort({ expiresAt: -1 })
     .exec();
-
   if (!latestOtpDoc) {
     return { isVerified: false, reason: "no_otp" };
   }
@@ -68,13 +67,13 @@ const verifyOtp = async (email, userOtp) => {
 
 // Cleanup expired OTPs from the database
 const cleanupExpiredOtps = async () => {
-  const now = new Date(); // Get current time
+  const now = new Date();
 
   try {
     await OTP.deleteMany({ expiresAt: { $lte: now } });
     console.log("Expired OTPs cleaned up successfully.");
-  } catch (error) {
-    console.error("Error cleaning up expired OTPs", error);
+  } catch (err) {
+    console.error("Error cleaning up expired OTPs", err);
   }
 };
 
@@ -83,5 +82,5 @@ module.exports = {
   storeOtp,
   sendOtp,
   verifyOtp,
-  cleanupExpiredOtps, // Export functions for OTP management
+  cleanupExpiredOtps
 };

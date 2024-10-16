@@ -25,7 +25,7 @@ const validateReferralCode = async (referralCode) => {
   }
 };
 
-// API handler for verifying referral codes
+// Verify referral codes
 const verifyReferralCode = async (req, res) => {
   const { referralCode } = req.body;
   try {
@@ -34,8 +34,8 @@ const verifyReferralCode = async (req, res) => {
       return res.status(400).json(validationResult);
 
     res.status(200).json(validationResult);
-  } catch (error) {
-    console.error("Error verifying referral code:", error);
+  } catch (err) {
+    console.error("Error verifying referral code: ", err);
     res.status(500).json({
       success: false,
       message: "Server error during referral code verification.",
@@ -44,7 +44,7 @@ const verifyReferralCode = async (req, res) => {
 };
 
 // Credit referral rewards to both the referrer and the new user
-const creditReferralReward = async (referrerId, newUser) => {
+const creditReferralReward = async (referrerId, newUser, next) => {
   try {
     const referrer = await User.findById(referrerId);
     if (!referrer) return;
@@ -70,9 +70,9 @@ const creditReferralReward = async (referrerId, newUser) => {
 
     await referrer.save();
     await newUser.save();
-  } catch (error) {
-    console.error("Error updating wallet balances:", error);
-    throw error;
+  } catch (err) {
+    console.error("Error updating wallet balances: ", err);
+    return next(err);
   }
 };
 
@@ -80,5 +80,5 @@ module.exports = {
   generateReferralCode,
   validateReferralCode,
   verifyReferralCode,
-  creditReferralReward,
+  creditReferralReward
 };

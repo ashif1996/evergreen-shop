@@ -1,12 +1,15 @@
-const Razorpay = require("razorpay");
-const mongoose = require("mongoose");
-const ObjectId = mongoose.Types.ObjectId;
 const crypto = require("crypto");
-const User = require("../../models/user");
+const mongoose = require("mongoose");
+const Razorpay = require("razorpay");
 const Cart = require("../../models/cartSchema");
 const Order = require("../../models/orderSchema");
 const Product = require("../../models/product");
+const User = require("../../models/user");
 const { finalizeOrder } = require("../orderUpdationUtils");
+const errorHandler = require("../errorHandlerUtils");
+const successHandler = require("../successHandlerUtils");
+const HttpStatus = require("../httpStatus");
+const ObjectId = mongoose.Types.ObjectId;
 
 // Load Razorpay credentials from environment variables
 const razorpay = new Razorpay({
@@ -14,28 +17,18 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-/**
- * Create Razorpay Order
- * @param {Object} orderDetails - Details like amount and receipt ID
- * @returns {Object} - The created Razorpay order
- */
+// Function to create Razorpay Order
 const createRazorpayOrder = async (orderDetails) => {
   try {
     const razorpayOrder = await razorpay.orders.create(orderDetails);
     return razorpayOrder;
-  } catch (error) {
-    console.error("Error creating Razorpay order:", error);
+  } catch (err) {
+    console.error("Error creating Razorpay order: ", err);
     throw new Error("Failed to create Razorpay order");
   }
 };
 
-/**
- * Verify Razorpay Payment Signature
- * @param {String} razorpayOrderId - Razorpay order ID
- * @param {String} razorpayPaymentId - Razorpay payment ID
- * @param {String} razorpaySignature - Razorpay signature from the frontend
- * @returns {Boolean} - True if signature is valid, false otherwise
- */
+// Verify Razorpay Payment Signature
 const verifyRazorpayPaymentSignature = (
   razorpayOrderId,
   razorpayPaymentId,
@@ -51,30 +44,19 @@ const verifyRazorpayPaymentSignature = (
   return generatedSignature === razorpaySignature;
 };
 
-/**
- * Confirm Razorpay Payment
- * @param {String} razorpayOrderId - Razorpay order ID
- * @param {String} razorpayPaymentId - Razorpay payment ID
- * @param {String} userId - The ID of the user making the payment
- * @returns {Object} - The confirmed order object
- */
+// Confirm Razorpay Payment
 const confirmRazorpayPayment = async (
   razorpayOrderId,
   razorpayPaymentId,
   userId,
   couponId
 ) => {
-  // Find the order using the Razorpay order ID
   const order = await Order.findOne({ razorpayOrderId });
-
   if (!order) {
-    throw new Error("Order not found");
+    throw new Error("Order not found.");
   }
 
-  // Extract order items from the order object
   const orderItems = order.orderItems;
-
-  // Update order payment status and details
   order.orderPaymentStatus = "Success";
   order.orderStatus = "Pending";
   order.orderItems.forEach((item) => (item.itemStatus = "Pending"));
@@ -85,21 +67,13 @@ const confirmRazorpayPayment = async (
   return order;
 };
 
-/**
- * Handle Razorpay Payment Failure
- * @param {Object} req - The request object containing Razorpay failure details
- * @param {Object} res - The response object to send back the result
- * @returns {Object} - JSON response with success/failure message
- */
-const handleRazorpayPaymentFailure = async (req, res) => {
+// Handle Razorpay Payment Failure
+const handleRazorpayPaymentFailure = async (req, res, next) => {
   try {
     const { orderId } = req.body;
     const order = await Order.findOne({ razorpayOrderId: orderId });
-
     if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found." });
+      return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
     }
 
     order.orderStatus = "Failed";
@@ -110,23 +84,16 @@ const handleRazorpayPaymentFailure = async (req, res) => {
     );
     await order.save();
 
-    return res.status(402).json({
-      success: true,
-      message:
-        "Order payment failed. You can retry the payment from your order details page.",
-    });
-  } catch (error) {
-    console.error("Error handling payment failure:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "An internal server error occurred." });
+    return successHandler(res, HttpStatus.BAD_REQUEST, "Order payment failed. You can retry the payment from your order details page.");
+  } catch (err) {
+    console.error("Error handling payment failure: ", err);
+    return next(err);
   }
 };
 
-// Export all payment-related functions
 module.exports = {
   createRazorpayOrder,
   verifyRazorpayPaymentSignature,
   confirmRazorpayPayment,
-  handleRazorpayPaymentFailure,
+  handleRazorpayPaymentFailure
 };

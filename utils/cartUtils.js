@@ -36,8 +36,8 @@ const recalculateCartTotals = (cart) => {
         cart.subTotal = Number(cart.subTotal);
         cart.couponDiscount = Number(cart.couponDiscount);
         cart.totalPrice = Number(cart.totalPrice);
-    } catch (error) {
-        console.error('Error recalculating cart totals:', error);
+    } catch (err) {
+        console.error('Error recalculating cart totals: ', err);
     }
 };
 

@@ -1,7 +1,7 @@
 const Order = require("../models/orderSchema");
 
 // Retrieve top categories based on sold items
-const getTopCategories = async () => {
+const getTopCategories = async (next) => {
   try {
     const categories = await Order.aggregate([
       { $unwind: "$orderItems" },
@@ -41,14 +41,14 @@ const getTopCategories = async () => {
     ]);
 
     return categories;
-  } catch (error) {
-    console.error("Error fetching top categories:", error);
-    throw error;
+  } catch (err) {
+    console.error("Error fetching top categories: ", err);
+    return next(err);
   }
 };
 
 // Retrieve best-selling products based on sold quantities
-const getBestSellingProducts = async () => {
+const getBestSellingProducts = async (next) => {
   try {
     const products = await Order.aggregate([
       { $unwind: "$orderItems" },
@@ -80,9 +80,9 @@ const getBestSellingProducts = async () => {
     ]);
 
     return products;
-  } catch (error) {
-    console.error("Error fetching best-selling products:", error);
-    throw error;
+  } catch (err) {
+    console.error("Error fetching best-selling products: ", err);
+    return next(err);
   }
 };
 
