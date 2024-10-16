@@ -4,26 +4,26 @@ const Schema = mongoose.Schema;
 const bannerSchema = new Schema({
     title: {
         type: String,
-        required: true, // The title of the banner, e.g., "Summer Sale"
+        required: true,
     },
     imageUrl: {
         type: String,
-        required: true, // URL of the banner image
+        required: true,
     },
     description: {
-        type: String, // Optional description for the banner
+        type: String,
     },
     isActive: {
         type: Boolean,
-        default: true, // Whether the banner is active and should be displayed
+        default: true,
     },
     createdAt: {
         type: Date,
-        default: Date.now, // Timestamp when the banner was created
+        default: Date.now,
     },
     updatedAt: {
         type: Date,
-        default: Date.now, // Timestamp when the banner was last updated
+        default: Date.now,
     }
 });
 

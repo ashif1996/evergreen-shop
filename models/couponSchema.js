@@ -9,7 +9,7 @@ const couponSchema = new Schema({
     },
     discountType: {
       type: String,
-      enum: ['FIXED', 'PERCENTAGE'], // Standardized enum values
+      enum: ['FIXED', 'PERCENTAGE'],
       default: 'FIXED'
     },
     discountValue: {

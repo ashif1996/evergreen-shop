@@ -4,7 +4,7 @@ const ratingSchema = require('./rating');
 
 const offerSchema = new Schema({
     type: {
-        type: String, // e.g., 'Seasonal', 'Flash Sale', 'BOGO', etc.
+        type: String,
         required: false
     },
     fixedDiscount: {
@@ -22,9 +22,9 @@ const offerSchema = new Schema({
         default: false
     },
     minimumPurchaseAmount: {
-        type: Number, // e.g., minimum amount to apply the offer
+        type: Number,
         required: false,
-        default: 0 // or whatever default value you prefer
+        default: 0
     },
     expirationDate: {
         type: Date,
@@ -85,7 +85,7 @@ const productSchema = new Schema({
 
 // Virtual field to calculate average rating
 productSchema.virtual('averageRating').get(function () {
-    if (this.ratings.length === 0) return null; // Return null if no ratings are available
+    if (this.ratings.length === 0) return null;
 
     const totalRating = this.ratings.reduce((sum, rating) => sum + rating.rating, 0);
     return totalRating / this.ratings.length;

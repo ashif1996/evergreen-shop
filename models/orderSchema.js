@@ -12,7 +12,7 @@ const orderItemSchema = new Schema({
         type: Number,
         required: true
     },
-    discountedPrice: { // New field for storing the discounted price
+    discountedPrice: {
         type: Number,
         required: true,
         default: 0
@@ -91,7 +91,7 @@ const orderSchema = new Schema({
     paymentMethod: {
         type: String,
         required: true,
-        enum: ['COD', 'Wallet', 'Razorpay', 'PayPal'] // Add supported payment methods
+        enum: ['COD', 'Wallet', 'Razorpay']
     },
     orderPaymentStatus: {
         type: String,
@@ -122,18 +122,16 @@ const orderSchema = new Schema({
         type: String,
         default: null
     },
-    razorpayPaymentId: { // New field for storing Razorpay payment ID
+    razorpayPaymentId: {
         type: String,
         default: null
     }
 },
 {
-    timestamps: true // Adds createdAt and updatedAt fields to the schema
+    timestamps: true
 });
 
-// Creating a compound index on userId and orderItems.productId
 orderSchema.index({ userId: 1, 'orderItems.productId': 1 });
-
 const Order = mongoose.model('Order', orderSchema);
 
 module.exports = Order;
