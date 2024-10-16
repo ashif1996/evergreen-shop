@@ -3,8 +3,8 @@ const Product = require("../models/product");
 const Cart = require("../models/cartSchema");
 const OrderCounter = require("../models/orderCounterSchema");
 const mongoose = require("mongoose");
-const errorHandler = require("../errorHandlerUtils");
-const successHandler = require("../successHandlerUtils");
+const errorHandler = require("./errorHandlerUtils");
+const successHandler = require("./successHandlerUtils");
 const HttpStatus = require("../httpStatus");
 const ObjectId = mongoose.Types.ObjectId;
 
