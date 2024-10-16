@@ -344,7 +344,10 @@ const getShoppingCart = async (req, res, next) => {
     if (!cart) {
       cart = new Cart({
         userId,
-        items: []
+        items: [],
+        subTotal: 0,
+        shippingCharge: 30,
+        totalPrice: 30
       });
       await cart.save();
     }
