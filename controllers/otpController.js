@@ -4,7 +4,7 @@ const {
   storeOtp,
   sendOtp,
   verifyOtp,
-  cleanupExpiredOtps
+  cleanupExpiredOtps,
 } = require("../utils/otpUtils");
 const errorHandler = require("../utils/errorHandlerUtils");
 const successHandler = require("../utils/successHandlerUtils");
@@ -27,7 +27,7 @@ const handleSendOtp = async (req, res) => {
       success: true,
       message: "OTP sent successfully.",
       redirectUrl,
-      otpSend: true
+      otpSend: true,
     });
   } catch (err) {
     console.log("An error occurred when handling OTP: ", err);
@@ -35,7 +35,7 @@ const handleSendOtp = async (req, res) => {
       success: false,
       message: "Error sending OTP!",
       originalUrl: req.originalUrl,
-      otpSend: false
+      otpSend: false,
     });
   }
 };
@@ -51,7 +51,7 @@ const getOtpVerification = (req, res) => {
     locals,
     layout: "layouts/authLayout",
     email,
-    otpSend
+    otpSend,
   });
 };
 
@@ -64,26 +64,22 @@ const handleVerifyOtp = async (req, res) => {
     const result = await verifyOtp(email, otp);
     if (result.isVerified) {
       req.session.otpSend = false;
+
       return res.status(HttpStatus.OK).json({
         success: true,
         message: "OTP verified successfully.",
-        redirectUrl
+        redirectUrl,
       });
     } else {
-      const message =
-        result.reason === "expired"
-          ? "The OTP has expired."
-          : "The OTP is invalid.";
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({ success: false, message });
+      const message = result.reason === "expired" ? "The OTP has expired." : "The OTP is invalid.";
+      return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message });
     }
   } catch (err) {
     console.error("Error verifying OTP: ", err);
     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "An error occurred while verifying OTP.",
-      redirectUrl
+      redirectUrl,
     });
   }
 };
@@ -96,12 +92,12 @@ const getResetPassword = (req, res) => {
   return res.render("users/reset-password", {
     locals,
     layout: "layouts/authLayout",
-    email
+    email,
   });
 };
 
 // Handle password reset logic
-const handleResetPassword = async (req, res) => {
+const handleResetPassword = async (req, res, next) => {
   const { newPassword, confirmPassword } = req.body;
   const email = req.session.email;
 
@@ -133,5 +129,5 @@ module.exports = {
   getOtpVerification,
   handleVerifyOtp,
   getResetPassword,
-  handleResetPassword
+  handleResetPassword,
 };

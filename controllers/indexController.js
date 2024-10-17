@@ -1,16 +1,14 @@
 const Banner = require("../models/bannerSchema");
 const Category = require("../models/category");
 const Product = require("../models/product");
-const {
-  calculateBestDiscountedPrice,
-} = require("../utils/discountPriceCalculation");
+const { calculateBestDiscountedPrice } = require("../utils/discountPriceCalculation");
 
 // Fetches and renders the home page
 const getHome = async (req, res, next) => {
   const locals = {
     title: "EverGreen Home | Always Fresh",
     user: req.session.user,
-    isLoggedIn: req.session.user ? true : false
+    isLoggedIn: !!req.session.user,
   };
 
   try {
@@ -39,11 +37,11 @@ const getHome = async (req, res, next) => {
       };
     });
 
-    return res.render("home.ejs", {
+    return res.render("home", {
       locals,
       products,
       banners,
-      layout: "layouts/userLayout"
+      layout: "layouts/userLayout",
     });
   } catch (err) {
     console.error("An unexpected error occurred while fetching home: ", err);
@@ -66,7 +64,7 @@ const prepareSearchTerm = (searchTerm) => {
 // Searches for a category by name and returns corresponding products
 const searchByCategory = async (searchTerm) => {
   const category = await Category.findOne({
-    name: { $regex: searchTerm, $options: "i" }
+    name: { $regex: searchTerm, $options: "i" },
   });
 
   if (category) {
@@ -83,8 +81,8 @@ const searchByProduct = async (searchTerm) => {
   return await Product.find({
     $or: [
       { name: { $regex: terms.join("|"), $options: "i" } },
-      { description: { $regex: terms.join("|"), $options: "i" } }
-    ]
+      { description: { $regex: terms.join("|"), $options: "i" } },
+    ],
   });
 };
 
@@ -93,7 +91,7 @@ const searchProducts = async (req, res, next) => {
   const locals = {
     title: "EverGreen Search | Always Fresh",
     user: req.session.user,
-    isLoggedIn: req.session.user ? true : false
+    isLoggedIn: !!req.session.user,
   };
 
   try {
@@ -109,11 +107,11 @@ const searchProducts = async (req, res, next) => {
       products = await searchByProduct(searchTerm);
     }
 
-    return res.render("searchResults.ejs", {
+    return res.render("searchResults", {
       locals,
       products,
       searchTerm,
-      layout: "layouts/userLayout"
+      layout: "layouts/userLayout",
     });
   } catch (err) {
     console.error("An error occurred while searching products: ", err);
@@ -123,5 +121,5 @@ const searchProducts = async (req, res, next) => {
 
 module.exports = {
   getHome,
-  searchProducts
+  searchProducts,
 };

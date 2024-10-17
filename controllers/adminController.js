@@ -23,9 +23,9 @@ const getAdminLogin = (req, res) => {
     return res.redirect("/admin/dashboard");
   }
 
-  return res.render("admin/login.ejs", {
+  return res.render("admin/login", {
     locals,
-    layout: "layouts/authLayout.ejs",
+    layout: "layouts/authLayout",
   });
 };
 
@@ -39,9 +39,9 @@ const adminLogin = async (req, res, next) => {
     if (!admin) {
       locals.message.error = "Admin not found. Try again using another account.";
 
-      return res.status(HttpStatus.NOT_FOUND).render("admin/login.ejs", {
+      return res.status(HttpStatus.NOT_FOUND).render("admin/login", {
         locals,
-        layout: "layouts/authLayout.ejs",
+        layout: "layouts/authLayout",
       });
     }
 
@@ -49,9 +49,9 @@ const adminLogin = async (req, res, next) => {
     if (!validatePassword) {
       locals.message.error = "Incorrect password. Try again.";
 
-      return res.status(HttpStatus.UNAUTHORIZED).render("admin/login.ejs", {
+      return res.status(HttpStatus.UNAUTHORIZED).render("admin/login", {
         locals,
-        layout: "layouts/authLayout.ejs",
+        layout: "layouts/authLayout",
       });
     }
 
@@ -84,9 +84,9 @@ const getDashboard = async (req, res, next) => {
       { $group: { _id: null, total: { $sum: "$totalPrice" } } },
     ]);
 
-    return res.render("admin/dashboard.ejs", {
+    return res.render("admin/dashboard", {
       locals,
-      layout: "layouts/adminLayout.ejs",
+      layout: "layouts/adminLayout",
       admin: req.session.admin,
       topCategories: await topSelling.getTopCategories(),
       bestsellingProducts: await topSelling.getBestSellingProducts(),
@@ -204,10 +204,10 @@ const getCategories = async (req, res, next) => {
       locals.message.error = "No categories available. Please add categories to list them.";
     }
 
-    return res.render("admin/categories.ejs", {
+    return res.render("admin/categories", {
       locals,
       categories,
-      layout: "layouts/adminLayout.ejs",
+      layout: "layouts/adminLayout",
     });
   } catch (err) {
     console.error("Error fetching categories: ", err);
@@ -283,10 +283,10 @@ const getUsers = async (req, res, next) => {
       locals.message.error = "The user list is empty. Please check back later.";
     }
 
-    return res.render("admin/users.ejs", {
+    return res.render("admin/users", {
       locals,
       users,
-      layout: "layouts/adminLayout.ejs",
+      layout: "layouts/adminLayout",
     });
   } catch (err) {
     console.error("Error fetching users: ", err);
@@ -304,10 +304,10 @@ const blockUser = async (req, res, next) => {
     if (!user) {
       locals.message.error = "User not found!";
 
-      return res.status(HttpStatus.NOT_FOUND).render("admin/users.ejs", {
+      return res.status(HttpStatus.NOT_FOUND).render("admin/users", {
         locals,
         users: await User.find().lean(),
-        layout: "layouts/adminLayout.ejs",
+        layout: "layouts/adminLayout",
       });
     }
 
@@ -317,10 +317,10 @@ const blockUser = async (req, res, next) => {
 
     locals.message.success = `${user.firstName} ${user.lastName} has been blocked successfully`;
 
-    return res.render("admin/users.ejs", {
+    return res.render("admin/users", {
       locals,
       users: await User.find().lean(),
-      layout: "layouts/adminLayout.ejs",
+      layout: "layouts/adminLayout",
     });
   } catch (err) {
     console.error("Error blocking the user: ", err);
@@ -338,10 +338,10 @@ const unblockUser = async (req, res, next) => {
     if (!user) {
       locals.message.error = "User not found!";
 
-      return res.status(HttpStatus.NOT_FOUND).render("admin/users.ejs", {
+      return res.status(HttpStatus.NOT_FOUND).render("admin/users", {
         locals,
         users: await User.find(),
-        layout: "layouts/adminLayout.ejs",
+        layout: "layouts/adminLayout",
       });
     }
 
@@ -351,10 +351,10 @@ const unblockUser = async (req, res, next) => {
 
     locals.message.success = `${user.firstName} ${user.lastName} has been unblocked successfully`;
 
-    return res.render("admin/users.ejs", {
+    return res.render("admin/users", {
       locals,
       users: await User.find(),
-      layout: "layouts/adminLayout.ejs",
+      layout: "layouts/adminLayout",
     });
   } catch (err) {
     console.error("Error unblocking the user: ", err);
@@ -377,11 +377,11 @@ const getProducts = async (req, res, next) => {
       locals.message.error = "No products available. Please try adding some.";
     }
 
-    return res.render("admin/products.ejs", {
+    return res.render("admin/products", {
       locals,
       products,
       categories,
-      layout: "layouts/adminLayout.ejs",
+      layout: "layouts/adminLayout",
     });
   } catch (err) {
     console.error(`Error fetching categories or products: `, err);
@@ -399,10 +399,10 @@ const getAddProduct = async (req, res, next) => {
       locals.message.error = "Error fetching categories. Please try again later.";
     }
 
-    return res.render("admin/addProduct.ejs", {
+    return res.render("admin/addProduct", {
       locals,
       categories,
-      layout: "layouts/adminLayout.ejs",
+      layout: "layouts/adminLayout",
     });
   } catch (err) {
     console.error("Error fetching categories: ", err);
@@ -488,11 +488,11 @@ const getEditProduct = async (req, res, next) => {
       });
     }
 
-    return res.render("admin/editProduct.ejs", {
+    return res.render("admin/editProduct", {
       locals,
       categories,
       product,
-      layout: "layouts/adminLayout.ejs",
+      layout: "layouts/adminLayout",
     });
   } catch (err) {
     console.error("Error fetching the product: ", err);
@@ -563,10 +563,10 @@ const listProduct = async (req, res, next) => {
     if (!product) {
       locals.message.error = "Product not found! Please try again.";
 
-      return res.status(HttpStatus.NOT_FOUND).render("admin/products.ejs", {
+      return res.status(HttpStatus.NOT_FOUND).render("admin/products", {
         locals,
         products: await Product.find(),
-        layout: "layouts/adminLayout.ejs",
+        layout: "layouts/adminLayout",
       });
     }
 
@@ -575,10 +575,10 @@ const listProduct = async (req, res, next) => {
 
     locals.message.success = `${product.name} listed successfully`;
 
-    return res.render("admin/products.ejs", {
+    return res.render("admin/products", {
       locals,
       products: await Product.find(),
-      layout: "layouts/adminLayout.ejs",
+      layout: "layouts/adminLayout",
     });
   } catch (err) {
     console.error("Error listing the product: ", err);
@@ -596,10 +596,10 @@ const unlistProduct = async (req, res, next) => {
     if (!product) {
       locals.message.error = "Product not found! Please try again.";
 
-      return res.status(HttpStatus.NOT_FOUND).render("admin/products.ejs", {
+      return res.status(HttpStatus.NOT_FOUND).render("admin/products", {
         locals,
         products: await Product.find(),
-        layout: "layouts/adminLayout.ejs",
+        layout: "layouts/adminLayout",
       });
     }
 
@@ -608,10 +608,10 @@ const unlistProduct = async (req, res, next) => {
 
     locals.message.success = `${product.name} unlisted successfully`;
 
-    return res.render("admin/products.ejs", {
+    return res.render("admin/products", {
       locals,
       products: await Product.find(),
-      layout: "layouts/adminLayout.ejs",
+      layout: "layouts/adminLayout",
     });
   } catch (err) {
     console.error("Error unlisting the product: ", err);
@@ -623,7 +623,7 @@ const unlistProduct = async (req, res, next) => {
 const getAddCoupon = (req, res) => {
   const locals = { title: "Admin - Add Coupon | EverGreen" };
 
-  return res.render("admin/addCoupon.ejs", {
+  return res.render("admin/addCoupon", {
     locals,
     layout: "layouts/adminLayout",
   });
@@ -667,7 +667,7 @@ const getCoupons = async (req, res, next) => {
   try {
     const coupons = await Coupon.find().sort({ createdAt: -1 });
 
-    return res.render("admin/coupons.ejs", {
+    return res.render("admin/coupons", {
       locals,
       coupons,
       layout: "layouts/adminLayout",
@@ -688,7 +688,7 @@ const getEditCoupon = async (req, res, next) => {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Coupon not found.");
     }
 
-    return res.render("admin/editCoupon.ejs", {
+    return res.render("admin/editCoupon", {
       locals,
       coupon,
       layout: "layouts/adminLayout",
@@ -768,10 +768,10 @@ const getOrders = async (req, res, next) => {
       .populate("couponId")
       .sort({ createdAt: -1 });
 
-    return res.render("admin/orders.ejs", {
+    return res.render("admin/orders", {
       locals,
       orders,
-      layout: "layouts/adminLayout.ejs",
+      layout: "layouts/adminLayout",
     });
   } catch (err) {
     console.error("Error fetching orders: ", err);
@@ -820,7 +820,7 @@ const getOrderDetails = async (req, res, next) => {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
     }
 
-    return res.render("admin/orderDetails.ejs", {
+    return res.render("admin/orderDetails", {
       locals,
       order,
       layout: "layouts/adminLayout",
@@ -868,7 +868,7 @@ const getBanner = async (req, res, next) => {
   try {
     const banners = await Banner.find().sort({ createdAt: -1 });
 
-    return res.render("admin/banners.ejs", {
+    return res.render("admin/banners", {
       locals,
       banners,
       layout: "layouts/adminLayout",
@@ -883,7 +883,7 @@ const getBanner = async (req, res, next) => {
 const getAddBanner = (req, res) => {
   const locals = { title: "Admin - Add Banner | EverGreen" };
 
-  return res.render("admin/addBanner.ejs", {
+  return res.render("admin/addBanner", {
     locals,
     layout: "layouts/adminLayout",
   });
@@ -990,7 +990,7 @@ const getAddCategoryOffers = async (req, res, next) => {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Categories not found.");
     }
 
-    return res.render("admin/addCategoryOffer.ejs", {
+    return res.render("admin/addCategoryOffer", {
       locals,
       categories,
       offerTypes,
@@ -1061,7 +1061,7 @@ const getAddProductOffers = async (req, res, next) => {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Products not found.");
     }
 
-    return res.render("admin/addProductOffer.ejs", {
+    return res.render("admin/addProductOffer", {
       locals,
       products: filteredProducts,
       offerTypes: offerTypes,
@@ -1138,11 +1138,11 @@ const getOffers = async (req, res, next) => {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Products with offer not found.");
     }
 
-    return res.render("admin/offers.ejs", {
+    return res.render("admin/offers", {
       locals,
       categories,
       products,
-      layout: "layouts/adminLayout.ejs",
+      layout: "layouts/adminLayout",
     });
   } catch (err) {
     console.error("Error fetching offers page: ", err);
@@ -1167,7 +1167,7 @@ const getCategoryOffers = async (req, res, next) => {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Categories with offer not found.");
     }
 
-    return res.render("admin/categoryOffers.ejs", {
+    return res.render("admin/categoryOffers", {
       locals,
       categories,
       layout: "layouts/adminLayout",
@@ -1195,7 +1195,7 @@ const getProductOffers = async (req, res, next) => {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Products with offer not found.");
     }
 
-    return res.render("admin/productOffers.ejs", {
+    return res.render("admin/productOffers", {
       locals,
       products,
       layout: "layouts/adminLayout",
