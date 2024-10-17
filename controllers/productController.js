@@ -96,11 +96,13 @@ const getProducts = async (req, res, next) => {
         .populate("offer")
         .sort(sortOption)
         .skip((page - 1) * limit)
-        .limit(limit)
-        .lean({ virtuals: true });
+        .limit(limit);
     }
 
     products = products.map((product) => {
+      if (product.toObject) {
+        product = product.toObject();
+      }
       const {
         discountedPrice,
         discountPercentage,
@@ -159,8 +161,7 @@ const getProductDetails = async (req, res, next) => {
         path: "category", 
         populate: { path: "offer" },
       })
-      .populate("ratings.userId")
-      .lean({ virtuals: true });
+      .populate("ratings.userId");
 
     if (!product) {
       return res.status(404).render('notFoundError', {
@@ -171,7 +172,7 @@ const getProductDetails = async (req, res, next) => {
 
     const { discountedPrice, discountPercentage, fixedDiscount, discountType } = calculateBestDiscountedPrice(product);
     const mainProduct = {
-      ...product,
+      ...product.toObject(),
       discountedPrice,
       discountPercentage,
       fixedDiscount,
@@ -186,9 +187,8 @@ const getProductDetails = async (req, res, next) => {
       .limit(5)
       .populate({
         path: "category", 
-        populate: { path: "offer" },
-      })
-      .lean({ virtuals: true });
+        populate: { path: "offer" }
+      });
 
     relatedProducts = relatedProducts.map((relatedProduct) => {
       const {
@@ -198,7 +198,7 @@ const getProductDetails = async (req, res, next) => {
         discountType,
       } = calculateBestDiscountedPrice(relatedProduct);
       return {
-        ...relatedProduct,
+        ...relatedProduct.toObject(),
         discountedPrice,
         discountPercentage,
         fixedDiscount,
