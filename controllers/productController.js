@@ -8,13 +8,13 @@ const successHandler = require("../utils/successHandlerUtils");
 const HttpStatus = require("../utils/httpStatus");
 
 // Function to get products with offer calculations
-const getProducts = async (req, res) => {
+const getProducts = async (req, res, next) => {
   const locals = {
     title: "Products Page",
-    isLoggedIn: req.session.user ? true : false,
+    isLoggedIn: !!req.session.user,
     user: req.session.user,
     selectedCategory: req.query.categoryId || "0",
-    sort: req.query.sort || ""
+    sort: req.query.sort || "",
   };
 
   const page = parseInt(req.query.page || 1);
@@ -25,7 +25,7 @@ const getProducts = async (req, res) => {
 
   let filter = {
     availability: true,
-    category: { $in: listedCategoryIds }
+    category: { $in: listedCategoryIds },
   };
 
   if (locals.selectedCategory !== "0") {
@@ -37,9 +37,7 @@ const getProducts = async (req, res) => {
   let totalProducts = 0;
 
   try {
-    const categories = await Category.find({ isListed: true }).populate(
-      "offer"
-    );
+    const categories = await Category.find({ isListed: true }).populate("offer");
 
     switch (locals.sort) {
       case "aToZ":
@@ -54,7 +52,7 @@ const getProducts = async (req, res) => {
           { $addFields: { averageRating: { $avg: "$ratings.rating" } } },
           { $sort: { averageRating: -1 } },
           { $skip: (page - 1) * limit },
-          { $limit: limit }
+          { $limit: limit },
         ]);
         break;
       case "newArrivals":
@@ -68,14 +66,14 @@ const getProducts = async (req, res) => {
               popularityScore: {
                 $add: [
                   { $multiply: ["$purchaseCount", 0.7] },
-                  { $avg: "$ratings.rating" }
+                  { $avg: "$ratings.rating" },
                 ],
               },
             },
           },
           { $sort: { popularityScore: -1 } },
           { $skip: (page - 1) * limit },
-          { $limit: limit }
+          { $limit: limit },
         ]);
         break;
       case "priceLowToHigh":
@@ -108,28 +106,28 @@ const getProducts = async (req, res) => {
         discountedPrice,
         discountPercentage,
         fixedDiscount,
-        discountType
+        discountType,
       } = calculateBestDiscountedPrice(product);
       return {
         ...product,
         discountedPrice,
         discountPercentage,
         fixedDiscount,
-        discountType
+        discountType,
       };
     });
 
     totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / limit);
 
-    return res.render("users/products/products.ejs", {
+    return res.render("users/products/products", {
       locals,
       categories,
       products,
       totalProducts,
       currentPage: page,
       totalPages,
-      layout: "layouts/userLayout"
+      layout: "layouts/userLayout",
     });
   } catch (err) {
     console.error("An error occurred while fetching the products page: ", err);
@@ -141,19 +139,19 @@ const getProducts = async (req, res) => {
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 // Function to fetch and render the product details page
-const getProductDetails = async (req, res) => {
+const getProductDetails = async (req, res, next) => {
   const locals = {
     title: "Product Details | EverGreen",
-    isLoggedIn: req.session.user ? true : false,
-    user: req.session.user
+    isLoggedIn: !!req.session.user,
+    user: req.session.user,
   };
 
   try {
     const productId = req.params.id;
     if (!isValidObjectId(productId)) {
-      return res.status(HttpStatus.BAD_REQUEST).render('notFoundError.ejs', {
+      return res.status(HttpStatus.BAD_REQUEST).render('notFoundError', {
           message: 'Invalid product ID.',
-          layout: 'layouts/errorMessagesLayout.ejs'
+          layout: 'layouts/errorMessagesLayout',
       });
     }
 
@@ -162,20 +160,19 @@ const getProductDetails = async (req, res) => {
       .populate("ratings.userId");
 
     if (!product) {
-      return res.status(404).render('notFoundError.ejs', {
+      return res.status(404).render('notFoundError', {
         message: 'Product not found.',
-        layout: 'layouts/errorMessagesLayout.ejs'
+        layout: 'layouts/errorMessagesLayout',
       });
     }
 
-    const { discountedPrice, discountPercentage, fixedDiscount, discountType } =
-      calculateBestDiscountedPrice(product);
+    const { discountedPrice, discountPercentage, fixedDiscount, discountType } = calculateBestDiscountedPrice(product);
     const mainProduct = {
       ...product.toObject(),
       discountedPrice,
       discountPercentage,
       fixedDiscount,
-      discountType
+      discountType,
     };
 
     const averageRating = product.averageRating;
@@ -192,25 +189,25 @@ const getProductDetails = async (req, res) => {
         discountedPrice,
         discountPercentage,
         fixedDiscount,
-        discountType
+        discountType,
       } = calculateBestDiscountedPrice(relatedProduct);
       return {
         ...relatedProduct.toObject(),
         discountedPrice,
         discountPercentage,
         fixedDiscount,
-        discountType
+        discountType,
       };
     });
 
-    return res.render("users/products/productDetails.ejs", {
+    return res.render("users/products/productDetails", {
       locals,
       product: mainProduct,
       productId,
       averageRating,
       hasRatings,
       relatedProducts,
-      layout: "layouts/userLayout"
+      layout: "layouts/userLayout",
     });
   } catch (err) {
     console.error('Error fetching product details: ', err);
@@ -219,29 +216,27 @@ const getProductDetails = async (req, res) => {
 };
 
 // Function to check if a user is eligible for product review
-const isUserEligibleForReview = async (userId, productId) => {
+const isUserEligibleForReview = async (userId, productId, next) => {
   try {
     const order = await Order.findOne({
       userId: userId,
       "orderItems.productId": productId,
-      "orderItems.itemStatus": "Delivered"
+      "orderItems.itemStatus": "Delivered",
     })
       .populate({
         path: "orderItems.productId",
-        select: "name images"
+        select: "name images",
       })
       .select("_id orderItems.productId");
 
     if (order) {
-      const productItem = order.orderItems.find(item => 
-        item.productId._id.equals(productId)
-      );
+      const productItem = order.orderItems.find(item => item.productId._id.equals(productId));
     
       if (productItem) {
         return {
           eligible: true,
           productName: productItem.productId.name,
-          productImage: productItem.productId.images?.[0] || null
+          productImage: productItem.productId.images?.[0] || null,
         };
       }
     }
@@ -254,38 +249,29 @@ const isUserEligibleForReview = async (userId, productId) => {
 };
 
 // Function to render the product rating page
-const getRateProduct = async (req, res) => {
+const getRateProduct = async (req, res, next) => {
   const locals = {
     title: "Products Page",
-    isLoggedIn: req.session.user ? true : false,
-    user: req.session.user
+    isLoggedIn: !!req.session.user,
+    user: req.session.user,
   };
 
   const userId = req.session.user._id;
   const productId = req.params.id;
 
   try {
-    if (!locals.isLoggedIn) {
-      const errorMessage =
-        "You must be logged in to access this page. Return back to login page.";
-      return res.redirect(
-        `/error?statusCode=401&errorMessage=${encodeURIComponent(errorMessage)}`
-      );
-    }
-
-    const { eligible, productName, productImage } =
-      await isUserEligibleForReview(userId, productId);
+    const { eligible, productName, productImage } = await isUserEligibleForReview(userId, productId);
 
     if (!eligible) {
       return errorHandler(res, HttpStatus.FORBIDDEN, "You are not eligible to review this product.");
     }
 
-    return res.render("users/products/rateProduct.ejs", {
+    return res.render("users/products/rateProduct", {
       locals,
       layout: "layouts/userLayout",
       productId,
       productName,
-      productImage
+      productImage,
     });
   } catch (err) {
     console.error("Error fetching product rating page: ", err);
@@ -294,7 +280,7 @@ const getRateProduct = async (req, res) => {
 };
 
 // Function to handle the rating of a product
-const rateProduct = async (req, res) => {
+const rateProduct = async (req, res, next) => {
   const userId = req.session.user._id;
   const productId = req.params.id;
   const { rating, comment } = req.body;
@@ -305,9 +291,7 @@ const rateProduct = async (req, res) => {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Product not found");
     }
 
-    const existingRating = product.ratings.find(
-      (rating) => rating.userId.toString() === userId
-    );
+    const existingRating = product.ratings.find((rating) => rating.userId.toString() === userId);
     if (existingRating) {
       existingRating.rating = rating;
       existingRating.review = comment;
@@ -315,7 +299,7 @@ const rateProduct = async (req, res) => {
       product.ratings.push({
         userId,
         rating,
-        review: comment
+        review: comment,
       });
     }
 
@@ -332,5 +316,5 @@ module.exports = {
   getProducts,
   getProductDetails,
   getRateProduct,
-  rateProduct
+  rateProduct,
 };
