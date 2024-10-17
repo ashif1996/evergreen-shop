@@ -160,7 +160,7 @@ const getProductDetails = async (req, res, next) => {
         populate: { path: "offer" },
       })
       .populate("ratings.userId")
-      .lean();
+      .lean({ virtuals: true });
 
     if (!product) {
       return res.status(404).render('notFoundError', {
@@ -188,7 +188,7 @@ const getProductDetails = async (req, res, next) => {
         path: "category", 
         populate: { path: "offer" },
       })
-      .lean();
+      .lean({ virtuals: true });
 
     relatedProducts = relatedProducts.map((relatedProduct) => {
       const {
