@@ -8,7 +8,7 @@ const HttpStatus = require("../httpStatus");
 
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
 // Fetch user's wallet and transaction history
@@ -16,7 +16,7 @@ const getWallet = async (req, res, next) => {
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
-    isLoggedIn: req.session.user ? true : false
+    isLoggedIn: !!req.session.user,
   };
 
   try {
@@ -31,10 +31,10 @@ const getWallet = async (req, res, next) => {
       wallet.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
 
-    return res.render("users/wallet.ejs", {
+    return res.render("users/wallet", {
       locals,
       wallet,
-      layout: "layouts/userLayout"
+      layout: "layouts/userLayout",
     });
   } catch (err) {
     console.error("Error fetching wallet data: ", err);
@@ -47,13 +47,13 @@ const getAddWalletMoney = async (req, res, next) => {
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
-    isLoggedIn: req.session.user ? true : false
+    isLoggedIn: !!req.session.user,
   };
 
   try {
-    return res.render("users/addWalletMoney.ejs", {
+    return res.render("users/addWalletMoney", {
       locals,
-      layout: "layouts/userLayout"
+      layout: "layouts/userLayout",
     });
   } catch (err) {
     console.error("Error rendering add money form: ", err);
@@ -66,7 +66,7 @@ const initiatePayment = async (req, res, next) => {
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
-    isLoggedIn: req.session.user ? true : false
+    isLoggedIn: !!req.session.user,
   };
 
   try {
@@ -81,7 +81,7 @@ const initiatePayment = async (req, res, next) => {
       currency: "INR",
       receipt: `receipt_${new Date().getTime()}`,
       notes: {
-        description: note || "Adding money to wallet."
+        description: note || "Adding money to wallet.",
       },
     };
 
@@ -92,7 +92,7 @@ const initiatePayment = async (req, res, next) => {
       amount: order.amount,
       currency: order.currency,
       id: order.id,
-      notes: order.notes
+      notes: order.notes,
     });
   } catch (err) {
     console.error("Error initiating payment: ", err);
@@ -105,7 +105,7 @@ const verifyPayment = async (req, res, next) => {
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
-    isLoggedIn: req.session.user ? true : false
+    isLoggedIn: !!req.session.user,
   };
 
   try {
@@ -114,7 +114,7 @@ const verifyPayment = async (req, res, next) => {
       razorpay_order_id,
       razorpay_signature,
       amount,
-      note
+      note,
     } = req.body;
 
     const generated_signature = crypto
@@ -135,7 +135,7 @@ const verifyPayment = async (req, res, next) => {
           amount: amount / 100,
           description: note || "Added to wallet.",
           type: "credit",
-          status: "completed"
+          status: "completed",
         });
 
         await user.save();
@@ -196,15 +196,13 @@ const processRefund = async (orderId, itemId = null, next) => {
             "wallet.transactions": {
               amount: refundAmount,
               date: new Date(),
-              description: itemId
-                ? `Refund for item ${item.name}.`
-                : "Order cancelled successfully.",
+              description: itemId ? `Refund for item ${item.name}.` : "Order cancelled successfully.",
               type: "credit",
               status: "completed",
             },
           },
         },
-        { new: true }
+        { new: true },
       );
 
       if (!walletUser) {
@@ -220,7 +218,7 @@ const processRefund = async (orderId, itemId = null, next) => {
       refundedItem: itemId ? item : null,
       message: itemId
         ? `Item ${item.name} returned successfully.`
-        : "Order cancelled successfully."
+        : "Order cancelled successfully.",
     };
   } catch (err) {
     console.error("Error processing refund: ", err);
@@ -233,5 +231,5 @@ module.exports = {
   getAddWalletMoney,
   initiatePayment,
   verifyPayment,
-  processRefund
+  processRefund,
 };

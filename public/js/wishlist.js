@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         method: 'POST',
                         headers: {
                             'content-type': 'application/json',
-                            'CSRF-Token': csrfToken
+                            'CSRF-Token': csrfToken,
                         },
                         body: JSON.stringify({ productId })
                     });

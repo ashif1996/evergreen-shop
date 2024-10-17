@@ -14,7 +14,7 @@ const HttpStatus = require("../httpStatus");
 // Load Razorpay credentials from environment variables
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
 // Create Razorpay Order
@@ -32,7 +32,7 @@ const createRazorpayOrder = async (orderDetails, next) => {
 const verifyRazorpayPaymentSignature = (
   razorpayOrderId,
   razorpayPaymentId,
-  razorpaySignature
+  razorpaySignature,
 ) => {
   const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET);
   const data = `${razorpayOrderId}|${razorpayPaymentId}`;
@@ -47,7 +47,7 @@ const confirmRazorpayPayment = async (
   razorpayOrderId,
   razorpayPaymentId,
   userId,
-  couponId
+  couponId,
 ) => {
   const order = await Order.findOne({ razorpayOrderId });
   if (!order) {
@@ -78,11 +78,15 @@ const handleRazorpayPaymentFailure = async (req, res, next) => {
     order.orderPaymentStatus = "Failed";
     await Order.updateMany(
       { "orderItems._id": { $in: order.orderItems.map((item) => item._id) } },
-      { $set: { "orderItems.$[].itemStatus": "Failed" } }
+      { $set: { "orderItems.$[].itemStatus": "Failed" } },
     );
     await order.save();
 
-    return successHandler(res, HttpStatus.PAYMENT_REQUIRED, "Order payment failed. You can retry the payment from your order details page.");
+    return successHandler(
+      res,
+      HttpStatus.PAYMENT_REQUIRED,
+      "Order payment failed. You can retry the payment from your order details page.",
+    );
   } catch (err) {
     console.error("Error handling payment failure: ", err);
     return next(err);
@@ -93,5 +97,5 @@ module.exports = {
   createRazorpayOrder,
   verifyRazorpayPaymentSignature,
   confirmRazorpayPayment,
-  handleRazorpayPaymentFailure
+  handleRazorpayPaymentFailure,
 };
