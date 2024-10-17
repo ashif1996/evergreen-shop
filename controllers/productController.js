@@ -20,24 +20,22 @@ const getProducts = async (req, res, next) => {
   const page = parseInt(req.query.page || 1);
   const limit = parseInt(req.query.limit || 10);
 
-  const listedCategories = await Category.find({ isListed: true }).select("_id");
-  const listedCategoryIds = listedCategories.map((category) => category._id);
-
-  let filter = {
-    availability: true,
-    category: { $in: listedCategoryIds },
-  };
-
-  if (locals.selectedCategory !== "0") {
-    filter.category = locals.selectedCategory;
-  }
-
-  let sortOption = {};
-  let products = [];
-  let totalProducts = 0;
-
   try {
     const categories = await Category.find({ isListed: true }).populate("offer");
+    const listedCategoryIds = categories.map((category) => category._id);
+
+    let filter = {
+      availability: true,
+      category: { $in: listedCategoryIds },
+    };
+
+    if (locals.selectedCategory !== "0") {
+      filter.category = locals.selectedCategory;
+    }
+
+    let sortOption = {};
+    let products = [];
+    let totalProducts = 0;
 
     switch (locals.sort) {
       case "aToZ":
