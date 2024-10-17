@@ -101,9 +101,6 @@ const getProducts = async (req, res, next) => {
     }
 
     products = products.map((product) => {
-      if (product.toObject) {
-        product = product.toObject();
-      }
       const {
         discountedPrice,
         discountPercentage,
@@ -174,7 +171,7 @@ const getProductDetails = async (req, res, next) => {
 
     const { discountedPrice, discountPercentage, fixedDiscount, discountType } = calculateBestDiscountedPrice(product);
     const mainProduct = {
-      ...product.toObject(),
+      ...product,
       discountedPrice,
       discountPercentage,
       fixedDiscount,
@@ -201,7 +198,7 @@ const getProductDetails = async (req, res, next) => {
         discountType,
       } = calculateBestDiscountedPrice(relatedProduct);
       return {
-        ...relatedProduct.toObject(),
+        ...relatedProduct,
         discountedPrice,
         discountPercentage,
         fixedDiscount,
