@@ -97,7 +97,7 @@ const getProducts = async (req, res, next) => {
         .sort(sortOption)
         .skip((page - 1) * limit)
         .limit(limit)
-        .lean();
+        .lean({ virtuals: true });
     }
 
     products = products.map((product) => {
