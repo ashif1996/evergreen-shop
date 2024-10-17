@@ -89,11 +89,15 @@ const getProducts = async (req, res, next) => {
 
     if (products.length === 0) {
       products = await Product.find(filter)
-        .populate("category")
+        .populate({
+          path: "category", 
+          populate: { path: "offer" },
+        })
         .populate("offer")
         .sort(sortOption)
         .skip((page - 1) * limit)
-        .limit(limit);
+        .limit(limit)
+        .lean();
     }
 
     products = products.map((product) => {
@@ -154,8 +158,12 @@ const getProductDetails = async (req, res, next) => {
     }
 
     const product = await Product.findById(productId)
-      .populate("category")
-      .populate("ratings.userId");
+      .populate({
+        path: "category", 
+        populate: { path: "offer" },
+      })
+      .populate("ratings.userId")
+      .lean();
 
     if (!product) {
       return res.status(404).render('notFoundError', {
@@ -179,8 +187,11 @@ const getProductDetails = async (req, res, next) => {
 
     let relatedProducts = await Product.find({ category: relatedCategory })
       .limit(5)
-      .populate("category")
-      .populate("category.offer");
+      .populate({
+        path: "category", 
+        populate: { path: "offer" },
+      })
+      .lean();
 
     relatedProducts = relatedProducts.map((relatedProduct) => {
       const {
