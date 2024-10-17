@@ -4,9 +4,7 @@ const Cart = require("../models/cartSchema");
 const Product = require("../models/product");
 const User = require("../models/user");
 const Wishlist = require("../models/wishlistSchema");
-const {
-  calculateBestDiscountedPrice,
-} = require("../utils/discountPriceCalculation");
+const { calculateBestDiscountedPrice } = require("../utils/discountPriceCalculation");
 const {
   creditReferralReward,
   generateReferralCode,
@@ -22,7 +20,7 @@ const getUserSignup = (req, res) => {
 
   return res.render("users/signup", {
     locals,
-    layout: "layouts/authLayout"
+    layout: "layouts/authLayout",
   });
 };
 
@@ -54,7 +52,7 @@ const userSignup = async (req, res, next) => {
       lastName,
       email,
       password,
-      referredBy: referrer ? referrer._id : null
+      referredBy: referrer ? referrer._id : null,
     });
 
     const user = await newUser.save();
@@ -82,7 +80,7 @@ const getUserLogin = (req, res) => {
   } else {
     return res.render("users/login", {
       locals,
-      layout: "layouts/authLayout.ejs"
+      layout: "layouts/authLayout",
     });
   }
 };
@@ -96,27 +94,29 @@ const userLogin = async (req, res, next) => {
     const user = await User.findOne({ email, isAdmin: false });
     if (!user) {
       locals.message.error = "User not found. Try again using another account.";
-      return res.status(HttpStatus.NOT_FOUND).render("users/login.ejs", {
+
+      return res.status(HttpStatus.NOT_FOUND).render("users/login", {
         locals,
-        layout: "layouts/authLayout.ejs"
+        layout: "layouts/authLayout",
       });
     }
 
     if (user.status === false) {
-      locals.message.error =
-        "You are blocked by the Admin. Try using another account.";
-      return res.status(HttpStatus.BAD_REQUEST).render("users/login.ejs", {
+      locals.message.error = "You are blocked by the Admin. Try using another account.";
+
+      return res.status(HttpStatus.BAD_REQUEST).render("users/login", {
         locals,
-        layout: "layouts/authLayout.ejs"
+        layout: "layouts/authLayout",
       });
     }
 
     const validatePassword = await bcrypt.compare(password, user.password);
     if (!validatePassword) {
       locals.message.error = "Password does not match. Please try again.";
-      return res.status(HttpStatus.BAD_REQUEST).render("users/login.ejs", {
+
+      return res.status(HttpStatus.BAD_REQUEST).render("users/login", {
         locals,
-        layout: "layouts/authLayout.ejs"
+        layout: "layouts/authLayout",
       });
     }
 
@@ -125,7 +125,7 @@ const userLogin = async (req, res, next) => {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      status: user.status
+      status: user.status,
     };
 
     return res.redirect("/");
@@ -143,7 +143,7 @@ const getForgotPassword = (req, res) => {
 
   return res.render("users/forgot-password", {
     locals,
-    layout: "layouts/authLayout"
+    layout: "layouts/authLayout",
   });
 };
 
@@ -153,7 +153,7 @@ const getChangePassword = (req, res) => {
 
   return res.render("users/change-password", {
     locals,
-    layout: "layouts/authLayout"
+    layout: "layouts/authLayout",
   });
 };
 
@@ -162,7 +162,7 @@ const getUserProfile = async (req, res, next) => {
   const locals = {
     title: "User Profile | EverGreen",
     user: null,
-    isLoggedIn: !!req.session.user
+    isLoggedIn: !!req.session.user,
   };
 
   const userId = req.session.user._id;
@@ -171,17 +171,15 @@ const getUserProfile = async (req, res, next) => {
     const user = await User.findById(userId).populate("addresses");
     if (!user) {
       const errorMessage = "User not found. Try again using another account.";
-      return res.redirect(
-        `/error?statusCode=404&errorMessage=${encodeURIComponent(errorMessage)}`
-      );
+      return res.redirect(`/error?statusCode=404&errorMessage=${encodeURIComponent(errorMessage)}`);
     }
 
     locals.user = user;
 
-    return res.render("users/profile.ejs", {
+    return res.render("users/profile", {
       locals,
       addresses: user.addresses || [],
-      layout: "layouts/userLayout"
+      layout: "layouts/userLayout",
     });
   } catch (err) {
     console.error("Error fetching user profile: ", err);
@@ -194,12 +192,12 @@ const getEditProfile = (req, res) => {
   const locals = {
     title: "Edit User Profile | EverGreen",
     user: req.session.user,
-    isLoggedIn: !!req.session.user
+    isLoggedIn: !!req.session.user,
   };
 
-  return res.render("users/editProfile.ejs", {
+  return res.render("users/editProfile", {
     locals,
-    layout: "layouts/userLayout"
+    layout: "layouts/userLayout",
   });
 };
 
@@ -211,7 +209,7 @@ const editProfile = async (req, res, next) => {
   try {
     await User.findByIdAndUpdate(userId, {
       firstName,
-      lastName
+      lastName,
     });
 
     req.session.user.firstName = firstName;
@@ -230,7 +228,7 @@ const getAddressManagement = async (req, res, next) => {
     title: "Address Management | EverGreen",
     user: req.session.user,
     addresses: [],
-    isLoggedIn: !!req.session.user
+    isLoggedIn: !!req.session.user,
   };
 
   try {
@@ -239,9 +237,9 @@ const getAddressManagement = async (req, res, next) => {
 
     locals.addresses = user.addresses;
 
-    return res.render("users/addressManagement.ejs", {
+    return res.render("users/addressManagement", {
       locals,
-      layout: "layouts/userLayout"
+      layout: "layouts/userLayout",
     });
   } catch (err) {
     console.error("Error fetching address management: ", err);
@@ -264,7 +262,7 @@ const addAddress = async (req, res, next) => {
       const updatedAddress = await Address.findByIdAndUpdate(
         addressId,
         { address, city, state, zipCode },
-        { new: true }
+        { new: true },
       );
 
       if (!updatedAddress) {
@@ -279,7 +277,7 @@ const addAddress = async (req, res, next) => {
         address,
         city,
         state,
-        zipCode
+        zipCode,
       });
 
       await newAddress.save();
@@ -326,7 +324,7 @@ const getShoppingCart = async (req, res, next) => {
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
-    isLoggedIn: !!req.session.user
+    isLoggedIn: !!req.session.user,
   };
 
   try {
@@ -337,7 +335,7 @@ const getShoppingCart = async (req, res, next) => {
       path: "items.productId",
       populate: {
         path: "category",
-        model: "Category"
+        model: "Category",
       }
     });
 
@@ -347,7 +345,7 @@ const getShoppingCart = async (req, res, next) => {
         items: [],
         subTotal: 0,
         shippingCharge: 30,
-        totalPrice: 30
+        totalPrice: 30,
       });
       await cart.save();
     }
@@ -367,14 +365,14 @@ const getShoppingCart = async (req, res, next) => {
       item.discountPercentage = discountDetails.discountPercentage;
     });
 
-    return res.render("users/cart.ejs", {
+    return res.render("users/cart", {
       locals,
       user: user,
       cart: cart,
-      layout: "layouts/userLayout"
+      layout: "layouts/userLayout",
     });
   } catch (err) {
-    console.error("Error fetching cart:", err);
+    console.error("Error fetching cart: ", err);
     return next(err);
   }
 };
@@ -407,16 +405,14 @@ const addProduct = async (req, res, next) => {
         items: [],
         subTotal: 0,
         shippingCharge: 30,
-        totalPrice: 30
+        totalPrice: 30,
       });
       await cart.save()
       user.cart = cart._id;
       await user.save();
     }
 
-    const existingItem = cart.items.find((item) =>
-      item.productId.equals(productId)
-    );
+    const existingItem = cart.items.find((item) => item.productId.equals(productId));
     if (existingItem) {
       if (existingItem.quantity + 0.5 > product.stock) {
         return errorHandler(res, HttpStatus.BAD_REQUEST, "Not enough stock available.");
@@ -432,7 +428,7 @@ const addProduct = async (req, res, next) => {
         productId,
         price: product.price,
         quantity: 1,
-        itemTotal: discountedPrice ? discountedPrice : product.price
+        itemTotal: discountedPrice ? discountedPrice : product.price,
       });
     }
 
@@ -444,9 +440,9 @@ const addProduct = async (req, res, next) => {
 
     return res.status(HttpStatus.OK).json({
       success: true,
-      message: "Product added to cart",
+      message: "Product added to cart.",
       cart,
-      itemCount
+      itemCount,
     });
   } catch (err) {
     console.error("Error adding product to cart: ", err);
@@ -486,7 +482,7 @@ const updateCartQuantity = async (req, res, next) => {
           success: true,
           itemTotal: item.itemTotal,
           subTotal: cart.subTotal,
-          totalPrice: cart.totalPrice
+          totalPrice: cart.totalPrice,
         });
       }
 
@@ -532,7 +528,7 @@ const deleteCartItems = async (req, res, next) => {
         success: true,
         subTotal: cart.subTotal,
         totalPrice: cart.totalPrice,
-        message: "Product removed from your cart."
+        message: "Product removed from your cart.",
       });
     }
   } catch (err) {
@@ -546,7 +542,7 @@ const getWishlist = async (req, res, next) => {
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
-    isLoggedIn: !!req.session.user
+    isLoggedIn: !!req.session.user,
   };
 
   try {
@@ -557,7 +553,7 @@ const getWishlist = async (req, res, next) => {
     if (!wishlist) {
       wishlist = new Wishlist({
         userId,
-        items: []
+        items: [],
       });
       await wishlist.save();
     }
@@ -574,12 +570,12 @@ const getWishlist = async (req, res, next) => {
     const totalPages = Math.ceil(totalItems / limit);
     const paginatedItems = wishlist.items.slice((page - 1) * limit, page * limit);
 
-    return res.render("users/wishlist.ejs", {
+    return res.render("users/wishlist", {
       locals,
       wishlist: { ...wishlist, items: paginatedItems },
       currentPage: page,
       totalPages,
-      layout: "layouts/userLayout"
+      layout: "layouts/userLayout",
     });
   } catch (error) {
     console.error("Error fetching Wishlist: ", error);
@@ -598,7 +594,6 @@ const addToWishlist = async (req, res, next) => {
     }
 
     const { productId } = req.body;
-
     const product = await Product.findById(productId);
     if (!product) {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Product not found.");
@@ -615,9 +610,7 @@ const addToWishlist = async (req, res, next) => {
       await user.save();
     }
 
-    const existingItem = wishlist.items.find((item) =>
-      item.productId.equals(productId)
-    );
+    const existingItem = wishlist.items.find((item) => item.productId.equals(productId));
     if (existingItem) {
       return errorHandler(res, HttpStatus.BAD_REQUEST, "Product already exists in your wishlist.");
     }
@@ -671,7 +664,7 @@ const getReferrals = async (req, res, next) => {
   const locals = {
     title: "Shopping Cart | EverGreen",
     user: req.session.user,
-    isLoggedIn: !!req.session.user
+    isLoggedIn: !!req.session.user,
   };
 
   try {
@@ -683,12 +676,12 @@ const getReferrals = async (req, res, next) => {
 
     const referrals = await User.find({ referredBy: user._id });
 
-    return res.render("users/referrals.ejs", {
+    return res.render("users/referrals", {
       locals,
       user: user,
       referrals: referrals,
       layout: "layouts/userLayout",
-      formatDate: (date) => new Date(date).toLocaleDateString()
+      formatDate: (date) => new Date(date).toLocaleDateString(),
     });
   } catch (err) {
     console.error("Error fetching referral data: ", err);
@@ -728,5 +721,5 @@ module.exports = {
   addToWishlist,
   deleteWishlistItems,
   getReferrals,
-  userLogout
+  userLogout,
 };

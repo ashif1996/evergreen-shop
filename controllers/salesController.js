@@ -7,14 +7,11 @@ const Order = require("../models/orderSchema");
 
 // Function to render the sales report page
 const getSalesReportPage = async (req, res) => {
-  const locals = {
-    title: "Admin - Sales Report | EverGreen",
-    message: {}
-  };
+  const locals = { title: "Admin - Sales Report | EverGreen", message: {} };
 
-  return res.render("admin/salesReport.ejs", {
+  return res.render("admin/salesReport", {
     locals,
-    layout: "layouts/adminLayout.ejs"
+    layout: "layouts/adminLayout",
   });
 };
 
@@ -22,16 +19,13 @@ const getSalesReportPage = async (req, res) => {
 const calculateReportDetails = (orders) => {
   const totalOrders = orders.length;
   const totalAmount = orders.reduce((sum, order) => sum + order.totalPrice, 0);
-  const totalDiscount = orders.reduce(
-    (sum, order) => sum + order.couponDiscount,
-    0
-  );
+  const totalDiscount = orders.reduce((sum, order) => sum + order.couponDiscount, 0);
 
   return { totalOrders, totalAmount, totalDiscount };
 };
 
 // Generate sales report based on order status and date range
-const generateSalesReport = async (req, res) => {
+const generateSalesReport = async (req, res, next) => {
   try {
     const { type, fromDate, toDate } = req.query;
 
@@ -43,22 +37,22 @@ const generateSalesReport = async (req, res) => {
       if (type === "daily") {
         filter.orderDate = {
           $gte: today.startOf("day").toDate(),
-          $lte: today.endOf("day").toDate()
+          $lte: today.endOf("day").toDate(),
         };
       } else if (type === "weekly") {
         filter.orderDate = {
           $gte: today.startOf("week").toDate(),
-          $lte: today.endOf("week").toDate()
+          $lte: today.endOf("week").toDate(),
         };
       } else if (type === "monthly") {
         filter.orderDate = {
           $gte: today.startOf("month").toDate(),
-          $lte: today.endOf("month").toDate()
+          $lte: today.endOf("month").toDate(),
         };
       } else if (type === "yearly") {
         filter.orderDate = {
           $gte: today.startOf("year").toDate(),
-          $lte: today.endOf("year").toDate()
+          $lte: today.endOf("year").toDate(),
         };
       }
     } else if (fromDate && toDate) {
@@ -68,7 +62,7 @@ const generateSalesReport = async (req, res) => {
     const orders = await Order.find(filter)
       .populate({
         path: "orderItems.productId",
-        select: "name"
+        select: "name",
       })
       .populate("userId", "firstName lastName")
       .populate("shippingAddress")
@@ -85,12 +79,8 @@ const generateSalesReport = async (req, res) => {
 
 // Generate HTML content for the sales report
 const generateHTMLContent = (orders, reportDetails, fromDate, toDate) => {
-  const formattedFromDate = fromDate
-    ? moment(fromDate).format("YYYY-MM-DD")
-    : "N/A";
-  const formattedToDate = toDate
-    ? moment(toDate).format("YYYY-MM-DD")
-    : "N/A";
+  const formattedFromDate = fromDate ? moment(fromDate).format("YYYY-MM-DD") : "N/A";
+  const formattedToDate = toDate ? moment(toDate).format("YYYY-MM-DD") : "N/A";
 
   // Create report header
   const header = `
@@ -127,18 +117,10 @@ const generateHTMLContent = (orders, reportDetails, fromDate, toDate) => {
       (order) => `
         <tr>
             <td>${order.generatedOrderId}</td> <!-- Order ID -->
-            <td>${moment(order.orderDate).format(
-              "YYYY-MM-DD HH:mm:ss"
-            )}</td> <!-- Formatted order date -->
-            <td>${
-              order.userId
-                ? `${order.userId.firstName} ${order.userId.lastName}`
-                : "N/A"
-            }</td> <!-- User name -->
+            <td>${moment(order.orderDate).format("YYYY-MM-DD HH:mm:ss")}</td> <!-- Formatted order date -->
+            <td>${order.userId ? `${order.userId.firstName} ${order.userId.lastName}` : "N/A" }</td> <!-- User name -->
             <td>${order.orderItems
-              .map(
-                (item) =>
-                  `${item.productId.name} - ${item.quantity} x ${item.price} = ₹${item.itemTotal}`
+              .map((item) => `${item.productId.name} - ${item.quantity} x ${item.price} = ₹${item.itemTotal}`
               )
               .join(", ")}</td> <!-- Product details -->
             <td>${
@@ -149,13 +131,9 @@ const generateHTMLContent = (orders, reportDetails, fromDate, toDate) => {
             <td>${order.paymentMethod}</td> <!-- Payment method -->
             <td>${order.orderStatus}</td> <!-- Order status -->
             <td>₹${order.totalPrice}</td> <!-- Total amount -->
-            <td>${
-              order.couponId ? order.couponId.code : ""
-            }</td> <!-- Coupon code -->
+            <td>${ order.couponId ? order.couponId.code : "" }</td> <!-- Coupon code -->
             <td>₹${order.couponDiscount}</td> <!-- Coupon discount -->
-            <td>₹${
-              order.totalPrice - order.couponDiscount
-            }</td> <!-- Payable amount after discount -->
+            <td>₹${ order.totalPrice - order.couponDiscount }</td> <!-- Payable amount after discount -->
             <td>₹${order.categoryDiscount || 0}</td> <!-- Category discount -->
         </tr>
     `
@@ -180,22 +158,22 @@ const downloadSalesReport = async (req, res) => {
     if (type === "daily") {
       filter.orderDate = {
         $gte: today.startOf("day").toDate(),
-        $lte: today.endOf("day").toDate()
+        $lte: today.endOf("day").toDate(),
       };
     } else if (type === "weekly") {
       filter.orderDate = {
         $gte: today.startOf("week").toDate(),
-        $lte: today.endOf("week").toDate()
+        $lte: today.endOf("week").toDate(),
       };
     } else if (type === "monthly") {
       filter.orderDate = {
         $gte: today.startOf("month").toDate(),
-        $lte: today.endOf("month").toDate()
+        $lte: today.endOf("month").toDate(),
       };
     } else if (type === "yearly") {
       filter.orderDate = {
         $gte: today.startOf("year").toDate(),
-        $lte: today.endOf("year").toDate()
+        $lte: today.endOf("year").toDate(),
       };
     }
   } else if (fromDate && toDate) {
@@ -210,9 +188,7 @@ const downloadSalesReport = async (req, res) => {
 
   const reportDetails = calculateReportDetails(orders);
 
-  const formattedFromDate = fromDate
-    ? moment(fromDate).format("YYYY-MM-DD")
-    : "N/A";
+  const formattedFromDate = fromDate ? moment(fromDate).format("YYYY-MM-DD") : "N/A";
   const formattedToDate = toDate ? moment(toDate).format("YYYY-MM-DD") : "N/A";
 
   // Handle Excel format
@@ -241,15 +217,9 @@ const downloadSalesReport = async (req, res) => {
       worksheet.addRow({
         _id: order.generatedOrderId,
         orderDate: moment(order.orderDate).format("YYYY-MM-DD HH:mm:ss"),
-        user: order.userId
-          ? `${order.userId.firstName} ${order.userId.lastName}`
-          : "N/A",
+        user: order.userId ? `${order.userId.firstName} ${order.userId.lastName}` : "N/A",
         orderItems: order.orderItems
-          .map(
-            (item) =>
-              `${item.productId.name} - ${item.quantity} x ${item.price} - ₹${item.itemTotal}`
-          )
-          .join("\n"),
+          .map((item) => `${item.productId.name} - ${item.quantity} x ${item.price} - ₹${item.itemTotal}`).join("\n"),
         shippingAddress: order.shippingAddress
           ? `${order.shippingAddress.address}, ${order.shippingAddress.city}, ${order.shippingAddress.state}`
           : "N/A",
@@ -266,11 +236,11 @@ const downloadSalesReport = async (req, res) => {
     // Set headers and send Excel file
     res.setHeader(
       "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     );
     res.setHeader(
       "Content-Disposition",
-      "attachment; filename=SalesReport.xlsx"
+      "attachment; filename=SalesReport.xlsx",
     );
     await workbook.xlsx.write(res);
     res.end();
@@ -281,7 +251,7 @@ const downloadSalesReport = async (req, res) => {
       orders,
       reportDetails,
       fromDate,
-      toDate
+      toDate,
     );
 
     const doc = new PDFDocument();
@@ -292,7 +262,7 @@ const downloadSalesReport = async (req, res) => {
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader(
         "Content-Disposition",
-        "attachment; filename=SalesReport.pdf"
+        "attachment; filename=SalesReport.pdf",
       );
       res.send(pdfData);
     });
@@ -360,12 +330,12 @@ const downloadSalesReport = async (req, res) => {
     doc.end();
   }
   else {
-    res.status(400).send("Invalid format");
+    res.status(400).send("Invalid format.");
   }
 };
 
 module.exports = {
   getSalesReportPage,
   generateSalesReport,
-  downloadSalesReport
+  downloadSalesReport,
 };
