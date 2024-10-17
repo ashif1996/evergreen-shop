@@ -33,7 +33,7 @@ const uploadSingle = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 1024 * 1024 * 5
+    fileSize: 1024 * 1024 * 5,
   },
 }).single("imageUrl");
 
@@ -42,7 +42,7 @@ const uploadMultiple = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 1024 * 1024 * 5
+    fileSize: 1024 * 1024 * 5,
   },
 }).array("images", 4);
 

@@ -37,7 +37,7 @@ passport.use(
               email: profile.emails[0].value,
               firstName: profile.name.givenName,
               lastName: profile.name.familyName,
-              password: temporaryPassword
+              password: temporaryPassword,
             });
 
             const savedUser = await user.save();
