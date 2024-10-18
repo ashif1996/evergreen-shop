@@ -267,6 +267,8 @@ const downloadSalesReport = async (req, res) => {
       res.send(pdfData);
     });
 
+    doc.font('Helvetica');
+
     // Add content to the PDF
     doc.fontSize(20).text("EverGreen", { align: "center" });
     doc.fontSize(12).text(`From Date: ${formattedFromDate}`);
