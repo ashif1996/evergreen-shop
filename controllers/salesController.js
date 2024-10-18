@@ -120,7 +120,7 @@ const generateHTMLContent = (orders, reportDetails, fromDate, toDate) => {
             <td>${moment(order.orderDate).format("YYYY-MM-DD HH:mm:ss")}</td> <!-- Formatted order date -->
             <td>${order.userId ? `${order.userId.firstName} ${order.userId.lastName}` : "N/A" }</td> <!-- User name -->
             <td>${order.orderItems
-              .map((item) => `${item.productId.name} - ${item.quantity} x ${item.price} = ₹${item.itemTotal}`
+              .map((item) => `${item.productId.name} - ${item.quantity} x ${item.price} = ${item.itemTotal}`
               )
               .join(", ")}</td> <!-- Product details -->
             <td>${
@@ -130,11 +130,11 @@ const generateHTMLContent = (orders, reportDetails, fromDate, toDate) => {
             }</td> <!-- Shipping address -->
             <td>${order.paymentMethod}</td> <!-- Payment method -->
             <td>${order.orderStatus}</td> <!-- Order status -->
-            <td>₹${order.totalPrice}</td> <!-- Total amount -->
+            <td>${order.totalPrice}</td> <!-- Total amount -->
             <td>${ order.couponId ? order.couponId.code : "" }</td> <!-- Coupon code -->
-            <td>₹${order.couponDiscount}</td> <!-- Coupon discount -->
-            <td>₹${ order.totalPrice - order.couponDiscount }</td> <!-- Payable amount after discount -->
-            <td>₹${order.categoryDiscount || 0}</td> <!-- Category discount -->
+            <td>${order.couponDiscount}</td> <!-- Coupon discount -->
+            <td>${ order.totalPrice - order.couponDiscount }</td> <!-- Payable amount after discount -->
+            <td>${order.categoryDiscount || 0}</td> <!-- Category discount -->
         </tr>
     `
     )
