@@ -15,7 +15,7 @@ const wishlistSchema = new Schema({
         ref: 'User',
         required: true,
     },
-    items: [wishlistItemSchema]
+    items: [wishlistItemSchema],
 });
 
 const Wishlist = mongoose.model('Wishlist', wishlistSchema);
