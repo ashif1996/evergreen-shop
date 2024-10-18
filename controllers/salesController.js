@@ -267,8 +267,6 @@ const downloadSalesReport = async (req, res) => {
       res.send(pdfData);
     });
 
-    doc.font('Helvetica');
-
     // Add content to the PDF
     doc.fontSize(20).text("EverGreen", { align: "center" });
     doc.fontSize(12).text(`From Date: ${formattedFromDate}`);
@@ -302,7 +300,7 @@ const downloadSalesReport = async (req, res) => {
           `Products: ${order.orderItems
             .map(
               (item) =>
-                `${item.productId.name} - ${item.quantity} x ${item.price} - ₹${item.itemTotal}`
+                `${item.productId.name} - ${item.quantity} x ${item.price} - ${item.itemTotal}`
             )
             .join(", ")}`
         );
@@ -317,15 +315,15 @@ const downloadSalesReport = async (req, res) => {
         );
       doc.fontSize(10).text(`Payment Method: ${order.paymentMethod}`);
       doc.fontSize(10).text(`Status: ${order.orderStatus}`);
-      doc.fontSize(10).text(`Total Amount: ₹${order.totalPrice}`);
+      doc.fontSize(10).text(`Total Amount: ${order.totalPrice}`);
       doc
         .fontSize(10)
         .text(`Coupon: ${order.couponId ? order.couponId.code : ""}`);
-      doc.fontSize(10).text(`Coupon Discount: ₹${order.couponDiscount}`);
+      doc.fontSize(10).text(`Coupon Discount: ${order.couponDiscount}`);
       doc
         .fontSize(10)
-        .text(`Payable: ₹${order.totalPrice - order.couponDiscount}`);
-      doc.fontSize(10).text(`Category Discount: ₹${order.discountAmount || 0}`);
+        .text(`Payable: ${order.totalPrice - order.couponDiscount}`);
+      doc.fontSize(10).text(`Category Discount: ${order.discountAmount || 0}`);
       doc.moveDown();
     });
 
