@@ -26,7 +26,7 @@ const sendOtp = async (email, otp, next) => {
     from: process.env.SEND_OTP_EMAIL,
     to: email,
     subject: "Your OTP Code",
-    text: `<p>Your OTP is: <strong>${otp}</strong></p>`,
+    text: `<p>Your OTP is: <strong>${otp}</strong>. It will expire in 2 minutes. Please do not share this code with anyone.</p>`,
   };
 
   try {
@@ -73,7 +73,7 @@ const cleanupExpiredOtps = async () => {
     await OTP.deleteMany({ expiresAt: { $lte: now } });
     console.log("Expired OTPs cleaned up successfully.");
   } catch (err) {
-    console.error("Error cleaning up expired OTPs", err);
+    console.error("Error cleaning up expired OTPs: ", err);
   }
 };
 
@@ -82,5 +82,5 @@ module.exports = {
   storeOtp,
   sendOtp,
   verifyOtp,
-  cleanupExpiredOtps
+  cleanupExpiredOtps,
 };

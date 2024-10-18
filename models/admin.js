@@ -6,32 +6,32 @@ const adminSchema = new Schema({
     firstName: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
     },
     lastName: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
     },
     email: {
         type: String,
         required: true,
         unique: true,
         trim: true,
-        lowercase: true
+        lowercase: true,
     },
     password: {
         type: String,
         required: true,
-        minlength: 8
+        minlength: 8,
     },
     isAdmin: {
         type: Boolean,
-        default: true
+        default: true,
     }
 },
 {
-    timestamps: true
+    timestamps: true,
 });
 
 adminSchema.pre('save', async function(next) {
@@ -41,8 +41,8 @@ adminSchema.pre('save', async function(next) {
         const salt = await bcrypt.genSalt(12);
         this.password = await bcrypt.hash(this.password, salt);
         next();
-    } catch (error) {
-        next(error);
+    } catch (err) {
+        next(err);
     }
 });
 

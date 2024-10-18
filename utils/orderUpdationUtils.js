@@ -67,5 +67,5 @@ module.exports = {
   updateUserOrdersAndCoupons,
   updateProductStockAndPurchaseCount,
   clearCart,
-  finalizeOrder
+  finalizeOrder,
 };

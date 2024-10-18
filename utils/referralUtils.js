@@ -2,8 +2,14 @@ const User = require("../models/user");
 const crypto = require("crypto");
 
 // Generate a unique referral code
-const generateReferralCode = (userId) => {
-  return crypto.randomBytes(4).toString("hex");
+const generateUniqueReferralCode = async () => {
+  let referralCode;
+  let exists;
+  do {
+    referralCode = crypto.randomBytes(4).toString("hex");
+    exists = await User.findOne({ referralCode });
+  } while (exists);
+  return referralCode;
 };
 
 // Validate the provided referral code
@@ -77,8 +83,8 @@ const creditReferralReward = async (referrerId, newUser, next) => {
 };
 
 module.exports = {
-  generateReferralCode,
+  generateUniqueReferralCode,
   validateReferralCode,
   verifyReferralCode,
-  creditReferralReward
+  creditReferralReward,
 };

@@ -46,12 +46,12 @@ app.use(session({
     saveUninitialized: true,
     store: MongoStore.create({
         mongoUrl: process.env.MONGO_URI,
-        ttl: 1 * 24 * 60 * 60 // Session will expire in 1 hour
+        ttl: 1 * 24 * 60 * 60, // Session will expire in 1 hour
     }),
     cookie: {
         httpOnly: true,
         maxAge: 60 * 60 * 1000,
-        secure: process.env.NODE_ENV === 'production'
+        secure: process.env.NODE_ENV === 'production',
     }
 }));
 
@@ -118,34 +118,29 @@ app.use('/orders', orderRoutes);
 app.use('/sales', salesRoutes);
 app.use('/error', errorRoutes);
 
-// Example route to trigger a 500 Internal Server Error
-app.get('/trigger-error', (req, res) => {
-    throw new Error('This is a test error!');
-});
-
 // 404 Handler
 app.use((req, res, next) => {
-    res.status(404).render('notFoundError.ejs', {
+    res.status(404).render('notFoundError', {
         title: '404 - Not Found',
         message: undefined,
-        layout: 'layouts/errorMessagesLayout.ejs'
+        layout: 'layouts/errorMessagesLayout',
     });
 });
 
 // Global Error Handler
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(err.status || 500).render('internalError.ejs', {
+    res.status(err.status || 500).render('internalError', {
         title: '500 - Internal Server Error',
-        layout: 'layouts/errorMessagesLayout.ejs',
-        errorMessage: "An unexpected error occurred. Please try again later."
+        layout: 'layouts/errorMessagesLayout',
+        errorMessage: "An unexpected error occurred. Please try again later.",
     });
 });
 
 // Start the server
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT} smoothly.`);
+    console.log(`Server is running on port ${PORT}`);
 });
 
 module.exports = app;

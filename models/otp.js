@@ -7,18 +7,18 @@ const otpSchema = new Schema({
         type: String,
         required: true,
         trim: true,
-        lowercase: true
+        lowercase: true,
     },
     otp: {
         type: String,
-        required: true
+        required: true,
     },
     expiresAt: {
         type: Date,
-        required: true
+        required: true,
     }
 },{
-    timestamps: true
+    timestamps: true,
 });
 
 otpSchema.pre('save', function(next) {

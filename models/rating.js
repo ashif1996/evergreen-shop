@@ -5,20 +5,20 @@ const ratingSchema = new Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: true,
     },
     rating: {
         type: Number,
         min: 1,
         max: 5,
-        required: true
+        required: true,
     },
     review: {
         type: String,
-        required: false
+        required: false,
     }
 }, {
-    timestamps: true
+    timestamps: true,
 });
 
 module.exports = ratingSchema;

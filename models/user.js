@@ -7,67 +7,67 @@ const userSchema = new Schema({
     firstName: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
     },
     lastName: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
     },
     email: {
         type: String,
         required: true,
         unique: true,
         trim: true,
-        lowercase: true
+        lowercase: true,
     },
     password: {
         type: String,
         required: true,
-        minlength: 8
+        minlength: 8,
     },
     googleId: {
         type: String,
-        required: false
+        required: false,
     },
     facebookId: {
         type: String,
-        required: false
+        required: false,
     },
     isAdmin: {
         type: Boolean,
-        default: false
+        default: false,
     },
     status: {
         type: Boolean,
-        default: true
+        default: true,
     },
     addresses: [
         {
             type: Schema.Types.ObjectId,
-            ref: 'Address'
+            ref: 'Address',
         }
     ],
     wishlist: {
         type: Schema.Types.ObjectId,
-        ref: 'Wishlist'
+        ref: 'Wishlist',
     },
     cart: {
         type: Schema.Types.ObjectId,
-        ref: 'Cart'
+        ref: 'Cart',
     },
     orders: [{
         type: Schema.Types.ObjectId,
-        ref: 'Order'
+        ref: 'Order',
     }],
     usedCoupons: [{
         type: Schema.Types.ObjectId,
-        ref: 'Coupon'
+        ref: 'Coupon',
     }],
     wallet: {
         balance: {
             type: Number,
-            default: 0
+            default: 0,
         },
         transactions: [
             {
@@ -77,12 +77,12 @@ const userSchema = new Schema({
                 type: {
                     type: String,
                     enum: ['credit', 'debit'],
-                    required: true
+                    required: true,
                 },
                 status: {
                     type: String,
                     enum: ['pending', 'completed', 'failed'],
-                    default: 'completed'
+                    default: 'completed',
                 }
             }
         ]
@@ -90,19 +90,19 @@ const userSchema = new Schema({
     referralCode: {
         type: String,
         required: false,
-        unique: true
+        unique: true,
     },
     referredBy: {
         type: Schema.Types.ObjectId,
         ref: 'User',
-        required: false
+        required: false,
     },
     referredUsers: [{
         type: Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
     }]
 }, {
-    timestamps: true
+    timestamps: true,
 });
 
 userSchema.pre('save', async function(next) {
@@ -112,8 +112,8 @@ userSchema.pre('save', async function(next) {
         const salt = await bcrypt.genSalt(12);
         this.password = await bcrypt.hash(this.password, salt);
         next();
-    } catch (error) {
-        next(error);
+    } catch (err) {
+        next(err);
     }
 });
 

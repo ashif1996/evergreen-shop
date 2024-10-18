@@ -5,30 +5,30 @@ const ratingSchema = require('./rating');
 const offerSchema = new Schema({
     type: {
         type: String,
-        required: false
+        required: false,
     },
     fixedDiscount: {
         type: Number,
         required: false,
-        default: 0
+        default: 0,
     },
     percentageDiscount: {
         type: Number,
         required: false,
-        default: 0
+        default: 0,
     },
     isActive: {
         type: Boolean,
-        default: false
+        default: false,
     },
     minimumPurchaseAmount: {
         type: Number,
         required: false,
-        default: 0
+        default: 0,
     },
     expirationDate: {
         type: Date,
-        required: false
+        required: false,
     }
 });
 
@@ -36,51 +36,51 @@ const productSchema = new Schema({
     name: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
     },
     description: {
         type: String,
-        required: false
+        required: false,
     },
     price: {
         type: Number,
-        required: true
+        required: true,
     },
     category: {
         type: Schema.Types.ObjectId,
         ref: 'Category',
-        required: true
+        required: true,
     },
     images: [
         {
             type: String,
-            required: true
+            required: true,
         }
     ],
     stock: {
         type: Number,
-        required: true
+        required: true,
     },
     availability: {
         type: Boolean,
         required: true,
-        default: true
+        default: true,
     },
     offer: {
         type: offerSchema,
-        required: false
+        required: false,
     },
     ratings: [ratingSchema],
     purchaseCount: {
         type: Number,
-        default: 0
+        default: 0,
     },
     featured: {
         type: Boolean,
-        default: false
+        default: false,
     }
 }, {
-    timestamps: true
+    timestamps: true,
 });
 
 // Virtual field to calculate average rating

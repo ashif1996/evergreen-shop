@@ -6,58 +6,58 @@ const orderItemSchema = new Schema({
     productId: {
         type: Schema.Types.ObjectId,
         ref: 'Product',
-        required: true
+        required: true,
     },
     price: {
         type: Number,
-        required: true
+        required: true,
     },
     discountedPrice: {
         type: Number,
         required: true,
-        default: 0
+        default: 0,
     },
     quantity: {
         type: Number,
         required: true,
-        min: 0.50
+        min: 0.50,
     },
     itemTotal: {
         type: Number,
-        required: true
+        required: true,
     },
     itemStatus: {
         type: String,
         required: true,
         enum: ['Pending', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Failed', 'Cancelled', 'Returned', 'Exchanged'],
-        default: 'Pending'
+        default: 'Pending',
     },
     returnStatus: {
         type: String,
-        enum: ['Requested', 'Received', 'Approved', 'Rejected']
+        enum: ['Requested', 'Received', 'Approved', 'Rejected'],
     },
     returnReason: {
-        type: String
+        type: String,
     },
     returnRejectReason: {
-        type: String
+        type: String,
     },
     exchangeStatus: {
         type: String,
-        enum: ['Requested', 'Pending', 'Approved', 'Rejected', 'Completed']
+        enum: ['Requested', 'Pending', 'Approved', 'Rejected', 'Completed'],
     },
     exchangeReason: {
-        type: String
+        type: String,
     },
     exchangeRejectReason: {
-        type: String
+        type: String,
     },
     itemRefundStatus: {
         type: String,
-        enum: ['Requested', 'Pending', 'Completed', 'Rejected']
+        enum: ['Requested', 'Pending', 'Completed', 'Rejected'],
     },
     itemRefundRejectReason: {
-        type: String
+        type: String,
     }
 });
 
@@ -65,70 +65,70 @@ const orderSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: true,
     },
     generatedOrderId: {
         type: String,
-        required: true
+        required: true,
     },
     orderDate: {
         type: Date,
         required: true,
-        default: Date.now
+        default: Date.now,
     },
     orderStatus: {
         type: String,
         required: true,
         enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Failed', 'Cancelled'],
-        default: 'Pending'
+        default: 'Pending',
     },
     orderItems: [orderItemSchema],
     shippingAddress: {
         type: Schema.Types.ObjectId,
         ref: 'Address',
-        required: true
+        required: true,
     },
     paymentMethod: {
         type: String,
         required: true,
-        enum: ['COD', 'Wallet', 'Razorpay']
+        enum: ['COD', 'Wallet', 'Razorpay'],
     },
     orderPaymentStatus: {
         type: String,
         enum: ['Pending', 'Failed', 'Success', 'Cancelled', 'Refunded'],
-        default: 'Pending'
+        default: 'Pending',
     },
     subTotal: {
         type: Number,
-        required: true
+        required: true,
     },
     shippingCharge: {
         type: Number,
-        required: true
+        required: true,
     },
     totalPrice: {
         type: Number,
-        required: true
+        required: true,
     },
     couponId: {
         type: Schema.Types.ObjectId,
-        ref: 'Coupon'
+        ref: 'Coupon',
     },
     couponDiscount: {
         type: Number,
-        default: 0
+        default: 0,
     },
     razorpayOrderId: {
         type: String,
-        default: null
+        default: null,
     },
     razorpayPaymentId: {
         type: String,
-        default: null
+        default: null,
     }
 },
 {
-    timestamps: true
+    timestamps: true,
 });
 
 orderSchema.index({ userId: 1, 'orderItems.productId': 1 });

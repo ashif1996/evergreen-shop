@@ -7,7 +7,7 @@ const Wishlist = require("../models/wishlistSchema");
 const { calculateBestDiscountedPrice } = require("../utils/discountPriceCalculation");
 const {
   creditReferralReward,
-  generateReferralCode,
+  generateUniqueReferralCode,
   validateReferralCode,
 } = require("../utils/referralUtils");
 const errorHandler = require("../utils/errorHandlerUtils");
@@ -56,7 +56,7 @@ const userSignup = async (req, res, next) => {
     });
 
     const user = await newUser.save();
-    const generatedReferralCode = generateReferralCode(user._id);
+    const generatedReferralCode = generateUniqueReferralCode();
     user.referralCode = generatedReferralCode;
     await user.save();
 

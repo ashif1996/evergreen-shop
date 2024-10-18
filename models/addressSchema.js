@@ -5,30 +5,30 @@ const addressSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: true,
     },
     address: {
         type: String,
-        required: true
+        required: true,
     },
     city: {
         type: String,
-        required: true
+        required: true,
     },
     state: {
         type: String,
-        required: true
+        required: true,
     },
     zipCode: {
         type: String,
-        required: true
+        required: true,
     },
     isDefault: {
         type: Boolean,
-        default: false
+        default: false,
     }
 }, {
-    timestamps: true
+    timestamps: true,
 });
 
 const Address = mongoose.model('Address', addressSchema);

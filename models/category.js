@@ -4,30 +4,30 @@ const Schema = mongoose.Schema;
 const offerSchema = new Schema({
     type: {
         type: String,
-        required: false
+        required: false,
     },
     fixedDiscount: {
         type: Number,
         required: false,
-        default: 0
+        default: 0,
     },
     percentageDiscount: {
         type: Number,
         required: false,
-        default: 0
+        default: 0,
     },
     isActive: {
         type: Boolean,
-        default: false
+        default: false,
     },
     minimumPurchaseAmount: {
         type: Number,
         required: false,
-        default: 0
+        default: 0,
     },
     expirationDate: {
         type: Date,
-        required: false
+        required: false,
     }
 });
 
@@ -35,26 +35,26 @@ const categorySchema = new Schema({
     name: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
     },
     status: {
         type: String,
-        default: 'Active'
+        default: 'Active',
     },
     description: {
         type: String,
-        required: false
+        required: false,
     },
     isListed: {
         type: Boolean,
-        default: true
+        default: true,
     },
     offer: {
         type: offerSchema,
-        required: false
+        required: false,
     }
 }, {
-    timestamps: true
+    timestamps: true,
 });
 
 const Category = mongoose.model('Category', categorySchema);

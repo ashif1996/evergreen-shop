@@ -5,7 +5,7 @@ const orderCounterSchema = new Schema({
     sequence_value: {
         type: Number,
         required: true,
-        default: 1
+        default: 1,
     }
 });
   
