@@ -1,26 +1,24 @@
-require('dotenv').config(); // Load environment variables
+require('dotenv').config();
 
 const express = require('express');
 const connectDB = require('./config/db');
 const User = require('./models/user');
 const Order = require('./models/orderSchema');
 
-// Initialize Express app
 const app = express();
 
-// Connect to MongoDB
 connectDB();
 
 // Function to clear user orders
 const clearUserOrders = async () => {
     try {
         const result = await User.updateMany(
-            {}, // No filter, so it applies to all users
-            { $set: { orders: [] } } // Set the orders array to an empty array
+            {},
+            { $set: { orders: [] } },
         );
         console.log(`Updated ${result.modifiedCount} users.`);
-    } catch (error) {
-        console.error('Error clearing user orders:', error);
+    } catch (err) {
+        console.error('Error clearing user orders:', err);
     }
 };
 
@@ -29,8 +27,8 @@ const deleteAllOrders = async () => {
     try {
         const result = await Order.deleteMany({});
         console.log(`Deleted ${result.deletedCount} orders.`);
-    } catch (error) {
-        console.error('Error deleting orders:', error);
+    } catch (err) {
+        console.error('Error deleting orders:', err);
     }
 };
 
@@ -43,6 +41,7 @@ const initializeDatabase = async () => {
 // Start the server after database operations
 const startServer = async () => {
     await initializeDatabase();
+
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
