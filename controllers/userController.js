@@ -56,7 +56,7 @@ const userSignup = async (req, res, next) => {
     });
 
     const user = await newUser.save();
-    const generatedReferralCode = generateUniqueReferralCode();
+    const generatedReferralCode = await generateUniqueReferralCode();
     user.referralCode = generatedReferralCode;
     await user.save();
 
