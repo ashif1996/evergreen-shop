@@ -26,7 +26,7 @@ const sendOtp = async (email, otp, next) => {
     from: process.env.SEND_OTP_EMAIL,
     to: email,
     subject: "Your OTP Code",
-    text: `<p>Your OTP is: <strong>${otp}</strong>. It will expire in 2 minutes. Please do not share this code with anyone.</p>`,
+    html: `<p>Your OTP is: <strong>${otp}</strong>. It will expire in 2 minutes. Please do not share this code with anyone.</p>`,
   };
 
   try {
