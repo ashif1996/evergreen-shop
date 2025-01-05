@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const bcrypt = require("bcrypt");
+
 const Admin = require("../models/admin");
 const Banner = require("../models/bannerSchema");
 const Category = require("../models/category");
@@ -8,6 +9,7 @@ const Coupon = require("../models/couponSchema");
 const Order = require("../models/orderSchema");
 const Product = require("../models/product");
 const User = require("../models/user");
+
 const getDateRange = require("../utils/chartUtils");
 const HttpStatus = require("../utils/httpStatus");
 const errorHandler = require("../utils/errorHandlerUtils");
@@ -23,14 +25,14 @@ const getAdminLogin = (req, res) => {
     return res.redirect("/admin/dashboard");
   }
 
-  return res.render("admin/login", {
+  res.render("admin/login", {
     locals,
     layout: "layouts/authLayout",
   });
 };
 
 // Handle admin login
-const adminLogin = async (req, res, next) => {
+const adminLogin = async (req, res) => {
   const locals = { title: "Admin Log in | EverGreen", message: {} };
   const { email, password } = req.body;
 
@@ -65,26 +67,27 @@ const adminLogin = async (req, res, next) => {
     };
 
     return res.redirect("/admin/dashboard");
-  } catch (err) {
-    console.error("Error occurred while login: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error occurred while login: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Handle fetching and rendering the Admin dashboard
-const getDashboard = async (req, res, next) => {
+const getDashboard = async (req, res) => {
   const locals = { title: "Admin Dashboard | EverGreen", message: {} };
 
   try {
     const totalUsers = await User.countDocuments();
     const totalProducts = await Product.countDocuments();
     const totalOrders = await Order.countDocuments({ orderStatus: "Delivered" });
+
     const totalRevenue = await Order.aggregate([
       { $match: { orderStatus: "Delivered" } },
       { $group: { _id: null, total: { $sum: "$totalPrice" } } },
     ]);
 
-    return res.render("admin/dashboard", {
+    res.render("admin/dashboard", {
       locals,
       layout: "layouts/adminLayout",
       admin: req.session.admin,
@@ -95,9 +98,9 @@ const getDashboard = async (req, res, next) => {
       totalOrders,
       totalRevenue: totalRevenue.length > 0 ? totalRevenue[0].total : 0,
     });
-  } catch (err) {
-    console.error("Error fetching dashboard data: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching dashboard data: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
@@ -175,57 +178,63 @@ const getCategoryOrderAnalysis = async (dateRange, filterDate) => {
 };
 
 // Retrieves chart data for products or categories based on filter type
-const getChart = async (req, res, next) => {
+const getChart = async (req, res) => {
   const { filterType, dateRange, filterDate } = req.query;
-  console.log(`Received request for filterType=${filterType}, dateRange=${dateRange}, filterDate=${filterDate}`);
 
   try {
     let data;
+
     if (filterType === "products") {
       data = await getProductOrderAnalysis(dateRange, filterDate);
     } else {
       data = await getCategoryOrderAnalysis(dateRange, filterDate);
     }
-    console.log("Sending data: ", data);
+
     return res.json(data);
-  } catch (err) {
-    console.error("Error processing request: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error processing request: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Fetch and render categories page
-const getCategories = async (req, res, next) => {
+const getCategories = async (req, res) => {
   const locals = { title: "Admin Categories | EverGreen", message: {} };
 
   try {
-    const categories = await Category.find().lean().sort({ createdAt: -1 });
+    const categories = await Category.find()
+      .sort({ createdAt: -1 })
+      .lean();
+
     if (categories.length === 0) {
       locals.message.error = "No categories available. Please add categories to list them.";
     }
 
-    return res.render("admin/categories", {
+    res.render("admin/categories", {
       locals,
       categories,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error fetching categories: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching categories: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Add or update a category
-const addCategory = async (req, res, next) => {
+const addCategory = async (req, res) => {
   const { categoryId, categoryName, status, description } = req.body;
 
   try {
     if (categoryId) {
-      await Category.findByIdAndUpdate(categoryId, {
-        name: categoryName,
-        status,
-        description,
-      });
+      await Category.findByIdAndUpdate(
+        categoryId, 
+        {
+          name: categoryName,
+          status,
+          description,
+        },
+      );
 
       return successHandler(res, HttpStatus.OK, `${categoryName} category updated successfully.`);
     } else {
@@ -237,27 +246,26 @@ const addCategory = async (req, res, next) => {
       }
 
       // Create and save new category
-      const newCategory = new Category({
+      const newCategory = await Category.create({
         name: categoryName,
         status,
         description,
       });
-      await newCategory.save();
 
       return successHandler(res, HttpStatus.CREATED, `${newCategory.name} category added successfully.`);
     }
-  } catch (err) {
-    console.error("Error creating category: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error creating category: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Toggle category listing status
-const toggleCategoryListing = async (req, res, next) => {
+const toggleCategoryListing = async (req, res) => {
   const categoryId = req.params.id;
 
   try {
-    const category = await Category.findById(categoryId);
+    const category = await Category.findById(categoryId).select("isListed status");
     if (!category) {
       return errorHandler(res, HttpStatus.NOT_FOUND, `Category not found. Please try again.`);
     }
@@ -267,18 +275,21 @@ const toggleCategoryListing = async (req, res, next) => {
     await category.save();
 
     return successHandler(res, HttpStatus.OK, `${category.name} ${category.isListed ? "listed" : "unlisted"} successfully`);
-  } catch (err) {
-    console.error("Error toggling category listing: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error toggling category listing: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Get list of users
-const getUsers = async (req, res, next) => {
+const getUsers = async (req, res) => {
   const locals = { title: "Admin - Users List | EverGreen", message: {} };
 
   try {
-    const users = await User.find().lean().sort({ createdAt: -1 });
+    const users = await User.find()
+      .sort({ createdAt: -1 })
+      .lean();
+
     if (users.length === 0) {
       locals.message.error = "The user list is empty. Please check back later.";
     }
@@ -288,25 +299,26 @@ const getUsers = async (req, res, next) => {
       users,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error fetching users: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching users: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Block a user
-const blockUser = async (req, res, next) => {
+const blockUser = async (req, res) => {
   const locals = { title: "Admin - Users List | EverGreen", message: {} };
   const userId = req.params.userId;
 
   try {
-    const user = await User.findById(userId);
+    let users = await User.find().lean();
+    const user = await User.findById(userId).select("status");
     if (!user) {
       locals.message.error = "User not found!";
 
       return res.status(HttpStatus.NOT_FOUND).render("admin/users", {
         locals,
-        users: await User.find().lean(),
+        users,
         layout: "layouts/adminLayout",
       });
     }
@@ -316,31 +328,33 @@ const blockUser = async (req, res, next) => {
     await user.save();
 
     locals.message.success = `${user.firstName} ${user.lastName} has been blocked successfully`;
+    users = await User.find().lean();
 
-    return res.render("admin/users", {
+    res.render("admin/users", {
       locals,
-      users: await User.find().lean(),
+      users,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error blocking the user: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error blocking the user: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Unblock a user
-const unblockUser = async (req, res, next) => {
+const unblockUser = async (req, res) => {
   const locals = { title: "Admin - Users List | EverGreen", message: {} };
   const userId = req.params.userId;
 
   try {
-    const user = await User.findById(userId);
+    let users = await User.find().lean();
+    const user = await User.findById(userId).select("status");
     if (!user) {
       locals.message.error = "User not found!";
 
       return res.status(HttpStatus.NOT_FOUND).render("admin/users", {
         locals,
-        users: await User.find(),
+        users,
         layout: "layouts/adminLayout",
       });
     }
@@ -350,25 +364,28 @@ const unblockUser = async (req, res, next) => {
     await user.save();
 
     locals.message.success = `${user.firstName} ${user.lastName} has been unblocked successfully`;
+    users = await User.find().lean();
 
-    return res.render("admin/users", {
+    res.render("admin/users", {
       locals,
-      users: await User.find(),
+      users,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error unblocking the user: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error unblocking the user: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Fetch and render the products
-const getProducts = async (req, res, next) => {
+const getProducts = async (req, res) => {
   const locals = { title: "Admin - Products List | EverGreen", message: {} };
 
   try {
     const categories = await Category.find().lean();
-    const products = await Product.find().lean().sort({ createdAt: -1 });
+    const products = await Product.find()
+      .sort({ createdAt: -1 })
+      .lean();
 
     if (categories.length === 0) {
       locals.message.error = "No categories available. Please add categories to list products.";
@@ -377,41 +394,41 @@ const getProducts = async (req, res, next) => {
       locals.message.error = "No products available. Please try adding some.";
     }
 
-    return res.render("admin/products", {
+    res.render("admin/products", {
       locals,
       products,
       categories,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error(`Error fetching categories or products: `, err);
-    return next(err);
+  } catch (error) {
+    console.error(`Error fetching categories or products: `, error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Fetch and render the add product page
-const getAddProduct = async (req, res, next) => {
+const getAddProduct = async (req, res) => {
   const locals = { title: "Admin - Products List | EverGreen", message: {} };
 
   try {
-    const categories = await Category.find({ isListed: true });
+    const categories = await Category.find({ isListed: true }).lean();
     if (categories.length === 0) {
       locals.message.error = "Error fetching categories. Please try again later.";
     }
 
-    return res.render("admin/addProduct", {
+    res.render("admin/addProduct", {
       locals,
       categories,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error fetching categories: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching categories: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Add a new product to the database
-const addProduct = async (req, res, next) => {
+const addProduct = async (req, res) => {
   try {
     const {
       name,
@@ -446,7 +463,7 @@ const addProduct = async (req, res, next) => {
     }
 
     // Create and save the new product
-    const newProduct = new Product({
+    const newProduct = await Product.create({
       name,
       description,
       price,
@@ -458,27 +475,25 @@ const addProduct = async (req, res, next) => {
       featured: featured === "on",
     });
 
-    await newProduct.save();
-
     return res.status(HttpStatus.CREATED).json({
       success: true,
       product: newProduct,
       message: `${newProduct.name} added successfully`,
-      redirectUrl
+      redirectUrl,
     });
-  } catch (err) {
-    console.error("Error adding the product: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error adding the product: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Fetch product details for editing
-const getEditProduct = async (req, res, next) => {
+const getEditProduct = async (req, res) => {
   const locals = { title: "Admin - Edit Products | EverGreen", message: {} };
+  const productId = req.params.id;
 
   try {
-    const categories = await Category.find({ isListed: true });
-    const productId = req.params.id;
+    const categories = await Category.find({ isListed: true }).lean();
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(HttpStatus.NOT_FOUND).json({
@@ -488,20 +503,20 @@ const getEditProduct = async (req, res, next) => {
       });
     }
 
-    return res.render("admin/editProduct", {
+    res.render("admin/editProduct", {
       locals,
       categories,
       product,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error fetching the product: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching the product: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Update product details
-const editProduct = async (req, res, next) => {
+const editProduct = async (req, res) => {
   try {
     const productId = req.params.id;
     const { removeImage, redirectUrl } = req.body;
@@ -547,25 +562,26 @@ const editProduct = async (req, res, next) => {
         message: "Product updated successfully.",
         redirectUrl,
       });
-  } catch (err) {
-    console.error("Error updating the product: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error updating the product: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // List a product as available
-const listProduct = async (req, res, next) => {
+const listProduct = async (req, res) => {
   const locals = { title: "Admin - Products List | EverGreen", message: {} };
   const productId = req.params.productId;
 
   try {
-    const product = await Product.findById(productId);
+    let products = await Product.find().lean();
+    const product = await Product.findById(productId).select("availability");
     if (!product) {
       locals.message.error = "Product not found! Please try again.";
 
       return res.status(HttpStatus.NOT_FOUND).render("admin/products", {
         locals,
-        products: await Product.find(),
+        products,
         layout: "layouts/adminLayout",
       });
     }
@@ -574,31 +590,33 @@ const listProduct = async (req, res, next) => {
     await product.save();
 
     locals.message.success = `${product.name} listed successfully`;
+    products = await Product.find().lean();
 
-    return res.render("admin/products", {
+    res.render("admin/products", {
       locals,
-      products: await Product.find(),
+      products,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error listing the product: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error listing the product: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Unlist a product by setting its availability to false
-const unlistProduct = async (req, res, next) => {
+const unlistProduct = async (req, res) => {
   const locals = { title: "Admin - Products List | EverGreen", message: {} };
   const productId = req.params.productId;
 
   try {
-    const product = await Product.findById(productId);
+    let products = await Product.find().lean();
+    const product = await Product.findById(productId).select("availability");
     if (!product) {
       locals.message.error = "Product not found! Please try again.";
 
       return res.status(HttpStatus.NOT_FOUND).render("admin/products", {
         locals,
-        products: await Product.find(),
+        products,
         layout: "layouts/adminLayout",
       });
     }
@@ -607,15 +625,16 @@ const unlistProduct = async (req, res, next) => {
     await product.save();
 
     locals.message.success = `${product.name} unlisted successfully`;
+    products = await Product.find().lean();
 
-    return res.render("admin/products", {
+    res.render("admin/products", {
       locals,
-      products: await Product.find(),
+      products,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error unlisting the product: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error unlisting the product: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
@@ -623,14 +642,14 @@ const unlistProduct = async (req, res, next) => {
 const getAddCoupon = (req, res) => {
   const locals = { title: "Admin - Add Coupon | EverGreen" };
 
-  return res.render("admin/addCoupon", {
+  res.render("admin/addCoupon", {
     locals,
     layout: "layouts/adminLayout",
   });
 };
 
 // Adds a new coupon to the database
-const addCoupon = async (req, res, next) => {
+const addCoupon = async (req, res) => {
   try {
     const {
       code,
@@ -642,7 +661,7 @@ const addCoupon = async (req, res, next) => {
     } = req.body;
 
     // Create a new coupon
-    const newCoupon = new Coupon({
+    const newCoupon = await Coupon.create({
       code,
       discountType,
       discountValue,
@@ -651,56 +670,56 @@ const addCoupon = async (req, res, next) => {
       isActive: isActive ? true : false,
     });
 
-    await newCoupon.save();
-
     return successHandler(res, HttpStatus.CREATED, `${newCoupon.code} added successfully`);
-  } catch (err) {
-    console.error("Error adding the coupon: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error adding the coupon: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Retrieves and displays all coupons
-const getCoupons = async (req, res, next) => {
+const getCoupons = async (req, res) => {
   const locals = { title: "Admin - Coupons | EverGreen" };
 
   try {
-    const coupons = await Coupon.find().sort({ createdAt: -1 });
+    const coupons = await Coupon.find()
+      .sort({ createdAt: -1 })
+      .lean();
 
-    return res.render("admin/coupons", {
+    res.render("admin/coupons", {
       locals,
       coupons,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error fetching coupons: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching coupons: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Retrieves and displays a coupon for editing
-const getEditCoupon = async (req, res, next) => {
+const getEditCoupon = async (req, res) => {
   const locals = { title: "Admin - Edit Coupon | EverGreen" };
 
   try {
-    const coupon = await Coupon.findById(req.params.id);
+    const coupon = await Coupon.findById(req.params.id).lean();
     if (!coupon) {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Coupon not found.");
     }
 
-    return res.render("admin/editCoupon", {
+    res.render("admin/editCoupon", {
       locals,
       coupon,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error fetching the edit coupon page: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching the edit coupon page: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Updates a coupon based on provided data
-const editCoupon = async (req, res, next) => {
+const editCoupon = async (req, res) => {
   try {
     const {
       code,
@@ -722,7 +741,7 @@ const editCoupon = async (req, res, next) => {
         expirationDate,
         isActive: isActive ? true : false,
       },
-      { new: true }
+      { new: true },
     );
 
     return res.status(HttpStatus.OK).json({
@@ -730,16 +749,16 @@ const editCoupon = async (req, res, next) => {
       message: `${updatedCoupon.code} updated successfully`,
       coupon: updatedCoupon,
     });
-  } catch (err) {
-    console.error("Error updating the coupon: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error updating the coupon: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Toggles the active status of a coupon
-const toggleCouponStatus = async (req, res, next) => {
+const toggleCouponStatus = async (req, res) => {
   try {
-    const coupon = await Coupon.findById(req.params.id);
+    const coupon = await Coupon.findById(req.params.id).select("isActive");
     if (!coupon) {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Coupon not found.");
     }
@@ -752,40 +771,41 @@ const toggleCouponStatus = async (req, res, next) => {
       message: `Coupon ${coupon.isActive ? "activated" : "deactivated"} successfully`,
       coupon,
     });
-  } catch (err) {
-    console.error("Error toggling the status of the coupon: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error toggling the status of the coupon: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Fetches and renders the list of orders
-const getOrders = async (req, res, next) => {
+const getOrders = async (req, res) => {
   const locals = { title: "Admin - Orders List | EverGreen", message: {} };
 
   try {
     const orders = await Order.find()
       .populate("userId")
       .populate("couponId")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    return res.render("admin/orders", {
+    res.render("admin/orders", {
       locals,
       orders,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error fetching orders: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching orders: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Update the status of an order
-const updateOrderStatus = async (req, res, next) => {
+const updateOrderStatus = async (req, res) => {
   const { orderStatus } = req.body;
   const { id } = req.params;
 
   try {
-    const order = await Order.findById(id);
+    const order = await Order.findById(id).select("orderStatus paymentMethod orderPaymentStatus");
     if (!order) {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
     }
@@ -799,14 +819,14 @@ const updateOrderStatus = async (req, res, next) => {
     await order.save();
 
     return successHandler(res, HttpStatus.OK, `Order status changed to ${orderStatus}.`);
-  } catch (err) {
-    console.error("Error changing order status: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error changing order status: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Fetches and displays order details
-const getOrderDetails = async (req, res, next) => {
+const getOrderDetails = async (req, res) => {
   const locals = { title: "Admin Order Details | EverGreen" };
 
   try {
@@ -814,25 +834,26 @@ const getOrderDetails = async (req, res, next) => {
     const order = await Order.findById(orderId)
       .populate("orderItems.productId")
       .populate("couponId")
-      .populate("shippingAddress");
+      .populate("shippingAddress")
+      .lean();
 
     if (!order) {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
     }
 
-    return res.render("admin/orderDetails", {
+    res.render("admin/orderDetails", {
       locals,
       order,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error fetching order details: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching order details: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Update the status of an item in an order
-const updateItemStatus = async (req, res, next) => {
+const updateItemStatus = async (req, res) => {
   const { orderId, itemId } = req.params;
   const { itemStatus } = req.body;
 
@@ -855,27 +876,29 @@ const updateItemStatus = async (req, res, next) => {
       message: `${item.productId.name} status has been updated to ${itemStatus}`,
       updatedItem: item,
     });
-  } catch (err) {
-    console.error("Error updating item status: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error updating item status: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Fetches and renders the banner page for admin
-const getBanner = async (req, res, next) => {
+const getBanner = async (req, res) => {
   const locals = { title: "Admin Banners | EverGreen" };
 
   try {
-    const banners = await Banner.find().sort({ createdAt: -1 });
+    const banners = await Banner.find()
+      .sort({ createdAt: -1 })
+      .lean();
 
-    return res.render("admin/banners", {
+    res.render("admin/banners", {
       locals,
       banners,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error fetching banners: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching banners: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
@@ -883,16 +906,17 @@ const getBanner = async (req, res, next) => {
 const getAddBanner = (req, res) => {
   const locals = { title: "Admin - Add Banner | EverGreen" };
 
-  return res.render("admin/addBanner", {
+  res.render("admin/addBanner", {
     locals,
     layout: "layouts/adminLayout",
   });
 };
 
 // Adds a new banner to the database
-const addBanner = async (req, res, next) => {
+const addBanner = async (req, res) => {
+  const { title, description, isActive } = req.body;
+
   try {
-    const { title, description, isActive } = req.body;
     const image = req.file;
     if (!image) {
       return errorHandler(res, HttpStatus.BAD_REQUEST, "Image is required for upload.");
@@ -900,28 +924,26 @@ const addBanner = async (req, res, next) => {
 
     const imageUrl = image.filename;
 
-    const newBanner = new Banner({
+    const newBanner = await Banner.create({
       title,
       imageUrl,
       description,
       isActive: isActive === "on",
     });
 
-    await newBanner.save();
-
     return res.status(HttpStatus.CREATED).json({
         success: true,
         message: "Banner added successfully.",
         banner: newBanner,
       });
-  } catch (err) {
-    console.error("Error adding banner: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error adding banner: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Updates an existing banner in the database
-const updateBanner = async (req, res, next) => {
+const updateBanner = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, isActive } = req.body;
@@ -932,9 +954,12 @@ const updateBanner = async (req, res, next) => {
       updateData.imageUrl = image.filename;
     }
 
-    const updatedBanner = await Banner.findByIdAndUpdate(id, updateData, {
-      new: true,
-    });
+    const updatedBanner = await Banner.findByIdAndUpdate(
+      id, 
+      updateData,
+      { new: true },
+    );
+
     if (!updatedBanner) {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Banner not found.");
     }
@@ -944,14 +969,14 @@ const updateBanner = async (req, res, next) => {
       message: "Banner updated successfully.",
       banner: updatedBanner,
     });
-  } catch (err) {
-    console.error("Error updating banner: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error updating banner: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Delete a banner
-const deleteBanner = async (req, res, next) => {
+const deleteBanner = async (req, res) => {
   try {
     const { id } = req.params;
     const deletedBanner = await Banner.findByIdAndDelete(id);
@@ -961,20 +986,22 @@ const deleteBanner = async (req, res, next) => {
     }
 
     if (deletedBanner.imageUrl) {
-      fs.unlink(path.join("public", deletedBanner.imageUrl), (err) => {
-        if (err) console.error("Error deleting banner image: ", err);
+      fs.unlink(path.join("public", deletedBanner.imageUrl), (error) => {
+        if (error) {
+          console.error("Error deleting banner image: ", error);
+        }
       });
     }
 
     return successHandler(res, HttpStatus.OK, "Banner deleted successfully.");
-  } catch (err) {
-    console.error("Error deleting banner: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error deleting banner: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Renders the add category offers page
-const getAddCategoryOffers = async (req, res, next) => {
+const getAddCategoryOffers = async (req, res) => {
   const locals = { title: "Admin Add Category offers | EverGreen" };
   const offerTypes = [
     "Seasonal",
@@ -985,25 +1012,25 @@ const getAddCategoryOffers = async (req, res, next) => {
   ];
 
   try {
-    const categories = await Category.find({ isListed: true });
+    const categories = await Category.find({ isListed: true }).lean();
     if (!categories) {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Categories not found.");
     }
 
-    return res.render("admin/addCategoryOffer", {
+    res.render("admin/addCategoryOffer", {
       locals,
       categories,
       offerTypes,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error fetching add category offers page: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching add category offers page: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Adds an offer to a specified category
-const addCategoryOffers = async (req, res, next) => {
+const addCategoryOffers = async (req, res) => {
   const {
     category,
     offerType,
@@ -1032,14 +1059,14 @@ const addCategoryOffers = async (req, res, next) => {
     await categoryToUpdate.save();
 
     return successHandler(res, HttpStatus.CREATED, `${categoryToUpdate.offer.type} offer added to ${categoryToUpdate.name}.`);
-  } catch (err) {
-    console.error("Error adding category offer: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error adding category offer: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Retrieves products for adding offers
-const getAddProductOffers = async (req, res, next) => {
+const getAddProductOffers = async (req, res) => {
   const locals = { title: "Admin Add Product offers | EverGreen" };
   const offerTypes = [
     "Seasonal",
@@ -1050,10 +1077,11 @@ const getAddProductOffers = async (req, res, next) => {
   ];
 
   try {
-    const products = await Product.find({ availability: true }).populate({
-      path: "category",
-      match: { isListed: true },
-    });
+    const products = await Product.find({ availability: true })
+      .populate({
+        path: "category",
+        match: { isListed: true },
+      });
 
     const filteredProducts = products.filter((product) => product.category);
 
@@ -1061,20 +1089,20 @@ const getAddProductOffers = async (req, res, next) => {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Products not found.");
     }
 
-    return res.render("admin/addProductOffer", {
+    res.render("admin/addProductOffer", {
       locals,
       products: filteredProducts,
       offerTypes: offerTypes,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error fetching add products offers page: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching add products offers page: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Adds offers to a product
-const addProductOffers = async (req, res, next) => {
+const addProductOffers = async (req, res) => {
   const {
     product,
     offerType,
@@ -1103,14 +1131,14 @@ const addProductOffers = async (req, res, next) => {
     await productToUpdate.save();
 
     return successHandler(res, HttpStatus.CREATED, `${productToUpdate.offer.type} offer added to ${productToUpdate.name}.`);
-  } catch (err) {
-    console.error("Error adding products offer: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error adding products offer: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Fetches categories and products with active offers
-const getOffers = async (req, res, next) => {
+const getOffers = async (req, res) => {
   const locals = { title: "Admin Offers | EverGreen" };
 
   try {
@@ -1138,20 +1166,20 @@ const getOffers = async (req, res, next) => {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Products with offer not found.");
     }
 
-    return res.render("admin/offers", {
+    res.render("admin/offers", {
       locals,
       categories,
       products,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error fetching offers page: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching offers page: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Fetches categories with active offers
-const getCategoryOffers = async (req, res, next) => {
+const getCategoryOffers = async (req, res) => {
   const locals = { title: "Admin Category Offers | EverGreen" };
 
   try {
@@ -1167,19 +1195,19 @@ const getCategoryOffers = async (req, res, next) => {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Categories with offer not found.");
     }
 
-    return res.render("admin/categoryOffers", {
+    res.render("admin/categoryOffers", {
       locals,
       categories,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error fetching category offers: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching category offers: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Fetches products with active offers
-const getProductOffers = async (req, res, next) => {
+const getProductOffers = async (req, res) => {
   const locals = { title: "Admin Category Offers | EverGreen" };
 
   try {
@@ -1195,21 +1223,22 @@ const getProductOffers = async (req, res, next) => {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Products with offer not found.");
     }
 
-    return res.render("admin/productOffers", {
+    res.render("admin/productOffers", {
       locals,
       products,
       layout: "layouts/adminLayout",
     });
-  } catch (err) {
-    console.error("Error fetching product offers: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching product offers: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Updates the return status of an order item and processes refunds if applicable
-const updateItemReturnStatus = async (req, res, next) => {
+const updateItemReturnStatus = async (req, res) => {
+  const { orderId, orderItemId, returnStatus, returnRejectReason } = req.body;
+
   try {
-    const { orderId, orderItemId, returnStatus, returnRejectReason } = req.body;
     const order = await Order.findById(orderId)
       .populate("orderItems.productId")
       .populate("userId")
@@ -1253,17 +1282,17 @@ const updateItemReturnStatus = async (req, res, next) => {
       return successHandler(
         res,
         HttpStatus.CREATED,
-        `Return status updated to ${orderItem.returnStatus} and Rs.${orderItem.itemTotal} refunded to ${user.firstName}'s wallet.`
+        `Return status updated to ${orderItem.returnStatus} and Rs.${orderItem.itemTotal} refunded to ${user.firstName}'s wallet.`,
       );
     }
-  } catch (err) {
-    console.error("Error updating the return status of the item and processing refund: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error updating the return status of the item and processing refund: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Updates the exchange status of an order item
-const updateItemExchangeStatus = async (req, res, next) => {
+const updateItemExchangeStatus = async (req, res) => {
   try {
     const { orderId, orderItemId, exchangeStatus, exchangeRejectReason } = req.body;
 
@@ -1286,14 +1315,14 @@ const updateItemExchangeStatus = async (req, res, next) => {
     await order.save();
 
     return successHandler(res, HttpStatus.CREATED, "Exchange status updated successfully");
-  } catch (err) {
-    console.error("Error updating the exchange status of the item: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error updating the exchange status of the item: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Updates the refund status of an order item
-const updateItemRefundStatus = async (req, res, next) => {
+const updateItemRefundStatus = async (req, res) => {
   try {
     const { orderId, orderItemId, itemRefundStatus, itemRefundRejectReason } = req.body;
 
@@ -1316,18 +1345,18 @@ const updateItemRefundStatus = async (req, res, next) => {
     await order.save();
 
     return successHandler(res, HttpStatus.CREATED, "Refund status updated successfully");
-  } catch (err) {
-    console.error("Error updating the refund status of the item: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error updating the refund status of the item: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Handles admin logout
-const adminLogout = (req, res, next) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error("Error destroying the session: ", err);
-      return next(err);
+const adminLogout = (req, res) => {
+  req.session.destroy((error) => {
+    if (error) {
+      console.error("Error destroying the session: ", error);
+      throw new Error("An error occurred. Please try again later.");
     }
     return res.redirect("/admin/login");
   });
