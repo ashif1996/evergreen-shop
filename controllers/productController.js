@@ -234,17 +234,23 @@ const isUserEligibleForReview = async (userId, productId) => {
   try {
     const order = await Order.findOne({
       userId: userId,
-      "orderItems.productId": productId,
-      "orderItems.itemStatus": "Delivered",
+      orderItems: {
+        $elemMatch: {
+          productId: productId, // The product the user is trying to rate
+          itemStatus: "Delivered", // Ensure the status of this product is Delivered
+        },
+      },
     })
       .populate({
         path: "orderItems.productId",
         select: "name images",
       })
       .select("_id orderItems.productId")
-      .lean();
+      .lean();    
 
-    if (order) {
+    if (!order) {
+      return { eligible: false, productName: null, productImage: null };
+    } else {
       const productItem = order.orderItems.find(item => item.productId._id.equals(productId));
     
       if (productItem) {
@@ -254,9 +260,7 @@ const isUserEligibleForReview = async (userId, productId) => {
           productImage: productItem.productId.images?.[0] || null,
         };
       }
-    }
-    
-    return { eligible: false, productName: null, productImage: null };      
+    }      
   } catch (error) {
     console.error("An error occurred checking review eligibility: ", error);
     throw new Error("An error occurred. Please try again later.");
