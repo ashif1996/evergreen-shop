@@ -2,12 +2,14 @@ const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
 const pdf = require("pdfkit");
+
 const Address = require("../models/addressSchema");
 const Cart = require("../models/cartSchema");
 const Coupon = require("../models/couponSchema");
 const Order = require("../models/orderSchema");
 const Product = require("../models/product");
 const User = require("../models/user");
+
 const { calculateBestDiscountedPrice } = require("../utils/discountPriceCalculation");
 const {
   confirmRazorpayPayment,
@@ -23,7 +25,7 @@ const { processRefund } = require("../utils/paymentServices/walletServices");
 const ObjectId = mongoose.Types.ObjectId;
 
 // Fetch checkout details for the user
-const getCheckout = async (req, res, next) => {
+const getCheckout = async (req, res) => {
   const userId = req.session.user._id;
 
   try {
@@ -61,18 +63,18 @@ const getCheckout = async (req, res, next) => {
       couponId: couponId,
     };
 
-    return res.render("users/orders/checkout", {
+    res.render("users/orders/checkout", {
       locals,
       layout: "layouts/userLayout",
     });
-  } catch (err) {
-    console.error("Error fetching checkout page: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching checkout page: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Apply a coupon to the user's cart
-const applyCoupon = async (req, res, next) => {
+const applyCoupon = async (req, res) => {
   const { couponCode } = req.body;
   const userId = req.session.user._id;
 
@@ -105,8 +107,7 @@ const applyCoupon = async (req, res, next) => {
       );
     }
 
-    const couponDiscount =
-      coupon.discountType === "PERCENTAGE"
+    const couponDiscount = coupon.discountType === "PERCENTAGE"
         ? cart.subTotal * (coupon.discountValue / 100)
         : coupon.discountValue;
 
@@ -130,14 +131,14 @@ const applyCoupon = async (req, res, next) => {
       subtotal,
       totalPrice,
     });
-  } catch (err) {
-    console.error("Error applying coupon: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error applying coupon: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Remove a coupon from the user's cart
-const removeCoupon = async (req, res, next) => {
+const removeCoupon = async (req, res) => {
   const userId = req.session.user._id;
 
   try {
@@ -162,27 +163,29 @@ const removeCoupon = async (req, res, next) => {
       subtotal,
       totalPrice,
     });
-  } catch (err) {
-    console.error("Error removing coupon: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error removing coupon: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Create a new order for the user
-const createOrder = async (req, res, next) => {
+const createOrder = async (req, res) => {
   const userId = req.session.user._id;
 
   try {
     const { paymentMethod, totalPrice, couponId, termsConditions, addressId } = req.body;
 
-    const cart = await Cart.findOne({ userId }).populate({
-      path: "items.productId",
-      select: "price offer category",
-      populate: {
-        path: "category",
-        select: "offer",
-      }
-    });
+    const cart = await Cart.findOne({ userId })
+      .populate({
+        path: "items.productId",
+        select: "price offer category",
+          populate: {
+            path: "category",
+            select: "offer",
+          }
+      });
+
     if (!cart || cart.items.length === 0) {
       return errorHandler(res, HttpStatus.BAD_REQUEST, "Your cart is empty.");
     }
@@ -199,8 +202,7 @@ const createOrder = async (req, res, next) => {
         return errorHandler(res, HttpStatus.BAD_REQUEST, "Invalid coupon.");
       }
 
-      appliedCouponDiscount =
-        coupon.discountType === "PERCENTAGE"
+      appliedCouponDiscount = coupon.discountType === "PERCENTAGE"
           ? cart.subTotal * (coupon.discountValue / 100)
           : coupon.discountValue;
     }
@@ -316,14 +318,14 @@ const createOrder = async (req, res, next) => {
       default:
         return errorHandler(res, HttpStatus.BAD_REQUEST, "Invalid payment method.");
     }
-  } catch (err) {
-    console.error("Order creation failed: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Order creation failed: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 //Function to verify Razorpay payment
-const verifyRazorpayPayment = async (req, res, next) => {
+const verifyRazorpayPayment = async (req, res) => {
   const {
     razorpay_payment_id,
     razorpay_order_id,
@@ -347,6 +349,7 @@ const verifyRazorpayPayment = async (req, res, next) => {
       req.session.user._id,
       couponId,
     );
+
     req.session.coupon = null;
 
     if (order.orderPaymentStatus === "Success") {
@@ -356,16 +359,16 @@ const verifyRazorpayPayment = async (req, res, next) => {
         order,
       });
     } else {
-      return handleRazorpayPaymentFailure(req, res, next);
+      return handleRazorpayPaymentFailure(req, res, );
     }
-  } catch (err) {
-    console.error("Payment confirmation failed: ", err);
-    return handleRazorpayPaymentFailure(req, res, next);
+  } catch (error) {
+    console.error("Payment confirmation failed: ", error);
+    return handleRazorpayPaymentFailure(req, res);
   }
 };
 
 //Function to retry Razorpay payment
-const retryPayment = async (req, res, next) => {
+const retryPayment = async (req, res) => {
   try {
     const { orderId } = req.params;
 
@@ -384,14 +387,14 @@ const retryPayment = async (req, res, next) => {
       totalAmount: order.totalPrice,
       user: req.session.user,
     });
-  } catch (err) {
-    console.error("Error retrying payment: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error retrying payment: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Function for retrieving order summary
-const getOrderSummary = async (req, res, next) => {
+const getOrderSummary = async (req, res) => {
   const locals = {
     title: "Order Summary | EverGreen",
     user: req.session.user,
@@ -404,20 +407,21 @@ const getOrderSummary = async (req, res, next) => {
     const order = await Order.findById(orderId)
       .populate("orderItems.productId")
       .populate("userId")
-      .populate("couponId");
+      .populate("couponId")
+      .lean();
 
     if (!order) {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
     }
 
-    return res.render("users/orders/orderSummary", {
+    res.render("users/orders/orderSummary", {
       locals,
       order: order,
       layout: "layouts/userLayout",
     });
-  } catch (err) {
-    console.error("Error fetching order summary: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching order summary: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
@@ -428,42 +432,48 @@ const getUserOrders = async (req, res) => {
     user: req.session.user,
     isLoggedIn: !!req.session.user,
   };
-
   const userId = req.session.user._id;
-  const page = parseInt(req.query.page || 1);
-  const limit = 5;
-  const statusFilter = req.query.status || "";
-  const skip = (page - 1) * limit;
 
-  let query = { userId };
-  if (statusFilter && statusFilter !== "all") {
-    query.orderStatus = statusFilter;
+  try {
+    const page = parseInt(req.query.page || 1);
+    const limit = 5;
+    const statusFilter = req.query.status || "";
+    const skip = (page - 1) * limit;
+
+    let query = { userId };
+    if (statusFilter && statusFilter !== "all") {
+      query.orderStatus = statusFilter;
+    }
+
+    const totalOrders = await Order.countDocuments(query);
+
+    const orders = await Order.find(query)
+      .populate("orderItems.productId")
+      .populate("userId")
+      .populate("couponId")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    res.render("users/orders/myOrders", {
+      locals,
+      orders,
+      currentPage: page,
+      totalPages,
+      statusFilter,
+      layout: "layouts/userLayout",
+    });
+  } catch (error) {
+    console.error("Error fetching user orders: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
-
-  const totalOrders = await Order.countDocuments(query);
-
-  const orders = await Order.find(query)
-    .populate("orderItems.productId")
-    .populate("userId")
-    .populate("couponId")
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit);
-
-  const totalPages = Math.ceil(totalOrders / limit);
-
-  return res.render("users/orders/myOrders", {
-    locals,
-    orders,
-    currentPage: page,
-    totalPages,
-    statusFilter,
-    layout: "layouts/userLayout",
-  });
 };
 
 // Fetches and renders order details for a specific order
-const getOrderDetails = async (req, res, next) => {
+const getOrderDetails = async (req, res) => {
   const locals = {
     title: "Order Summary | EverGreen",
     user: req.session.user,
@@ -498,7 +508,8 @@ const getOrderDetails = async (req, res, next) => {
       .populate("orderItems.productId")
       .populate("userId")
       .populate("couponId")
-      .populate("shippingAddress");
+      .populate("shippingAddress")
+      .lean();
 
     if (!order) {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
@@ -512,19 +523,19 @@ const getOrderDetails = async (req, res, next) => {
     locals.hasNonReturnableItem = hasNonReturnableItem;
     locals.showCancelButton = showCancelButton;
 
-    return res.render("users/orders/orderDetails", {
+    res.render("users/orders/orderDetails", {
       locals,
       order,
       layout: "layouts/userLayout",
     });
-  } catch (err) {
-    console.error("Error fetching order details: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching order details: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Function to handle order cancellation
-const cancelOrder = async (req, res, next) => {
+const cancelOrder = async (req, res) => {
   const { orderId } = req.params;
 
   try {
@@ -539,6 +550,7 @@ const cancelOrder = async (req, res, next) => {
       "Returned",
       "Exchanged",
     ];
+
     if (nonCancellableStatuses.includes(order.orderStatus)) {
       return errorHandler(
         res,
@@ -576,14 +588,14 @@ const cancelOrder = async (req, res, next) => {
     }
 
     return res.status(HttpStatus.OK).json(response);
-  } catch (err) {
-    console.error("Failed to cancel the order: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Failed to cancel the order: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Function to handle the return request
-const returnItem = async (req, res, next) => {
+const returnItem = async (req, res) => {
   try {
     const { itemId } = req.params;
     const { returnReason } = req.body;
@@ -601,23 +613,23 @@ const returnItem = async (req, res, next) => {
     await order.save();
 
     return res.redirect(`/orders/my-orders/order-details/${order._id}?returnRequestSuccess=true`);
-  } catch (err) {
-    console.error("Error occurred while requesting for return: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error occurred while requesting for return: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Function to generate invoice
-const generateInvoice = async (orderId, next) => {
+const generateInvoice = async (orderId) => {
   const invoicesDir = path.join(__dirname, "..", "invoices");
 
   try {
     if (!fs.existsSync(invoicesDir)) {
       fs.mkdirSync(invoicesDir, { recursive: true });
     }
-  } catch (err) {
-    console.error("Error creating invoices directory: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error creating invoices directory: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 
   const filePath = path.join(invoicesDir, `${orderId}.pdf`);
@@ -625,13 +637,14 @@ const generateInvoice = async (orderId, next) => {
   try {
     const order = await Order.findById(orderId)
       .populate("orderItems.productId")
-      .populate("shippingAddress");
+      .populate("shippingAddress")
+      .lean();
 
     const doc = new pdf();
     const writeStream = fs.createWriteStream(filePath);
     doc.pipe(writeStream);
 
-    // Add title next to the logo
+    // Add title  to the logo
     doc.fontSize(20).text("EverGreen", { align: "center" });
 
     // Add the header text
@@ -719,25 +732,26 @@ const generateInvoice = async (orderId, next) => {
         resolve(filePath);
       });
 
-      writeStream.on("error", (err) => {
-        console.error("Error writing PDF to file: ", err);
+      writeStream.on("error", (error) => {
+        console.error("Error writing PDF to file: ", error);
         reject(new Error("Error generating invoice PDF."));
       });
     });
-  } catch (err) {
-    console.error("Error generating invoice PDF: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error generating invoice PDF: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Function to handle invoice download
-const downloadInvoice = async (req, res, next) => {
+const downloadInvoice = async (req, res) => {
   try {
     const orderId = req.params.id;
     const userId = req.session.user._id;
     const order = await Order.findOne({ _id: orderId, userId: userId })
       .populate("orderItems.productId")
-      .populate("shippingAddress");
+      .populate("shippingAddress")
+      .lean();
 
     if (!order) {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
@@ -750,11 +764,11 @@ const downloadInvoice = async (req, res, next) => {
       res.download(filePath);
     } else {
       console.error("Invoice file does not exist: ", filePath);
-      return next(err);
+      throw new Error("An error occurred. Please try again later.");
     }
-  } catch (err) {
-    console.error("Error generating invoice: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error generating invoice: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
