@@ -1,10 +1,11 @@
 const Banner = require("../models/bannerSchema");
 const Category = require("../models/category");
 const Product = require("../models/product");
+
 const { calculateBestDiscountedPrice } = require("../utils/discountPriceCalculation");
 
 // Fetches and renders the home page
-const getHome = async (req, res, next) => {
+const getHome = async (req, res) => {
   const locals = {
     title: "EverGreen Home | Always Fresh",
     user: req.session.user,
@@ -12,10 +13,11 @@ const getHome = async (req, res, next) => {
   };
 
   try {
-    const banners = await Banner.find({ isActive: true });
+    const banners = await Banner.find({ isActive: true }).lean();
     let products = await Product.find({ availability: true })
       .populate("category")
-      .populate("offer");
+      .populate("offer")
+      .lean();
 
     products = products.map((product) => {
       if (product.toObject) {
@@ -37,15 +39,15 @@ const getHome = async (req, res, next) => {
       };
     });
 
-    return res.render("home", {
+    res.render("home", {
       locals,
       products,
       banners,
       layout: "layouts/userLayout",
     });
-  } catch (err) {
-    console.error("An unexpected error occurred while fetching home: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("An unexpected error occurred while fetching home: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
@@ -87,7 +89,7 @@ const searchByProduct = async (searchTerm) => {
 };
 
 // Main function to handle product search based on search term
-const searchProducts = async (req, res, next) => {
+const searchProducts = async (req, res) => {
   const locals = {
     title: "EverGreen Search | Always Fresh",
     user: req.session.user,
@@ -107,15 +109,15 @@ const searchProducts = async (req, res, next) => {
       products = await searchByProduct(searchTerm);
     }
 
-    return res.render("searchResults", {
+    res.render("searchResults", {
       locals,
       products,
       searchTerm,
       layout: "layouts/userLayout",
     });
-  } catch (err) {
-    console.error("An error occurred while searching products: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("An error occurred while searching products: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
