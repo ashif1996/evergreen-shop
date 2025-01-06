@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const OTP = require("../models/otp");
+
 const transporter = require("../config/email");
 
 // Generate a 6-digit random OTP
@@ -11,17 +12,15 @@ const generateOtp = () => {
 const storeOtp = async (email, otp) => {
   await OTP.deleteMany({ email });
 
-  const otpDoc = new OTP({
+  await OTP.create({
     email,
     otp,
-    expiresAt: new Date(Date.now() + 2 * 60 * 1000)
+    expiresAt: new Date(Date.now() + 2 * 60 * 1000),
   });
-
-  await otpDoc.save();
 };
 
 // Send the OTP to the user's email
-const sendOtp = async (email, otp, next) => {
+const sendOtp = async (email, otp) => {
   const mailOptions = {
     from: process.env.SEND_OTP_EMAIL,
     to: email,
@@ -32,25 +31,23 @@ const sendOtp = async (email, otp, next) => {
   try {
     await transporter.sendMail(mailOptions);
     console.log("OTP email sent successfully.");
-  } catch (err) {
-    console.error("Error sending OTP email: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error sending OTP email: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Verify the OTP entered by the user
 const verifyOtp = async (email, userOtp) => {
-  const latestOtpDoc = await OTP.findOne({ email })
+  const latestOtpDoc = await OTP.findOneAndDelete({
+    email,
+    expiresAt: { $gte: new Date() }, // Ensure the OTP is not expired
+  })
     .sort({ expiresAt: -1 })
     .exec();
-  if (!latestOtpDoc) {
-    return { isVerified: false, reason: "no_otp" };
-  }
 
-  const isExpired = new Date() > latestOtpDoc.expiresAt;
-  if (isExpired) {
-    await OTP.deleteOne({ email: latestOtpDoc.email, otp: latestOtpDoc.otp });
-    return { isVerified: false, reason: "expired" };
+  if (!latestOtpDoc) {
+    return { isVerified: false, reason: "no_otp_or_expired" };
   }
 
   const hash = crypto.createHash("sha256").update(userOtp);
@@ -74,6 +71,7 @@ const cleanupExpiredOtps = async () => {
     console.log("Expired OTPs cleaned up successfully.");
   } catch (err) {
     console.error("Error cleaning up expired OTPs: ", err);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
