@@ -5,10 +5,12 @@ const crypto = require("crypto");
 const generateUniqueReferralCode = async () => {
   let referralCode;
   let exists;
+
   do {
     referralCode = crypto.randomBytes(4).toString("hex");
     exists = await User.findOne({ referralCode });
   } while (exists);
+
   return referralCode;
 };
 
@@ -16,17 +18,21 @@ const generateUniqueReferralCode = async () => {
 const validateReferralCode = async (referralCode) => {
   try {
     const referrer = await User.findOne({ referralCode });
-    if (!referrer) return { success: false, message: "Invalid referral code." };
-    if (!referrer.status)
+    if (!referrer) {
+      return { success: false, message: "Invalid referral code." };
+    }
+
+    if (!referrer.status) {
       return { success: false, message: "Referrer is blocked by the admin." };
+    }
 
     return {
       success: true,
       message: "Referral code verified successfully.",
-      referrer
+      referrer,
     };
-  } catch (err) {
-    console.error("Server error: ", err);
+  } catch (error) {
+    console.error("Server error: ", error);
     return { success: false, message: "An internal server error occurred." };
   }
 };
@@ -34,15 +40,17 @@ const validateReferralCode = async (referralCode) => {
 // Verify referral codes
 const verifyReferralCode = async (req, res) => {
   const { referralCode } = req.body;
+
   try {
     const validationResult = await validateReferralCode(referralCode);
-    if (!validationResult.success)
+    if (!validationResult.success) {
       return res.status(400).json(validationResult);
+    }
 
-    res.status(200).json(validationResult);
-  } catch (err) {
-    console.error("Error verifying referral code: ", err);
-    res.status(500).json({
+    return res.status(200).json(validationResult);
+  } catch (error) {
+    console.error("Error verifying referral code: ", error);
+    return res.status(500).json({
       success: false,
       message: "Server error during referral code verification.",
     });
@@ -50,7 +58,7 @@ const verifyReferralCode = async (req, res) => {
 };
 
 // Credit referral rewards to both the referrer and the new user
-const creditReferralReward = async (referrerId, newUser, next) => {
+const creditReferralReward = async (referrerId, newUser) => {
   try {
     const referrer = await User.findById(referrerId);
     if (!referrer) return;
@@ -76,9 +84,9 @@ const creditReferralReward = async (referrerId, newUser, next) => {
 
     await referrer.save();
     await newUser.save();
-  } catch (err) {
-    console.error("Error updating wallet balances: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error updating wallet balances: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
