@@ -40,32 +40,34 @@ document.addEventListener("DOMContentLoaded", function() {
                     }
                 });
     
-                // Check if the response is an HTML page or a JSON object
-                const contentType = response.headers.get("content-type");
-    
                 if (response.ok) {
+                    const contentType = response.headers.get("content-type");
                     if (contentType && contentType.includes("application/json")) {
                         const data = await response.json();
-                        
                         if (data.eligible) {
-                            // Redirect to the review page directly if the user is eligible
                             window.location.href = `/products/rate-product/${productId}`;
                         } else {
-                            // Show warning if not eligible
                             Swal.fire({
                                 title: 'Not Eligible',
-                                text: data.message, // Show the message from the server response
-                                icon: 'warning' // Show a warning icon
+                                text: data.message, // Use the server's response message
+                                icon: 'warning'
                             });
                         }
                     } else {
-                        // If the response is not JSON, handle it as an HTML page (e.g., it has been rendered)
-                        window.location.href = `/products/rate-product/${productId}`;  // Redirect to the product rating page
+                        window.location.href = `/products/rate-product/${productId}`;
                     }
                 } else {
-                    // Handle server-side errors distinctly
-                    throw new Error('Error while checking eligibility');
-                }
+                    const errorDetails = await response.json(); // Parse JSON error response
+                    const errorMessage = errorDetails.message || 'An unexpected error occurred.';
+                
+                    Swal.fire({
+                        title: 'Not Eligible',
+                        text: errorMessage, // Display the server-provided error message
+                        icon: 'warning'
+                    });
+                
+                    console.error('Server Error:', response.status, errorMessage);
+                }                
             } catch (error) {
                 // Handle any client-side or network errors
                 Swal.fire({
