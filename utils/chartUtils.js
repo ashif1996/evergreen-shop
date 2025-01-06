@@ -35,6 +35,6 @@ const getDateRange = async (dateRange, filterDate) => {
       console.error('Error fetching date range: ', error);
       throw new Error("An error occurred. Please try again later.");
   }
-}
+};
 
 module.exports = getDateRange;
