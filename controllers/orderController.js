@@ -7,7 +7,6 @@ const Address = require("../models/addressSchema");
 const Cart = require("../models/cartSchema");
 const Coupon = require("../models/couponSchema");
 const Order = require("../models/orderSchema");
-const Product = require("../models/product");
 const User = require("../models/user");
 
 const { calculateBestDiscountedPrice } = require("../utils/discountPriceCalculation");
@@ -20,7 +19,6 @@ const {
 const { finalizeOrder, generateOrderId } = require("../utils/orderUpdationUtils");
 const HttpStatus = require("../utils/httpStatus");
 const errorHandler = require("../utils/errorHandlerUtils");
-const successHandler = require("../utils/successHandlerUtils");
 const { processRefund } = require("../utils/paymentServices/walletServices");
 const ObjectId = mongoose.Types.ObjectId;
 
