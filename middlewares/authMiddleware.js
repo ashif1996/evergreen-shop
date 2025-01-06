@@ -46,9 +46,9 @@ const isUser = async (req, res, next) => {
     }
 
     next();
-  } catch (err) {
-    console.error("An error occurred while checking authentication: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("An error occurred while checking authentication: ", error);
+    throw new Error("An error occurred. Please try again later.")
   }
 };
 
