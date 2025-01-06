@@ -1,7 +1,7 @@
 {
   "name": "evergreen",
   "version": "1.0.0",
-  "description": "",
+  "description": "Evergreen is a web application built with Node.js, Express, and MongoDB for purchasing fresh vegetables, fruits, drinks, and nuts. The platform offers a seamless online shopping experience with secure payment options and a user-friendly interface.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
