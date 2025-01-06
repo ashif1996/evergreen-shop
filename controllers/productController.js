@@ -1,14 +1,16 @@
 const mongoose = require('mongoose');
+
 const Category = require("../models/category");
 const Order = require("../models/orderSchema");
 const Product = require("../models/product");
+
 const { calculateBestDiscountedPrice } = require("../utils/discountPriceCalculation");
 const errorHandler = require("../utils/errorHandlerUtils");
 const successHandler = require("../utils/successHandlerUtils");
 const HttpStatus = require("../utils/httpStatus");
 
 // Function to get products with offer calculations
-const getProducts = async (req, res, next) => {
+const getProducts = async (req, res) => {
   const locals = {
     title: "Products Page",
     isLoggedIn: !!req.session.user,
@@ -96,13 +98,15 @@ const getProducts = async (req, res, next) => {
         .populate("offer")
         .sort(sortOption)
         .skip((page - 1) * limit)
-        .limit(limit);
+        .limit(limit)
+        .lean();
     }
 
     products = products.map((product) => {
       if (product.toObject) {
         product = product.toObject();
       }
+
       const {
         discountedPrice,
         discountPercentage,
@@ -121,7 +125,7 @@ const getProducts = async (req, res, next) => {
     totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / limit);
 
-    return res.render("users/products/products", {
+    res.render("users/products/products", {
       locals,
       categories,
       products,
@@ -130,9 +134,9 @@ const getProducts = async (req, res, next) => {
       totalPages,
       layout: "layouts/userLayout",
     });
-  } catch (err) {
-    console.error("An error occurred while fetching the products page: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("An error occurred while fetching the products page: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
@@ -140,7 +144,7 @@ const getProducts = async (req, res, next) => {
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 // Function to fetch and render the product details page
-const getProductDetails = async (req, res, next) => {
+const getProductDetails = async (req, res) => {
   const locals = {
     title: "Product Details | EverGreen",
     isLoggedIn: !!req.session.user,
@@ -161,7 +165,8 @@ const getProductDetails = async (req, res, next) => {
         path: "category", 
         populate: { path: "offer" },
       })
-      .populate("ratings.userId");
+      .populate("ratings.userId")
+      .lean();
 
     if (!product) {
       return res.status(404).render('notFoundError', {
@@ -172,14 +177,16 @@ const getProductDetails = async (req, res, next) => {
 
     const { discountedPrice, discountPercentage, fixedDiscount, discountType } = calculateBestDiscountedPrice(product);
     const mainProduct = {
-      ...product.toObject(),
+      ...product,
       discountedPrice,
       discountPercentage,
       fixedDiscount,
       discountType,
     };
 
-    const averageRating = product.averageRating;
+    const averageRating = product.ratings.length
+      ? product.ratings.reduce((sum, rating) => sum + rating.rating, 0) / product.ratings.length
+      : 0;
     const hasRatings = product.ratings.length > 0;
     const relatedCategory = product.category._id;
 
@@ -188,7 +195,8 @@ const getProductDetails = async (req, res, next) => {
       .populate({
         path: "category", 
         populate: { path: "offer" }
-      });
+      })
+      .lean();
 
     relatedProducts = relatedProducts.map((relatedProduct) => {
       const {
@@ -198,7 +206,7 @@ const getProductDetails = async (req, res, next) => {
         discountType,
       } = calculateBestDiscountedPrice(relatedProduct);
       return {
-        ...relatedProduct.toObject(),
+        ...relatedProduct,
         discountedPrice,
         discountPercentage,
         fixedDiscount,
@@ -206,7 +214,7 @@ const getProductDetails = async (req, res, next) => {
       };
     });
 
-    return res.render("users/products/productDetails", {
+    res.render("users/products/productDetails", {
       locals,
       product: mainProduct,
       productId,
@@ -215,14 +223,14 @@ const getProductDetails = async (req, res, next) => {
       relatedProducts,
       layout: "layouts/userLayout",
     });
-  } catch (err) {
-    console.error('Error fetching product details: ', err);
-    return next(err);
+  } catch (error) {
+    console.error('Error fetching product details: ', error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Function to check if a user is eligible for product review
-const isUserEligibleForReview = async (userId, productId, next) => {
+const isUserEligibleForReview = async (userId, productId) => {
   try {
     const order = await Order.findOne({
       userId: userId,
@@ -233,7 +241,8 @@ const isUserEligibleForReview = async (userId, productId, next) => {
         path: "orderItems.productId",
         select: "name images",
       })
-      .select("_id orderItems.productId");
+      .select("_id orderItems.productId")
+      .lean();
 
     if (order) {
       const productItem = order.orderItems.find(item => item.productId._id.equals(productId));
@@ -248,14 +257,14 @@ const isUserEligibleForReview = async (userId, productId, next) => {
     }
     
     return { eligible: false, productName: null, productImage: null };      
-  } catch (err) {
-    console.error("An error occurred checking review eligibility: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("An error occurred checking review eligibility: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Function to render the product rating page
-const getRateProduct = async (req, res, next) => {
+const getRateProduct = async (req, res) => {
   const locals = {
     title: "Products Page",
     isLoggedIn: !!req.session.user,
@@ -272,21 +281,21 @@ const getRateProduct = async (req, res, next) => {
       return errorHandler(res, HttpStatus.FORBIDDEN, "You are not eligible to review this product.");
     }
 
-    return res.render("users/products/rateProduct", {
+    res.render("users/products/rateProduct", {
       locals,
       layout: "layouts/userLayout",
       productId,
       productName,
       productImage,
     });
-  } catch (err) {
-    console.error("Error fetching product rating page: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error fetching product rating page: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
 // Function to handle the rating of a product
-const rateProduct = async (req, res, next) => {
+const rateProduct = async (req, res) => {
   const userId = req.session.user._id;
   const productId = req.params.id;
   const { rating, comment } = req.body;
@@ -312,9 +321,9 @@ const rateProduct = async (req, res, next) => {
     await product.save();
 
     return successHandler(res, HttpStatus.CREATED, "Review submitted successfully.");
-  } catch (err) {
-    console.error("Error submitting the review: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error submitting the review: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
