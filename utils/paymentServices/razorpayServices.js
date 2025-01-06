@@ -1,10 +1,7 @@
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 
-const User = require("../../models/user");
-const Cart = require("../../models/cartSchema");
 const Order = require("../../models/orderSchema");
-const Product = require("../../models/product");
 
 const { finalizeOrder } = require("../orderUpdationUtils");
 const errorHandler = require("../errorHandlerUtils");
@@ -67,8 +64,9 @@ const confirmRazorpayPayment = async (
 
 // Handle Razorpay Payment Failure
 const handleRazorpayPaymentFailure = async (req, res) => {
+  const { orderId } = req.body;
+
   try {
-    const { orderId } = req.body;
     const order = await Order.findOne({ razorpayOrderId: orderId });
     if (!order) {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
