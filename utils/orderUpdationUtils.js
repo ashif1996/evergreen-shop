@@ -2,26 +2,26 @@ const User = require("../models/user");
 const Product = require("../models/product");
 const Cart = require("../models/cartSchema");
 const OrderCounter = require("../models/orderCounterSchema");
+
 const mongoose = require("mongoose");
-const errorHandler = require("./errorHandlerUtils");
-const successHandler = require("./successHandlerUtils");
-const HttpStatus = require("./httpStatus");
 const ObjectId = mongoose.Types.ObjectId;
 
 // Function to generate order Ids
-const generateOrderId = async (next) => {
+const generateOrderId = async () => {
   try {
     const counter = await OrderCounter.findOneAndUpdate(
       {},
       { $inc: { sequence_value: 1 } },
-      { new: true, upsert: true }
+      { new: true, upsert: true },
     );
+
     const year = new Date().getFullYear();
     const paddedSequence = counter.sequence_value.toString().padStart(5, "0");
+
     return `ORD-${year}-${paddedSequence}`;
-  } catch (err) {
-    console.error("Error generating order ID: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error generating order ID: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
@@ -29,9 +29,11 @@ const generateOrderId = async (next) => {
 const updateUserOrdersAndCoupons = async (userId, orderId, couponId) => {
   const user = await User.findById(userId);
   user.orders.push(orderId);
+
   if (couponId && ObjectId.isValid(couponId)) {
     user.usedCoupons.push(couponId);
   }
+
   await user.save();
 };
 
@@ -39,12 +41,15 @@ const updateUserOrdersAndCoupons = async (userId, orderId, couponId) => {
 const updateProductStockAndPurchaseCount = async (orderItems) => {
   await Promise.all(
     orderItems.map(async (item) => {
-      await Product.findByIdAndUpdate(item.productId, {
-        $inc: {
-          stock: -item.quantity,
-          purchaseCount: item.quantity,
+      await Product.findByIdAndUpdate(
+        item.productId,
+        { 
+          $inc: {
+            stock: -item.quantity,
+            purchaseCount: item.quantity,
+          },
         },
-      });
+      );
     })
   );
 };
