@@ -1,20 +1,27 @@
 const express = require('express');
 const router = express.Router();
 const passport = require('passport');
+
 const userController = require('../controllers/userController');
-const { isUser, isLoggedIn } = require('../middlewares/authMiddleware');
 const walletController = require('../utils/paymentServices/walletServices');
-const { signupValidationRules, loginValidationRules } = require('../middlewares/validators/userValidators');
+
+const { isUser, isLoggedIn } = require('../middlewares/authMiddleware');
+const { signupValidationRules } = require('../middlewares/validators/userValidators');
 const { verifyReferralCode } = require('../utils/referralUtils');
 const validate = require('../middlewares/validate');
 
 // Authentication Routes
-router.get('/login', userController.getUserLogin);
-router.post('/login', userController.userLogin);
-router.get('/signup', userController.getUserSignup);
-router.post('/signup', signupValidationRules, validate, userController.userSignup);
+router.route("/login")
+    .get(userController.getUserLogin)
+    .post(userController.userLogin);
+
+router.route("/signup")
+    .get(userController.getUserSignup)
+    .post(signupValidationRules, validate, userController.userSignup);
+
 router.get('/forgot-password', userController.getForgotPassword);
 router.get('/change-password', userController.getChangePassword);
+
 router.get('/logout', userController.userLogout);
 
 // Profile Management Routes
