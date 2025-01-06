@@ -1,4 +1,5 @@
 const User = require("../models/user");
+
 const {
   generateOtp,
   storeOtp,
@@ -16,10 +17,13 @@ const handleSendOtp = async (req, res) => {
 
   try {
     await cleanupExpiredOtps();
+
     const otp = generateOtp();
     console.log(otp);
+
     await storeOtp(email, otp);
     await sendOtp(email, otp);
+
     req.session.otpSend = true;
     req.session.email = email;
 
@@ -29,8 +33,8 @@ const handleSendOtp = async (req, res) => {
       redirectUrl,
       otpSend: true,
     });
-  } catch (err) {
-    console.log("An error occurred when handling OTP: ", err);
+  } catch (error) {
+    console.log("An error occurred when handling OTP: ", error);
     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Error sending OTP!",
@@ -47,7 +51,7 @@ const getOtpVerification = (req, res) => {
   const otpSend = req.session.otpSend;
   console.log(otpSend);
 
-  return res.render("users/otp-verification", {
+  res.render("users/otp-verification", {
     locals,
     layout: "layouts/authLayout",
     email,
@@ -74,8 +78,8 @@ const handleVerifyOtp = async (req, res) => {
       const message = result.reason === "expired" ? "The OTP has expired." : "The OTP is invalid.";
       return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message });
     }
-  } catch (err) {
-    console.error("Error verifying OTP: ", err);
+  } catch (error) {
+    console.error("Error verifying OTP: ", error);
     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "An error occurred while verifying OTP.",
@@ -89,7 +93,7 @@ const getResetPassword = (req, res) => {
   const locals = { title: "Reset Password | EverGreen" };
   const email = req.session.email;
 
-  return res.render("users/reset-password", {
+  res.render("users/reset-password", {
     locals,
     layout: "layouts/authLayout",
     email,
@@ -97,7 +101,7 @@ const getResetPassword = (req, res) => {
 };
 
 // Handle password reset logic
-const handleResetPassword = async (req, res, next) => {
+const handleResetPassword = async (req, res) => {
   const { newPassword, confirmPassword } = req.body;
   const email = req.session.email;
 
@@ -106,7 +110,7 @@ const handleResetPassword = async (req, res, next) => {
   }
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("password");
     if (!user) {
       return errorHandler(res, HttpStatus.NOT_FOUND, "User not found.");
     }
@@ -115,9 +119,9 @@ const handleResetPassword = async (req, res, next) => {
     await user.save();
 
     return successHandler(res, HttpStatus.OK, "Password changed successfully.");
-  } catch (err) {
-    console.error("Error resetting the password: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error resetting the password: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
