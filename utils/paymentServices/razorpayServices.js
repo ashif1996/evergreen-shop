@@ -1,11 +1,11 @@
 const Razorpay = require("razorpay");
-const mongoose = require("mongoose");
-const ObjectId = mongoose.Types.ObjectId;
 const crypto = require("crypto");
+
 const User = require("../../models/user");
 const Cart = require("../../models/cartSchema");
 const Order = require("../../models/orderSchema");
 const Product = require("../../models/product");
+
 const { finalizeOrder } = require("../orderUpdationUtils");
 const errorHandler = require("../errorHandlerUtils");
 const successHandler = require("../successHandlerUtils");
@@ -18,13 +18,13 @@ const razorpay = new Razorpay({
 });
 
 // Create Razorpay Order
-const createRazorpayOrder = async (orderDetails, next) => {
+const createRazorpayOrder = async (orderDetails) => {
   try {
     const razorpayOrder = await razorpay.orders.create(orderDetails);
     return razorpayOrder;
-  } catch (err) {
-    console.error("Error creating Razorpay order: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error creating Razorpay order: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
@@ -66,7 +66,7 @@ const confirmRazorpayPayment = async (
 };
 
 // Handle Razorpay Payment Failure
-const handleRazorpayPaymentFailure = async (req, res, next) => {
+const handleRazorpayPaymentFailure = async (req, res) => {
   try {
     const { orderId } = req.body;
     const order = await Order.findOne({ razorpayOrderId: orderId });
@@ -74,22 +74,30 @@ const handleRazorpayPaymentFailure = async (req, res, next) => {
       return errorHandler(res, HttpStatus.NOT_FOUND, "Order not found.");
     }
 
-    order.orderStatus = "Failed";
-    order.orderPaymentStatus = "Failed";
     await Order.updateMany(
-      { "orderItems._id": { $in: order.orderItems.map((item) => item._id) } },
-      { $set: { "orderItems.$[].itemStatus": "Failed" } },
+      {
+        $or: [
+          { _id: order._id }, // Update the order document
+          { "orderItems._id": { $in: order.orderItems.map((item) => item._id) } }, // Update the order items
+        ],
+      },
+      {
+        $set: {
+          orderStatus: "Failed",
+          orderPaymentStatus: "Failed",
+          "orderItems.$[].itemStatus": "Failed",
+        },
+      },
     );
-    await order.save();
 
     return successHandler(
       res,
       HttpStatus.PAYMENT_REQUIRED,
       "Order payment failed. You can retry the payment from your order details page.",
     );
-  } catch (err) {
-    console.error("Error handling payment failure: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error handling payment failure: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
