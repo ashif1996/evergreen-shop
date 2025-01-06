@@ -1,15 +1,16 @@
 const moment = require("moment");
-const stream = require("stream");
 const ExcelJS = require("exceljs");
 const PDFDocument = require("pdfkit");
-const HttpStatus = require("../utils/httpStatus");
+
 const Order = require("../models/orderSchema");
+
+const HttpStatus = require("../utils/httpStatus");
 
 // Function to render the sales report page
 const getSalesReportPage = async (req, res) => {
   const locals = { title: "Admin - Sales Report | EverGreen", message: {} };
 
-  return res.render("admin/salesReport", {
+  res.render("admin/salesReport", {
     locals,
     layout: "layouts/adminLayout",
   });
@@ -25,7 +26,7 @@ const calculateReportDetails = (orders) => {
 };
 
 // Generate sales report based on order status and date range
-const generateSalesReport = async (req, res, next) => {
+const generateSalesReport = async (req, res) => {
   try {
     const { type, fromDate, toDate } = req.query;
 
@@ -71,9 +72,9 @@ const generateSalesReport = async (req, res, next) => {
     const reportDetails = calculateReportDetails(orders);
 
     res.status(HttpStatus.OK).json({ orders, reportDetails });
-  } catch (err) {
-    console.error("Error generating sales report: ", err);
-    return next(err);
+  } catch (error) {
+    console.error("Error generating sales report: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
