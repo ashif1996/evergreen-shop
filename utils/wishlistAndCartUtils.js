@@ -17,8 +17,9 @@ const getUserCartAndWishlistCount = async (userId) => {
       cartItemsCount: user.cart ? user.cart.items.length : 0,
       wishlistItemsCount: user.wishlist ? user.wishlist.items.length : 0,
     };
-  } catch (err) {
-    console.error("Error fetching user cart and wishlist: ", err);
+  } catch (error) {
+    console.error("Error fetching user cart and wishlist: ", error);
+    throw new Error("An error occurred. Please try again later.");
   }
 };
 
